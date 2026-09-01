@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/styles.css">
+<script src="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cl-tokens.css">
+<style>
+  body { background: #101317; }
+</style>
+</helmet>
+
+<div style="background: #101317; padding: 56px 56px 96px 56px; font-family: 'Archivo', system-ui, sans-serif; color: #f2f3f5;">
+
+  <section style="display: flex; flex-direction: column; gap: 56px;">
+
+    <div style="display: flex; align-items: flex-start; gap: 28px; max-width: 1100px;">
+      <img src="assets/logo.png" alt="Crazy Larry's Dumpster Rental" style="width: 96px; height: 96px; object-fit: contain; flex: 0 0 96px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: #e91e8c; margin-bottom: 10px;">Round 3 · Admin tools — the remaining five panels</div>
+        <h1 style="margin: 0 0 14px 0; font-size: 44px; font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Everything the office touches<br>between the booking and the truck.</h1>
+        <p style="margin: 0 0 16px 0; max-width: 78ch; font-size: 15px; line-height: 1.65; color: #98a0ac;">Same rail, same five status colors, same 2px chassis as Rounds 1 and 2. Every list here is the &ldquo;Today's movements&rdquo; row grown up: time on the left, a color bar for status, the can number, then who and where. Tables become cards on the phone rather than scrolling sideways.</p>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap; font-size: 12px; color: #6b7280;">
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Panels</div>Schedule · Bookings · Drivers · Customers · Call log</div>
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Fleet</div>32 cans · Metro Columbus</div>
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Views</div>Desktop + phone, light + dark</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3h · SCHEDULE, WEEK -->
+    <div id="3h" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3h</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Schedule · week</h2>
+        <span style="font-size: 13px; color: #6b7280;">Drag-to-reassign state showing</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Each day column carries a capacity bar above it, because the question is never just &ldquo;what's on Tuesday&rdquo; — it's &ldquo;can Tuesday take one more.&rdquo; Friday is at 32 of 32, so its column greys out and refuses the drop. The chip being moved goes translucent, a dashed purple target opens in the destination day, and the purple bar across the top is the confirm step — nothing commits on release alone. Seven columns cannot hold a customer name on a phone, so the week restacks there into seven full-width day sections — capacity bar in each day's header, movements as the same rows the day view uses, and the drop target and at-capacity notice inline.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="AdminScreens" screen="schedule" view="week" theme="light" device="desktop" hint-size="100%,720px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="AdminScreens" screen="schedule" view="week" theme="dark" device="desktop" hint-size="100%,720px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light — week restacked by day</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="schedule" view="week" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark — week restacked by day</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="schedule" view="week" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3i · SCHEDULE, DAY + MONTH -->
+    <div id="3i" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3i</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Schedule · day and month</h2>
+        <span style="font-size: 13px; color: #6b7280;">Same segmented control, three densities</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Day is the dispatch view — a time gutter, one row per movement, driver on the right, with load-by-driver and the unassigned job beside it. Month trades detail for the capacity read: a bar and a count per day, so Larry can see which weeks he is about to oversell — on a phone it drops the drop/haul chips and keeps just the number and the bar, since 9px labels are below the floor this system sets everywhere else. The phone opens on Day; the owner in the cab wants today, not the month.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Day · desktop light</div>
+          <div style="width: 1360px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="AdminScreens" screen="schedule" view="day" theme="light" device="desktop" hint-size="100%,760px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Month · desktop dark</div>
+          <div style="width: 1360px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="AdminScreens" screen="schedule" view="month" theme="dark" device="desktop" hint-size="100%,760px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Day · phone light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="schedule" view="day" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Month · phone dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="schedule" view="month" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3j · BOOKINGS -->
+    <div id="3j" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3j</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Booking management</h2>
+        <span style="font-size: 13px; color: #6b7280;">Searchable table · row click opens the detail card</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Status uses the same five colors as the fleet board, so &ldquo;overdue&rdquo; is the same orange everywhere in the product. The selected row carries a 3px pink inset and the detail panel on the right is the can-detail card from the fleet board with a booking history block added. On the phone the table becomes status-capped cards and the detail opens as a full screen.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="AdminScreens" screen="bookings" theme="light" device="desktop" hint-size="100%,800px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="AdminScreens" screen="bookings" theme="dark" device="desktop" hint-size="100%,800px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="bookings" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="bookings" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3k · DRIVERS -->
+    <div id="3k" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3k</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Driver management</h2>
+        <span style="font-size: 13px; color: #6b7280;">List · assignment · route view</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">The assignment panel answers the Round 1 example directly: the unassigned Sanders Basement job, with candidate drivers sorted by the detour it adds rather than alphabetically — Dale is +12 minutes, Marcus is +48 and tips into overtime, Tam has no truck. That is the number that decides it, so it is set large and colored by consequence. The route view stacks an optimized stop list under the map with done stops greyed.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="AdminScreens" screen="drivers" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="AdminScreens" screen="drivers" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="drivers" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="drivers" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3l · CUSTOMERS -->
+    <div id="3l" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3l</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Customer records</h2>
+        <span style="font-size: 13px; color: #6b7280;">Searchable database · detail with rental history</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Lifetime value and rental count sit in the list because they are how Larry decides whether to bend on a late fee. The detail panel keeps the same pink-header card shape as the booking and can detail, with tag chips for the things worth knowing before you pick up the phone — pays on time, one can out, a change request pending.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="AdminScreens" screen="customers" theme="light" device="desktop" hint-size="100%,780px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="AdminScreens" screen="customers" theme="dark" device="desktop" hint-size="100%,780px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="customers" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="customers" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3m · CALL LOG -->
+    <div id="3m" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3m</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Call log · Quo</h2>
+        <span style="font-size: 13px; color: #6b7280;">Row list with one row expanded</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Caller, time, length, then Quo's summary as the widest column — the summary is what makes the log scannable, so it gets the space rather than metadata. Expanding a row opens the timestamped transcript with the audio scrubber beneath it, and a panel of what Quo extracted: which booking it matched, what was asked for, sentiment, and what was promised. Outcome chips reuse the status palette, with orange for anything owed a callback.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="AdminScreens" screen="calls" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1440px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="AdminScreens" screen="calls" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="calls" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="AdminScreens" screen="calls" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <div style="max-width: 1100px;">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #e91e8c; margin-bottom: 12px;">Calls I made — flag any of these</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #2a3038; border: 2px solid #2a3038;">
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Capacity is per day, not per truck</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">The schedule caps a day at 32 — the whole fleet. If the real limit is trucks and hours rather than cans, the bars should count stops per driver instead.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Detour minutes are invented</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Driver assignment ranks by added drive time, which assumes a routing service. Without one it would rank by stop count and rough zone instead.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Quo's extracted fields</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Matched booking, request, sentiment and promise are what I assumed Quo returns. Tell me the real fields and the panel changes to match.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, phoneW: 402, phoneH: 1080 };
+  }
+}
+
+</script>
+</body>
+</html>

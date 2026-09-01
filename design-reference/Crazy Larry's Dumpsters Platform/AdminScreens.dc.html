@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/styles.css">
+<script src="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cl-tokens.css">
+</helmet>
+
+<div data-cl="1" data-cl-theme="{{ theme }}" data-cl-dev="{{ device }}" style="display: flex; min-height: 100%; background: var(--bg); color: var(--ink);">
+
+  <nav style="display: var(--sb); width: var(--rail-w); flex: 0 0 var(--rail-w); flex-direction: column; background: var(--rail-bg); border-right: 2px solid var(--line-strong);">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <img src="{{ logoSrc }}" alt="" style="width: 32px; height: 32px; object-fit: contain;">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rail-ink); line-height: 1.3;">Crazy&nbsp;Larry's<br><span style="font-size: 9px; letter-spacing: 0.18em; color: var(--rail-ink-2);">Operations</span></div>
+    </div>
+    <div style="padding: 12px 0; display: flex; flex-direction: column; gap: 1px;">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="7">
+        <button data-clnav="1" data-active="{{ n.active }}" style="display: flex; align-items: center; gap: 11px; width: 100%; border: 0; background: transparent; padding: 11px 16px; color: var(--rail-ink-2); font-family: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer;">
+          <span style="width: 17px; height: 17px; flex: 0 0 17px; background: currentColor; mask-repeat: no-repeat; mask-position: center; mask-size: contain; mask-image: {{ n.icon }};"></span>
+          {{ n.label }}
+          <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}">
+            <span style="margin-left: auto; background: var(--orange); color: #14161a; font-size: 10px; font-weight: 800; padding: 2px 6px;">{{ n.badge }}</span>
+          </sc-if>
+        </button>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px;">
+      <div style="width: 32px; height: 32px; flex: 0 0 32px; background: var(--pink); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">LK</div>
+      <div style="min-width: 0;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--rail-ink);">Larry Kessler</div>
+        <div style="font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rail-ink-2);">Owner</div>
+      </div>
+    </div>
+  </nav>
+
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+
+    <header style="display: flex; align-items: center; gap: 12px; padding: 12px var(--pad); padding-top: calc(12px + var(--safe-top)); background: var(--surface); border-bottom: 2px solid var(--line-strong);">
+      <button style="display: var(--bb); align-items: center; justify-content: center; width: 36px; height: 36px; flex: 0 0 36px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+      </button>
+      <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; border: 2px solid var(--line); background: var(--bg); padding: 8px 11px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <span style="font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ searchHint }}</span>
+      </div>
+      <div style="display: var(--tools); align-items: center; gap: 8px;">
+        <button style="position: relative; width: 36px; height: 36px; border: 2px solid var(--line); background: transparent; color: var(--ink-2); cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"></path><path d="M10.3 21a2 2 0 0 0 3.4 0"></path></svg>
+          <span style="position: absolute; top: -7px; right: -7px; min-width: 17px; height: 17px; background: var(--orange); color: #14161a; font-size: 10px; font-weight: 800; display: grid; place-items: center;">5</span>
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 3px 10px 3px 3px; border: 2px solid var(--line);">
+          <div style="width: 28px; height: 28px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">LK</div>
+          <div style="font-size: 12px; font-weight: 700;">Larry K.</div>
+        </div>
+      </div>
+      <div style="display: var(--bb); align-items: center; justify-content: center; width: 36px; height: 36px; flex: 0 0 36px; background: var(--teal); color: #fff; font-size: 11px; font-weight: 800;">LK</div>
+    </header>
+
+    <!-- ══════ SCHEDULING ══════ -->
+    <sc-if value="{{ isSchedule }}" hint-placeholder-val="{{ true }}">
+    <main style="padding: var(--pad); padding-bottom: 84px; display: flex; flex-direction: column; gap: var(--gap);">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div>
+          <h1 style="margin: 0 0 3px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">{{ schedTitle }}</h1>
+          <div style="font-size: 12px; color: var(--ink-2);">{{ schedSub }}</div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; border: 2px solid var(--ink);">
+            <sc-for list="{{ views }}" as="v" hint-placeholder-count="3">
+              <div style="padding: 8px 14px; background: {{ v.bg }}; color: {{ v.ink }}; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">{{ v.label }}</div>
+            </sc-for>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="width: 34px; height: 34px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 800;">‹</button>
+            <button style="width: 34px; height: 34px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 800;">›</button>
+          </div>
+          <button style="border: 0; background: var(--teal); color: #fff; padding: 11px 15px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-align: left;" style-hover="background: var(--teal-700);">+ Add a movement</button>
+        </div>
+      </div>
+
+      <!-- drag-to-reassign interaction state -->
+      <div style="border: 2px solid var(--purple); background: var(--surface); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="width: 28px; height: 28px; flex: 0 0 28px; background: var(--purple); color: #fff; display: grid; place-items: center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M5 9h14M5 15h14"></path><path d="m9 5 3-3 3 3M9 19l3 3 3-3"></path></svg>
+        </span>
+        <div style="flex: 1; min-width: 200px; font-size: 13px; line-height: 1.45;"><strong>Moving CL-127 haul · K. Boyle</strong> <span style="color: var(--ink-2);">— drop it on a day to reschedule. Fri is at capacity, so it is greyed out.</span></div>
+        <span style="background: var(--purple-tint); color: var(--purple-tint-ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 9px;">Wed 2 Sep · 7:30am</span>
+        <button style="border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 8px 12px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;">Cancel</button>
+        <button style="border: 0; background: var(--teal); color: #fff; padding: 10px 13px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;">Confirm move</button>
+      </div>
+
+      <!-- WEEK -->
+      <sc-if value="{{ isWeek }}" hint-placeholder-val="{{ true }}">
+      <!-- mobile: one full-width section per day -->
+      <div style="display: var(--wk-stack); flex-direction: column; gap: 10px;">
+        <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+          <div style="border: 2px solid var(--line-strong); background: {{ d.colBg }};">
+            <div style="padding: 10px 13px; border-bottom: 2px solid var(--line-strong); display: flex; align-items: center; gap: 11px;">
+              <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: {{ d.headInk }};">{{ d.name }}</span>
+              <span style="font-size: 19px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: {{ d.headInk }};">{{ d.num }}</span>
+              <span style="flex: 1; min-width: 24px; height: 8px; background: var(--tint);"><span style="display: block; height: 8px; width: {{ d.pct }}; background: {{ d.capColor }};"></span></span>
+              <span style="font-size: 12px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap;">{{ d.cap }}</span>
+            </div>
+            <sc-for list="{{ d.jobs }}" as="j" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-bottom: 1px solid var(--line); opacity: {{ j.op }};">
+                <span style="width: 6px; height: 32px; flex: 0 0 6px; background: {{ j.color }};"></span>
+                <span style="width: 46px; flex: 0 0 46px; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ j.time }}</span>
+                <span style="flex: 1; min-width: 0;">
+                  <span style="display: block; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ j.who }}</span>
+                  <span style="display: block; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ j.where }} · {{ j.can }}</span>
+                </span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ d.dropTarget }}" hint-placeholder-val="{{ false }}">
+              <div style="margin: 9px 13px; border: 2px dashed var(--purple); background: var(--purple-tint); padding: 11px; display: flex; align-items: center; gap: 10px; min-height: 48px;">
+                <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--purple-tint-ink);">Drop here</span>
+                <span style="font-size: 13px; font-weight: 700; color: var(--purple-tint-ink);">7:30 · CL-127</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ d.full }}" hint-placeholder-val="{{ false }}">
+              <div style="margin: 9px 13px; border: 2px solid var(--orange); background: var(--orange-tint); padding: 9px 11px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-tint-ink);">At capacity — cannot take a move</div>
+            </sc-if>
+            <sc-if value="{{ d.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 12px 13px; font-size: 13px; color: var(--ink-3);">Nothing booked.</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: var(--wk-grid); border: 2px solid var(--line-strong); background: var(--surface); overflow: hidden;">
+        <div style="display: grid; grid-template-columns: var(--wk-cols); gap: 1px; background: var(--line);">
+          <div style="background: var(--surface); padding: 9px 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Cap</div>
+          <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+            <div style="background: var(--surface); padding: 9px 8px; display: flex; flex-direction: column; gap: 5px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: {{ d.headInk }};">{{ d.name }}</span>
+                <span style="font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; color: {{ d.headInk }};">{{ d.num }}</span>
+              </div>
+              <div style="height: 6px; background: var(--tint);"><div style="height: 6px; width: {{ d.pct }}; background: {{ d.capColor }};"></div></div>
+              <div style="font-size: 9px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ d.cap }}</div>
+            </div>
+          </sc-for>
+          <div style="background: var(--surface-2); padding: 8px 6px; display: flex; flex-direction: column; gap: 26px;">
+            <sc-for list="{{ bands }}" as="b" hint-placeholder-count="3">
+              <div style="font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); line-height: 1.3;">{{ b }}</div>
+            </sc-for>
+          </div>
+          <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+            <div style="background: {{ d.colBg }}; padding: 7px; display: flex; flex-direction: column; gap: 5px; min-height: 250px;">
+              <sc-for list="{{ d.jobs }}" as="j" hint-placeholder-count="3">
+                <div style="border-left: 5px solid {{ j.color }}; background: {{ j.bg }}; padding: 6px 7px; box-shadow: {{ j.ring }}; opacity: {{ j.op }};">
+                  <div style="font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink-2);">{{ j.time }} · {{ j.can }}</div>
+                  <div style="font-size: 11px; font-weight: 700; line-height: 1.3; margin-top: 1px;">{{ j.who }}</div>
+                  <div style="font-size: 10px; color: var(--ink-2); line-height: 1.3;">{{ j.where }}</div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ d.dropTarget }}" hint-placeholder-val="{{ false }}">
+                <div style="border: 2px dashed var(--purple); background: var(--purple-tint); padding: 8px 7px; display: flex; flex-direction: column; gap: 2px;">
+                  <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--purple-tint-ink);">Drop here</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--purple-tint-ink);">7:30 · CL-127</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ d.full }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: auto; border: 2px solid var(--orange); background: var(--orange-tint); padding: 6px 7px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--orange-tint-ink);">At capacity</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- DAY -->
+      <sc-if value="{{ isDay }}" hint-placeholder-val="{{ false }}">
+      <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Thursday 27 August</span>
+            <span style="font-size: 11px; color: var(--ink-3);">9 movements · 2 drivers</span>
+          </div>
+          <sc-for list="{{ dayRows }}" as="r" hint-placeholder-count="9">
+            <div data-clrow="1" style="display: flex; align-items: stretch; gap: 0; border-bottom: 1px solid var(--line); cursor: pointer;">
+              <div style="width: 62px; flex: 0 0 62px; padding: 11px 8px; background: var(--surface-2); border-right: 1px solid var(--line); font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ r.time }}</div>
+              <div style="width: 7px; flex: 0 0 7px; background: {{ r.color }};"></div>
+              <div style="flex: 1; min-width: 0; padding: 10px 13px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                  <div style="font-size: 13px; font-weight: 700;">{{ r.who }}</div>
+                  <div style="font-size: 11px; color: var(--ink-2);">{{ r.where }}</div>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink-2);">{{ r.can }}</span>
+                <span style="background: {{ r.badgeBg }}; color: {{ r.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">{{ r.kind }}</span>
+                <span style="width: 66px; font-size: 11px; font-weight: 700; color: {{ r.driverInk }}; text-align: right;">{{ r.driver }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+          <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+            <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Load by driver</div>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 13px;">
+              <sc-for list="{{ driverLoad }}" as="d" hint-placeholder-count="3">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;"><span style="font-weight: 800;">{{ d.name }}</span><span style="color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ d.label }}</span></div>
+                  <div style="height: 11px; background: var(--tint);"><div style="height: 11px; width: {{ d.pct }}; background: {{ d.color }};"></div></div>
+                </div>
+              </sc-for>
+              <div style="border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; color: var(--ink-2); line-height: 1.5;">Marcus is one stop from a full day. The 12:40 Grove City drop has to go to Dale or wait until tomorrow.</div>
+            </div>
+          </div>
+          <div style="border: 2px solid var(--orange); background: var(--surface);">
+            <div style="padding: 10px 16px; background: var(--orange); color: #14161a; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; display: flex; justify-content: space-between;"><span>Unassigned</span><span>1</span></div>
+            <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 11px;">
+              <div>
+                <div style="font-size: 14px; font-weight: 800;">12:40 · Sanders Basement Co.</div>
+                <div style="font-size: 12px; color: var(--ink-2); line-height: 1.45;">20 yd drop · 331 Grove City Rd, Grove City · booked 6 days ago</div>
+              </div>
+              <button style="width: 100%; border: 0; background: var(--teal); color: #fff; padding: 13px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer; min-height: 44px;" style-hover="background: var(--teal-700);">Assign a driver →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- MONTH -->
+      <sc-if value="{{ isMonth }}" hint-placeholder-val="{{ false }}">
+      <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); padding: 1px;">
+          <sc-for list="{{ dayNames }}" as="d" hint-placeholder-count="7">
+            <div style="background: var(--surface); text-align: center; padding: 8px 0; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);">{{ d }}</div>
+          </sc-for>
+          <sc-for list="{{ monthDays }}" as="m" hint-placeholder-count="35">
+            <div style="background: {{ m.bg }}; min-height: 96px; padding: 7px; display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 4px;">
+                <span style="font-size: 13px; font-weight: 800; color: {{ m.ink }}; font-variant-numeric: tabular-nums;">{{ m.n }}</span>
+                <span style="font-size: 9px; font-weight: 800; color: {{ m.capInk }}; font-variant-numeric: tabular-nums;">{{ m.cap }}</span>
+              </div>
+              <div style="height: 5px; background: var(--tint);"><div style="height: 5px; width: {{ m.pct }}; background: {{ m.capColor }};"></div></div>
+              <div style="display: var(--chip); flex-direction: column; gap: 2px;">
+                <sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="2">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; color: var(--ink-2);">
+                    <span style="width: 7px; height: 7px; flex: 0 0 7px; background: {{ c.color }};"></span>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+    </main>
+    </sc-if>
+
+    <!-- ══════ BOOKINGS ══════ -->
+    <sc-if value="{{ isBookings }}" hint-placeholder-val="{{ false }}">
+    <main style="padding: var(--pad); padding-bottom: 84px; display: flex; flex-direction: column; gap: var(--gap);">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div>
+          <h1 style="margin: 0 0 3px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">Bookings</h1>
+          <div style="font-size: 12px; color: var(--ink-2);">248 all time · 31 open right now</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button style="border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 9px 13px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;" style-hover="background: var(--tint);">Export CSV</button>
+          <button style="border: 0; background: var(--teal); color: #fff; padding: 11px 15px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;" style-hover="background: var(--teal-700);">+ New booking</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 210px; display: flex; align-items: center; gap: 9px; border: 2px solid var(--line-strong); background: var(--surface); padding: 9px 12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span style="font-size: 13px; font-weight: 700;">boyle</span>
+          <span style="margin-left: auto; font-size: 11px; color: var(--ink-3);">3 matches</span>
+        </div>
+        <span style="background: var(--ink); color: var(--surface); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 11px;">All 31</span>
+        <sc-for list="{{ statusFilters }}" as="f" hint-placeholder-count="5">
+          <button style="display: flex; align-items: center; gap: 7px; border: 2px solid var(--line); background: transparent; color: var(--ink); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;" style-hover="border-color: var(--ink);">
+            <span style="width: 9px; height: 9px; background: {{ f.color }};"></span>{{ f.label }} {{ f.n }}
+          </button>
+        </sc-for>
+        <div style="width: 2px; height: 24px; background: var(--line);"></div>
+        <button style="border: 2px solid var(--line); background: transparent; color: var(--ink-2); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;">This month ▾</button>
+      </div>
+
+      <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+        <div>
+          <!-- desktop table -->
+          <div style="display: var(--tbl); border: 2px solid var(--line-strong); background: var(--surface);">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 2px solid var(--line-strong); background: var(--surface-2);">
+              <span style="width: 74px; flex: 0 0 74px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Booking</span>
+              <span style="flex: 1; min-width: 0; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Customer &amp; site</span>
+              <span style="width: 96px; flex: 0 0 96px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Window</span>
+              <span style="width: 52px; flex: 0 0 52px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Can</span>
+              <span style="width: 96px; flex: 0 0 96px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Status</span>
+              <span style="width: 74px; flex: 0 0 74px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); text-align: right;">Total</span>
+            </div>
+            <sc-for list="{{ bookings }}" as="b" hint-placeholder-count="10">
+              <div data-clrow="1" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line); cursor: pointer; box-shadow: {{ b.sel }};">
+                <span style="width: 74px; flex: 0 0 74px; font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums;">{{ b.id }}</span>
+                <span style="flex: 1; min-width: 0;">
+                  <span style="display: block; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ b.who }}</span>
+                  <span style="display: block; font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ b.where }}</span>
+                </span>
+                <span style="width: 96px; flex: 0 0 96px; font-size: 12px; font-variant-numeric: tabular-nums;">{{ b.window }}</span>
+                <span style="width: 52px; flex: 0 0 52px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink-2);">{{ b.can }}</span>
+                <span style="width: 96px; flex: 0 0 96px;"><span style="background: {{ b.badgeBg }}; color: {{ b.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">{{ b.status }}</span></span>
+                <span style="width: 74px; flex: 0 0 74px; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right;">{{ b.total }}</span>
+              </div>
+            </sc-for>
+            <div style="padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <span style="font-size: 12px; color: var(--ink-3);">1–10 of 31</span>
+              <div style="display: flex; gap: 4px;">
+                <span style="border: 2px solid var(--ink); background: var(--ink); color: var(--surface); font-size: 11px; font-weight: 800; padding: 4px 9px;">1</span>
+                <span style="border: 2px solid var(--line); font-size: 11px; font-weight: 800; padding: 4px 9px; color: var(--ink-2);">2</span>
+                <span style="border: 2px solid var(--line); font-size: 11px; font-weight: 800; padding: 4px 9px; color: var(--ink-2);">3</span>
+              </div>
+            </div>
+          </div>
+          <!-- mobile cards -->
+          <div style="display: var(--cards); flex-direction: column; gap: 10px;">
+            <sc-for list="{{ bookings }}" as="b" hint-placeholder-count="10">
+              <div style="border: 2px solid var(--line-strong); background: var(--surface); border-left: 6px solid {{ b.color }}; padding: 12px; display: flex; flex-direction: column; gap: 7px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+                  <span style="font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums;">{{ b.id }}</span>
+                  <span style="background: {{ b.badgeBg }}; color: {{ b.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">{{ b.status }}</span>
+                </div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">{{ b.who }}</div>
+                  <div style="font-size: 12px; color: var(--ink-2);">{{ b.where }}</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 7px; font-size: 12px;">
+                  <span style="color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ b.window }} · {{ b.can }}</span>
+                  <span style="font-weight: 800; font-variant-numeric: tabular-nums;">{{ b.total }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- detail panel, same shape as the can-detail card -->
+        <div style="border: 2px solid var(--pink); background: var(--surface); align-self: start;">
+          <div style="padding: 10px 16px; background: var(--pink); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; display: flex; justify-content: space-between;"><span>CL-8722</span><span>15 yd</span></div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Status</div>
+              <div style="font-size: 15px; font-weight: 800; color: var(--orange-tint-ink);">Overdue — day 9 of 5, can CL-127</div>
+            </div>
+            <div style="display: grid; grid-template-columns: var(--two); gap: 13px;">
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Customer</div><div style="font-size: 13px; font-weight: 700;">K. Boyle</div><div style="font-size: 12px; color: var(--ink-2);">(614) 555-0143</div></div>
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Site</div><div style="font-size: 13px; font-weight: 700;">4402 Cemetery Rd</div><div style="font-size: 12px; color: var(--ink-2);">Hilliard, OH 43026</div></div>
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Booked</div><div style="font-size: 13px; font-weight: 700;">12 Aug · web</div><div style="font-size: 12px; color: var(--ink-2);">Signed &amp; paid</div></div>
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Billed</div><div style="font-size: 13px; font-weight: 700;">$324 + $72</div><div style="font-size: 12px; color: var(--ink-2);">4 late days × $18</div></div>
+            </div>
+            <div style="border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">History</div>
+              <div style="display: flex; gap: 10px; font-size: 12px;"><span style="width: 62px; flex: 0 0 62px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums;">18 Aug</span><span>Delivered by Dale, photo on file</span></div>
+              <div style="display: flex; gap: 10px; font-size: 12px;"><span style="width: 62px; flex: 0 0 62px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums;">23 Aug</span><span>Pickup missed — no answer at site</span></div>
+              <div style="display: flex; gap: 10px; font-size: 12px;"><span style="width: 62px; flex: 0 0 62px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums;">25 Aug</span><span>Inbound call, asked for two more days</span></div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button style="flex: 1; min-width: 130px; border: 0; background: var(--teal); color: #fff; padding: 12px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left;" style-hover="background: var(--teal-700);">Schedule haul</button>
+              <button style="flex: 1; min-width: 130px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 10px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left;" style-hover="background: var(--tint);">Call customer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+    <!-- ══════ DRIVERS ══════ -->
+    <sc-if value="{{ isDrivers }}" hint-placeholder-val="{{ false }}">
+    <main style="padding: var(--pad); padding-bottom: 84px; display: flex; flex-direction: column; gap: var(--gap);">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div>
+          <h1 style="margin: 0 0 3px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">Drivers</h1>
+          <div style="font-size: 12px; color: var(--ink-2);">2 out · 1 off · 1 job still needs a name on it</div>
+        </div>
+        <button style="border: 0; background: var(--teal); color: #fff; padding: 11px 15px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;" style-hover="background: var(--teal-700);">+ Add a driver</button>
+      </div>
+
+      <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+        <div style="display: flex; flex-direction: column; gap: var(--gap);">
+          <div style="display: grid; gap: var(--gap); grid-template-columns: var(--two);">
+            <sc-for list="{{ drivers }}" as="d" hint-placeholder-count="4">
+              <div style="border: 2px solid var(--line-strong); background: var(--surface); border-top: 5px solid {{ d.color }}; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: flex-start; gap: 11px;">
+                  <div style="width: 40px; height: 40px; flex: 0 0 40px; background: {{ d.color }}; color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 800;">{{ d.initials }}</div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 15px; font-weight: 800;">{{ d.name }}</div>
+                    <div style="font-size: 12px; color: var(--ink-2);">{{ d.phone }}</div>
+                  </div>
+                  <span style="background: {{ d.badgeBg }}; color: {{ d.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px; white-space: nowrap;">{{ d.state }}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid var(--line); padding-top: 11px;">
+                  <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-3);">Truck</div><div style="font-size: 13px; font-weight: 700;">{{ d.truck }}</div></div>
+                  <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-3);">Today</div><div style="font-size: 13px; font-weight: 700;">{{ d.today }}</div></div>
+                </div>
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px;"><span style="color: var(--ink-2);">{{ d.progress }}</span><span style="font-weight: 800; font-variant-numeric: tabular-nums;">{{ d.pctLabel }}</span></div>
+                  <div style="height: 10px; background: var(--tint);"><div style="height: 10px; width: {{ d.pct }}; background: {{ d.color }};"></div></div>
+                </div>
+                <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+                  <button style="flex: 1; min-width: 100px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 10px 12px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-align: left; min-height: 44px;" style-hover="background: var(--tint);">See route</button>
+                  <button style="flex: 1; min-width: 100px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 10px 12px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-align: left; min-height: 44px;" style-hover="background: var(--tint);">Text driver</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- assignment interface -->
+          <div style="border: 2px solid var(--orange); background: var(--surface);">
+            <div style="padding: 10px 16px; background: var(--orange); color: #14161a; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; display: flex; justify-content: space-between;"><span>Assign this job</span><span>1 unassigned</span></div>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="font-size: 16px; font-weight: 800;">Sanders Basement Co. · 20 yd drop</div>
+                  <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">331 Grove City Rd, Grove City · today 12:40 · gate code 1180 · needs 60ft straight</div>
+                </div>
+                <div style="border: 2px solid var(--line); padding: 9px 12px;">
+                  <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-3);">Can</div>
+                  <div style="font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums;">CL-123</div>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">Pick a driver — sorted by detour added</div>
+                <sc-for list="{{ candidates }}" as="c" hint-placeholder-count="3">
+                  <div style="border: 2px solid {{ c.border }}; background: {{ c.bg }}; padding: 12px 13px; display: flex; align-items: center; gap: 12px; cursor: pointer; flex-wrap: wrap; min-height: 48px;">
+                    <div style="width: 32px; height: 32px; flex: 0 0 32px; background: {{ c.color }}; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">{{ c.initials }}</div>
+                    <div style="flex: 1; min-width: 120px;">
+                      <div style="font-size: 14px; font-weight: 800;">{{ c.name }}</div>
+                      <div style="font-size: 12px; color: var(--ink-2);">{{ c.note }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                      <div style="font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums; color: {{ c.detourInk }};">{{ c.detour }}</div>
+                      <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);">added</div>
+                    </div>
+                    <span style="background: {{ c.tagBg }}; color: {{ c.tagInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px; white-space: nowrap;">{{ c.tag }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button style="flex: 1; min-width: 150px; border: 0; background: var(--teal); color: #fff; padding: 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; min-height: 48px;" style-hover="background: var(--teal-700);">Assign to Dale &amp; text him</button>
+                <button style="flex: 1; min-width: 150px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 12px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; min-height: 48px;" style-hover="background: var(--tint);">Push to tomorrow</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- route view -->
+        <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+          <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+            <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+              <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Dale's route · today</span>
+              <span style="font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums;">68 mi · 5h 20m</span>
+            </div>
+            <div style="background: var(--map-bg); position: relative; height: 190px; overflow: hidden;">
+              <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px;"></div>
+              <div style="position: absolute; left: -5%; right: -5%; top: 52%; height: 3px; background: rgba(255,255,255,0.12); transform: rotate(-3deg);"></div>
+              <div style="position: absolute; top: -5%; bottom: -5%; left: 46%; width: 3px; background: rgba(255,255,255,0.12);"></div>
+              <sc-for list="{{ routePins }}" as="p" hint-placeholder-count="5">
+                <div style="position: absolute; left: {{ p.x }}; top: {{ p.y }}; display: flex; align-items: center; gap: 5px;">
+                  <div style="width: 20px; height: 20px; flex: 0 0 20px; background: {{ p.color }}; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 900; box-shadow: 0 0 0 3px rgba(0,0,0,0.4);">{{ p.n }}</div>
+                  <div style="background: rgba(10,13,17,0.88); border: 1px solid rgba(255,255,255,0.18); padding: 2px 6px; font-size: 10px; font-weight: 700; color: #fff; white-space: nowrap;">{{ p.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-for list="{{ stops }}" as="s" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 11px; padding: 11px 14px; border-top: 1px solid var(--line);">
+                <div style="width: 24px; height: 24px; flex: 0 0 24px; background: {{ s.color }}; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 900;">{{ s.n }}</div>
+                <div style="width: 46px; flex: 0 0 46px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ s.time }}</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.who }}</div>
+                  <div style="font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.where }}</div>
+                </div>
+                <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: {{ s.color }}; white-space: nowrap;">{{ s.kind }}</span>
+              </div>
+            </sc-for>
+            <div style="padding: 11px 14px; border-top: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <span style="font-size: 12px; color: var(--ink-2);">Optimized 6:02am · 2 stops done</span>
+              <button style="border: 0; background: transparent; color: var(--pink); padding: 0; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;">Re-optimize →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+    <!-- ══════ CUSTOMERS ══════ -->
+    <sc-if value="{{ isCustomers }}" hint-placeholder-val="{{ false }}">
+    <main style="padding: var(--pad); padding-bottom: 84px; display: flex; flex-direction: column; gap: var(--gap);">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div>
+          <h1 style="margin: 0 0 3px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">Customers</h1>
+          <div style="font-size: 12px; color: var(--ink-2);">412 records · 38 repeat contractors</div>
+        </div>
+        <button style="border: 0; background: var(--teal); color: #fff; padding: 11px 15px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;" style-hover="background: var(--teal-700);">+ Add a customer</button>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 210px; display: flex; align-items: center; gap: 9px; border: 2px solid var(--line-strong); background: var(--surface); padding: 9px 12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span style="font-size: 13px; color: var(--ink-3);">Name, phone, address or booking number</span>
+        </div>
+        <button style="border: 2px solid var(--ink); background: var(--ink); color: var(--surface); padding: 7px 11px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">All 412</button>
+        <button style="border: 2px solid var(--line); background: transparent; color: var(--ink-2); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">Contractors 38</button>
+        <button style="border: 2px solid var(--line); background: transparent; color: var(--ink-2); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">Active now 31</button>
+        <button style="border: 2px solid var(--line); background: transparent; color: var(--ink-2); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">Owes money 2</button>
+      </div>
+
+      <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+        <div>
+          <div style="display: var(--tbl); border: 2px solid var(--line-strong); background: var(--surface);">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 2px solid var(--line-strong); background: var(--surface-2);">
+              <span style="flex: 1; min-width: 0; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Customer</span>
+              <span style="width: 116px; flex: 0 0 116px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Phone</span>
+              <span style="width: 58px; flex: 0 0 58px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); text-align: right;">Rentals</span>
+              <span style="width: 84px; flex: 0 0 84px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); text-align: right;">Lifetime</span>
+              <span style="width: 92px; flex: 0 0 92px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">State</span>
+            </div>
+            <sc-for list="{{ customers }}" as="c" hint-placeholder-count="9">
+              <div data-clrow="1" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line); cursor: pointer; box-shadow: {{ c.sel }};">
+                <span style="flex: 1; min-width: 0;">
+                  <span style="display: block; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.name }}</span>
+                  <span style="display: block; font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.where }}</span>
+                </span>
+                <span style="width: 116px; flex: 0 0 116px; font-size: 12px; font-variant-numeric: tabular-nums;">{{ c.phone }}</span>
+                <span style="width: 58px; flex: 0 0 58px; font-size: 13px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums;">{{ c.rentals }}</span>
+                <span style="width: 84px; flex: 0 0 84px; font-size: 13px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums;">{{ c.lifetime }}</span>
+                <span style="width: 92px; flex: 0 0 92px;"><span style="background: {{ c.badgeBg }}; color: {{ c.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">{{ c.state }}</span></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: var(--cards); flex-direction: column; gap: 10px;">
+            <sc-for list="{{ customers }}" as="c" hint-placeholder-count="9">
+              <div style="border: 2px solid var(--line-strong); background: var(--surface); padding: 12px; display: flex; flex-direction: column; gap: 7px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+                  <span style="font-size: 14px; font-weight: 800;">{{ c.name }}</span>
+                  <span style="background: {{ c.badgeBg }}; color: {{ c.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">{{ c.state }}</span>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-2);">{{ c.where }} · {{ c.phone }}</div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 7px; font-size: 12px;">
+                  <span style="color: var(--ink-2);">{{ c.rentals }} rentals</span>
+                  <span style="font-weight: 800; font-variant-numeric: tabular-nums;">{{ c.lifetime }} lifetime</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--pink); background: var(--surface); align-self: start;">
+          <div style="padding: 10px 16px; background: var(--pink); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; display: flex; justify-content: space-between;"><span>Dana Whitmore</span><span>Contractor</span></div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; grid-template-columns: var(--two); gap: 13px;">
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Phone</div><div style="font-size: 13px; font-weight: 700;">(614) 555-0182</div></div>
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Email</div><div style="font-size: 13px; font-weight: 700; word-break: break-word;">dana@whitmorebuild.com</div></div>
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Since</div><div style="font-size: 13px; font-weight: 700;">March 2025</div></div>
+              <div><div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Lifetime</div><div style="font-size: 13px; font-weight: 700;">$2,412 · 7 cans</div></div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <span style="background: var(--teal-tint); color: var(--teal-tint-ink); font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 5px 8px;">Pays on time</span>
+              <span style="background: var(--pink-tint); color: var(--pink-tint-ink); font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 5px 8px;">1 can out</span>
+              <span style="background: var(--purple-tint); color: var(--purple-tint-ink); font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 5px 8px;">Change pending</span>
+            </div>
+            <div style="border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px;">Rental history</div>
+              <sc-for list="{{ custHistory }}" as="h" hint-placeholder-count="5">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line);">
+                  <span style="width: 6px; height: 26px; flex: 0 0 6px; background: {{ h.color }};"></span>
+                  <span style="width: 58px; flex: 0 0 58px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ h.id }}</span>
+                  <span style="flex: 1; min-width: 0; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ h.where }}</span>
+                  <span style="font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ h.total }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button style="flex: 1; min-width: 130px; border: 0; background: var(--teal); color: #fff; padding: 12px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left;" style-hover="background: var(--teal-700);">Book for her</button>
+              <button style="flex: 1; min-width: 130px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 10px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left;" style-hover="background: var(--tint);">Call</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+    <!-- ══════ CALL LOG ══════ -->
+    <sc-if value="{{ isCalls }}" hint-placeholder-val="{{ false }}">
+    <main style="padding: var(--pad); padding-bottom: 84px; display: flex; flex-direction: column; gap: var(--gap);">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div>
+          <h1 style="margin: 0 0 3px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">Call log</h1>
+          <div style="font-size: 12px; color: var(--ink-2);">Answered and transcribed by Quo · 14 calls today · 3 need a callback</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="display: flex; align-items: center; gap: 7px; border: 2px solid var(--teal); padding: 6px 10px;">
+            <span style="width: 8px; height: 8px; background: var(--teal);"></span>
+            <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal-tint-ink);">Quo connected</span>
+          </span>
+          <button style="border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 9px 13px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer;" style-hover="background: var(--tint);">Export CSV</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 210px; display: flex; align-items: center; gap: 9px; border: 2px solid var(--line-strong); background: var(--surface); padding: 9px 12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span style="font-size: 13px; color: var(--ink-3);">Search transcripts — &ldquo;overflow&rdquo;, &ldquo;concrete&rdquo;, a phone number</span>
+        </div>
+        <span style="background: var(--ink); color: var(--surface); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 11px;">All 14</span>
+        <button style="border: 2px solid var(--line); background: transparent; color: var(--ink-2); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">Booked 6</button>
+        <button style="display: flex; align-items: center; gap: 7px; border: 2px solid var(--line); background: transparent; color: var(--ink); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;"><span style="width: 9px; height: 9px; background: var(--orange);"></span>Callback 3</button>
+        <button style="border: 2px solid var(--line); background: transparent; color: var(--ink-2); padding: 5px 10px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;">Missed 2</button>
+      </div>
+
+      <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+        <div style="display: var(--tbl);">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 2px solid var(--line-strong); background: var(--surface-2);">
+            <span style="width: 150px; flex: 0 0 150px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Caller</span>
+            <span style="width: 84px; flex: 0 0 84px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Time</span>
+            <span style="width: 54px; flex: 0 0 54px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Length</span>
+            <span style="flex: 1; min-width: 0; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Quo's summary</span>
+            <span style="width: 96px; flex: 0 0 96px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);">Outcome</span>
+          </div>
+        </div>
+
+        <!-- expanded row -->
+        <div style="border-bottom: 2px solid var(--line-strong); background: var(--tint);">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; flex-wrap: wrap;">
+            <span style="width: 150px; flex: 0 0 150px; min-width: 130px;">
+              <span style="display: block; font-size: 13px; font-weight: 800;">K. Boyle</span>
+              <span style="display: block; font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums;">(614) 555-0143</span>
+            </span>
+            <span style="width: 84px; flex: 0 0 84px; font-size: 12px; font-variant-numeric: tabular-nums;">Today 9:12am</span>
+            <span style="width: 54px; flex: 0 0 54px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">2:41</span>
+            <span style="flex: 1; min-width: 180px; font-size: 12px; color: var(--ink-2); line-height: 1.45;">Asking for two more days on CL-127; drywall crew is behind. Told her the office would confirm.</span>
+            <span style="width: 96px; flex: 0 0 96px;"><span style="background: var(--orange); color: #14161a; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">Callback</span></span>
+            <span style="font-size: 15px; font-weight: 900; color: var(--pink);">−</span>
+          </div>
+          <div style="padding: 0 14px 14px 14px; display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+            <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+              <div style="padding: 10px 14px; border-bottom: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;">Full transcript</span>
+                <span style="font-size: 11px; color: var(--ink-3);">Quo · 96% confidence</span>
+              </div>
+              <div style="padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+                <sc-for list="{{ transcript }}" as="t" hint-placeholder-count="7">
+                  <div style="display: flex; gap: 11px;">
+                    <span style="width: 44px; flex: 0 0 44px; font-size: 11px; font-weight: 800; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ t.at }}</span>
+                    <span style="width: 62px; flex: 0 0 62px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: {{ t.color }};">{{ t.who }}</span>
+                    <span style="flex: 1; min-width: 0; font-size: 13px; line-height: 1.55;">{{ t.line }}</span>
+                  </div>
+                </sc-for>
+                <div style="border-top: 1px solid var(--line); padding-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                  <div style="flex: 1; min-width: 150px; display: flex; align-items: center; gap: 9px;">
+                    <span style="width: 30px; height: 30px; flex: 0 0 30px; background: var(--ink); color: var(--surface); display: grid; place-items: center;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+                    </span>
+                    <div style="flex: 1; height: 6px; background: var(--tint);"><div style="height: 6px; width: 0%; background: var(--pink);"></div></div>
+                    <span style="font-size: 11px; font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums;">0:00 / 2:41</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="border: 2px solid var(--line-strong); background: var(--surface); padding: 14px;">
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;">What Quo picked out</div>
+                <div style="display: flex; flex-direction: column; gap: 9px; font-size: 13px;">
+                  <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: var(--ink-2);">Matched</span><span style="font-weight: 800;">CL-8722 · CL-127</span></div>
+                  <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: var(--ink-2);">Asked for</span><span style="font-weight: 800;">+2 days pickup</span></div>
+                  <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: var(--ink-2);">Sentiment</span><span style="font-weight: 800; color: var(--orange-tint-ink);">Frustrated</span></div>
+                  <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: var(--ink-2);">Promised</span><span style="font-weight: 800;">Callback today</span></div>
+                </div>
+              </div>
+              <button style="width: 100%; border: 0; background: var(--teal); color: #fff; padding: 13px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer; min-height: 48px;" style-hover="background: var(--teal-700);">Open booking CL-8722</button>
+              <button style="width: 100%; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer; min-height: 48px;" style-hover="background: var(--tint);">Log the callback</button>
+            </div>
+          </div>
+        </div>
+
+        <sc-for list="{{ calls }}" as="c" hint-placeholder-count="8">
+          <div data-clrow="1" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; flex-wrap: wrap;">
+            <span style="width: 150px; flex: 0 0 150px; min-width: 130px;">
+              <span style="display: block; font-size: 13px; font-weight: 800;">{{ c.who }}</span>
+              <span style="display: block; font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ c.phone }}</span>
+            </span>
+            <span style="width: 84px; flex: 0 0 84px; font-size: 12px; font-variant-numeric: tabular-nums;">{{ c.at }}</span>
+            <span style="width: 54px; flex: 0 0 54px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ c.len }}</span>
+            <span style="flex: 1; min-width: 180px; font-size: 12px; color: var(--ink-2); line-height: 1.45;">{{ c.summary }}</span>
+            <span style="width: 96px; flex: 0 0 96px;"><span style="background: {{ c.badgeBg }}; color: {{ c.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 7px;">{{ c.outcome }}</span></span>
+            <span style="font-size: 15px; font-weight: 900; color: var(--ink-3);">+</span>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+    </sc-if>
+
+    <div style="display: var(--bb); position: sticky; bottom: 0; background: var(--rail-bg); border-top: 2px solid var(--line-strong); padding: 8px 4px 22px 4px;">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+        <button data-cltab="1" data-active="{{ t.active }}" style="flex: 1; border: 0; background: transparent; color: var(--rail-ink-2); font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; min-height: 48px; cursor: pointer;">
+          <span style="width: 20px; height: 20px; background: currentColor; mask-repeat: no-repeat; mask-position: center; mask-size: contain; mask-image: {{ t.icon }};"></span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.04em;">{{ t.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;schedule&quot;,&quot;bookings&quot;,&quot;drivers&quot;,&quot;customers&quot;,&quot;calls&quot;],&quot;default&quot;:&quot;schedule&quot;,&quot;tsType&quot;:&quot;'schedule' | 'bookings' | 'drivers' | 'customers' | 'calls'&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;day&quot;,&quot;week&quot;,&quot;month&quot;],&quot;default&quot;:&quot;week&quot;,&quot;tsType&quot;:&quot;'day' | 'week' | 'month'&quot;,&quot;section&quot;:&quot;Schedule&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;'desktop' | 'mobile'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const P = 'var(--pink)', T = 'var(--teal)', O = 'var(--orange)', U = 'var(--purple)', G = 'var(--gray-st)';
+    const icon = (d) => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round'>${d}</svg>`)}")`;
+    const I = {
+      overview: "<rect x='3' y='3' width='7' height='9'/><rect x='14' y='3' width='7' height='5'/><rect x='14' y='12' width='7' height='9'/><rect x='3' y='16' width='7' height='5'/>",
+      fleet: "<path d='M3 7h18v12H3z'/><path d='M3 7l2-3h14l2 3'/><path d='M9 7v12M15 7v12'/>",
+      sched: "<rect x='3' y='5' width='18' height='16'/><path d='M3 10h18M8 3v4M16 3v4'/>",
+      book: "<path d='M4 5h16M4 12h16M4 19h16'/>",
+      driver: "<path d='M1 16V8h11v8'/><path d='M12 11h5l4 4v1h-9z'/><circle cx='5' cy='18' r='2'/><circle cx='17' cy='18' r='2'/>",
+      cust: "<circle cx='9' cy='8' r='3.5'/><path d='M2 20c0-3.5 3-6 7-6s7 2.5 7 6'/><path d='M17 8h5M17 12h5'/>",
+      call: "<path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/>",
+      more: "<circle cx='5' cy='12' r='1.4'/><circle cx='12' cy='12' r='1.4'/><circle cx='19' cy='12' r='1.4'/>"
+    };
+
+    const screen = this.props.screen ?? 'schedule';
+    const view = this.props.view ?? 'week';
+    const mobile = (this.props.device ?? 'desktop') === 'mobile';
+
+    const navDefs = [
+      ['overview', 'Overview', I.overview, false],
+      ['fleet', 'Fleet', I.fleet, '3'],
+      ['schedule', 'Schedule', I.sched, false],
+      ['bookings', 'Bookings', I.book, false],
+      ['drivers', 'Drivers', I.driver, '1'],
+      ['customers', 'Customers', I.cust, false],
+      ['calls', 'Call log', I.call, false]
+    ];
+
+    const badge = (bg, ink) => ({ badgeBg: bg, badgeInk: ink });
+    const tintOf = { available: ['var(--teal-tint)', 'var(--teal-tint-ink)'], reserved: ['var(--purple-tint)', 'var(--purple-tint-ink)'], deployed: ['var(--pink-tint)', 'var(--pink-tint-ink)'], overdue: [O, '#14161a'], done: ['var(--tint)', 'var(--ink-2)'] };
+    const B = (k) => badge(tintOf[k][0], tintOf[k][1]);
+
+    // ── week view
+    const weekDefs = [
+      ['Sun', 30, 3, 32, [], false, false],
+      ['Mon', 31, 22, 32, [['7:10', 'CL-118', 'Ferris Roofing', 'Westerville', T, 'drop'], ['11:30', 'CL-125', 'A. Nowak', 'Dublin', T, 'drop'], ['2:40', 'CL-113', 'Ohio Reno Grp', 'Worthington', P, 'haul']], false, false],
+      ['Tue', 1, 26, 32, [['6:50', 'CL-111', 'Sandusky Bros', 'Grove City', T, 'drop'], ['9:20', 'CL-124', 'M. Ito', 'Bexley', P, 'haul'], ['1:15', 'CL-132', 'Keystone Builders', 'Gahanna', T, 'drop']], false, false],
+      ['Wed', 2, 19, 32, [['8:00', 'CL-120', 'L. Pham', 'Canal Winchester', T, 'drop']], true, false],
+      ['Thu', 3, 24, 32, [['7:45', 'CL-129', 'Bexley Property', 'Bexley', T, 'drop'], ['12:10', 'CL-115', 'T. Okonkwo', 'German Village', P, 'haul']], false, false],
+      ['Fri', 4, 32, 32, [['6:40', 'CL-127', 'K. Boyle', 'Hilliard', O, 'late'], ['10:05', 'CL-110', 'Powell Homes', 'Powell', P, 'haul'], ['3:30', 'CL-103', 'D. Reyes', 'Clintonville', T, 'drop']], false, true],
+      ['Sat', 5, 14, 32, [['8:30', 'CL-106', 'J. Whitfield', 'Whitehall', T, 'drop']], false, false]
+    ];
+    const week = weekDefs.map(([name, num, used, cap, jobs, dropTarget, full]) => {
+      const pct = Math.round((used / cap) * 100);
+      return {
+        name, num,
+        cap: used + '/' + cap,
+        pct: pct + '%',
+        capColor: pct >= 100 ? O : pct >= 80 ? P : T,
+        headInk: full ? 'var(--orange-tint-ink)' : 'var(--ink)',
+        colBg: full ? 'var(--tint)' : 'var(--surface)',
+        dropTarget, full,
+        empty: jobs.length === 0,
+        jobs: jobs.map(([time, can, who, where, color, kind]) => ({
+          time, can, who, where, color,
+          bg: kind === 'late' ? 'var(--orange-tint)' : 'var(--surface-2)',
+          ring: kind === 'late' ? 'inset 0 0 0 2px ' + O : 'none',
+          op: (kind === 'late' && dropTarget === false && name === 'Fri') ? '0.45' : '1'
+        }))
+      };
+    });
+
+    // ── month view
+    const monthDays = [];
+    for (let i = 0; i < 35; i++) {
+      const n = i - 1; // Aug 30 start
+      if (n < 1 || n > 30) {
+        monthDays.push({ n: n < 1 ? 30 + n + 1 : n - 30, bg: 'var(--bg)', ink: 'var(--ink-3)', cap: '', capInk: 'var(--ink-3)', pct: '0%', capColor: T, chips: [] });
+        continue;
+      }
+      const used = [14, 22, 26, 19, 24, 32, 14, 9, 21, 25, 28, 20, 30, 12, 8, 18, 23, 27, 31, 22, 26, 15, 7, 19, 24, 29, 21, 25, 13, 17][n - 1];
+      const pct = Math.round((used / 32) * 100);
+      const chips = [];
+      if (used >= 28) chips.push({ color: O, label: used + ' committed · tight' });
+      else chips.push({ color: T, label: Math.round(used * 0.55) + ' drops' });
+      if (used >= 18) chips.push({ color: P, label: Math.round(used * 0.4) + ' hauls' });
+      monthDays.push({
+        n, bg: 'var(--surface)', ink: 'var(--ink)',
+        cap: used + '/32', capInk: pct >= 100 ? 'var(--orange-tint-ink)' : 'var(--ink-3)',
+        pct: pct + '%', capColor: pct >= 100 ? O : pct >= 80 ? P : T, chips
+      });
+    }
+
+    const dayRows = [
+      ['6:45', 'CL-104', 'Ramirez Remodeling', '1188 Grandview Ave, Grandview Heights', 'Drop', 'Dale', T, 'available'],
+      ['7:30', 'CL-127', 'K. Boyle', '4402 Cemetery Rd, Hilliard', 'Haul · late', 'Dale', O, 'overdue'],
+      ['8:15', 'CL-119', 'Northstar Roofing', '77 Schrock Rd, Westerville', 'Haul', 'Marcus', P, 'deployed'],
+      ['9:00', 'CL-131', 'T. Okonkwo', '215 E Weber Rd, Clintonville', 'Drop', 'Marcus', T, 'available'],
+      ['10:20', 'CL-112', 'Bexley Property Grp', '2401 E Main St, Bexley', 'Drop', 'Dale', T, 'available'],
+      ['11:05', 'CL-108', 'J. Whitfield', '860 Hines Rd, Gahanna', 'Haul', 'Marcus', P, 'deployed'],
+      ['12:40', '—', 'Sanders Basement Co.', '331 Grove City Rd, Grove City', 'Unassigned', 'No driver', O, 'overdue'],
+      ['2:15', 'CL-122', 'M. Delgado', '1907 Riverside Dr, Upper Arlington', 'Drop', 'Dale', T, 'available'],
+      ['3:50', 'CL-116', 'Olentangy Builders', '5560 Sawmill Rd, Dublin', 'Haul', 'Marcus', P, 'deployed']
+    ].map(([time, can, who, where, kind, driver, color, key]) => Object.assign({
+      time, can, who, where, kind, driver, color,
+      driverInk: driver === 'No driver' ? 'var(--orange-tint-ink)' : 'var(--ink-2)'
+    }, B(key)));
+
+    const bookings = [
+      ['CL-8841', 'Dana Whitmore', '118 Ridge Ave, Columbus', '14–19 Sep', 'CL-121', 'Deployed', 'deployed', P, '$348.30', false],
+      ['CL-8722', 'K. Boyle', '4402 Cemetery Rd, Hilliard', '18–23 Aug', 'CL-127', 'Overdue', 'overdue', O, '$396.00', true],
+      ['CL-8840', 'Sanders Basement Co.', '331 Grove City Rd, Grove City', '27 Aug–1 Sep', '—', 'Unassigned', 'overdue', O, '$374.00', false],
+      ['CL-8839', 'Ramirez Remodeling', '1188 Grandview Ave', '27 Aug–1 Sep', 'CL-104', 'Reserved', 'reserved', U, '$374.00', false],
+      ['CL-8836', 'Northstar Roofing', '77 Schrock Rd, Westerville', '22–27 Aug', 'CL-119', 'Deployed', 'deployed', P, '$324.00', false],
+      ['CL-8834', 'T. Okonkwo', '215 E Weber Rd, Clintonville', '27 Aug–1 Sep', 'CL-131', 'Reserved', 'reserved', U, '$274.00', false],
+      ['CL-8830', 'Vega Contracting', '2290 Brice Rd, Reynoldsburg', '19–24 Aug', 'CL-105', 'Overdue', 'overdue', O, '$360.00', false],
+      ['CL-8827', 'J. Whitfield', '860 Hines Rd, Gahanna', '21–26 Aug', 'CL-108', 'Deployed', 'deployed', P, '$324.00', false],
+      ['CL-8821', 'M. Ito', '1907 Riverside Dr, Upper Arlington', '11–16 Aug', 'CL-124', 'Finished', 'done', G, '$342.00', false],
+      ['CL-8818', 'Keystone Builders', '5560 Sawmill Rd, Dublin', '8–13 Aug', 'CL-116', 'Finished', 'done', G, '$374.00', false]
+    ].map(([id, who, where, window, can, status, key, color, total, sel]) => Object.assign({
+      id, who, where, window, can, status, color, total,
+      sel: sel ? 'inset 0 0 0 3px var(--pink)' : 'none'
+    }, B(key)));
+
+    const drivers = [
+      ['Dale Prichard', 'DP', '(614) 555-0121', 'Out on route', 'available', 'Peterbilt 348 · #2', '5 stops', 'Stop 3 of 5 · Bexley next', '60%', '60%', T],
+      ['Marcus Feld', 'MF', '(614) 555-0138', 'Out on route', 'available', 'Freightliner M2 · #4', '4 stops', 'Stop 3 of 4 · Dublin next', '75%', '75%', T],
+      ['Ray Ochoa', 'RO', '(614) 555-0155', 'Off today', 'done', 'Peterbilt 337 · #1', 'Back Fri', 'Scheduled off', '0%', '—', G],
+      ['Tam Nguyen', 'TN', '(614) 555-0162', 'In the yard', 'reserved', 'Yard loader', '2 loads', 'Loading CL-123 for Grove City', '40%', '40%', U]
+    ].map(([name, initials, phone, state, key, truck, today, progress, pct, pctLabel, color]) =>
+      Object.assign({ name, initials, phone, state, truck, today, progress, pct, pctLabel, color }, B(key)));
+
+    const candidates = [
+      { name: 'Dale Prichard', initials: 'DP', note: 'Grove City is 4 mi off his 2:15 leg', detour: '+12m', detourInk: 'var(--teal-tint-ink)', tag: 'Best fit', tagBg: 'var(--teal-tint)', tagInk: 'var(--teal-tint-ink)', color: T, border: 'var(--teal)', bg: 'var(--teal-tint)' },
+      { name: 'Marcus Feld', initials: 'MF', note: 'Would push his Dublin haul past 5pm', detour: '+48m', detourInk: 'var(--orange-tint-ink)', tag: 'Overtime', tagBg: 'var(--orange-tint)', tagInk: 'var(--orange-tint-ink)', color: T, border: 'var(--line)', bg: 'transparent' },
+      { name: 'Tam Nguyen', initials: 'TN', note: 'In the yard — would need a truck freed', detour: '+1h 5m', detourInk: 'var(--ink-2)', tag: 'No truck', tagBg: 'var(--tint)', tagInk: 'var(--ink-2)', color: U, border: 'var(--line)', bg: 'transparent' }
+    ];
+
+    const stops = [
+      ['1', '6:45', 'Ramirez Remodeling', '1188 Grandview Ave', 'Done', G],
+      ['2', '7:30', 'K. Boyle · late haul', '4402 Cemetery Rd, Hilliard', 'Done', G],
+      ['3', '10:20', 'Bexley Property Grp', '2401 E Main St, Bexley', 'Next', T],
+      ['4', '12:40', 'Sanders Basement Co.', '331 Grove City Rd', 'Pending', O],
+      ['5', '2:15', 'M. Delgado', '1907 Riverside Dr', 'Drop', P],
+      ['6', '4:10', 'Return to yard', '2900 Fisher Rd', 'Yard', G]
+    ].map(([n, time, who, where, kind, color]) => ({ n, time, who, where, kind, color }));
+
+    const customers = [
+      ['Dana Whitmore', 'Whitmore Build · Columbus 43214', '(614) 555-0182', 7, '$2,412', 'Active', 'deployed', true],
+      ['Sanders Basement Co.', 'Grove City 43123', '(614) 555-0190', 12, '$4,388', 'Contractor', 'reserved', false],
+      ['K. Boyle', 'Hilliard 43026', '(614) 555-0143', 2, '$620', 'Overdue', 'overdue', false],
+      ['Northstar Roofing', 'Westerville 43081', '(614) 555-0177', 23, '$7,904', 'Contractor', 'reserved', false],
+      ['T. Okonkwo', 'Clintonville 43214', '(614) 555-0164', 1, '$274', 'Active', 'deployed', false],
+      ['Vega Contracting', 'Reynoldsburg 43068', '(614) 555-0119', 9, '$3,102', 'Owes $360', 'overdue', false],
+      ['Ramirez Remodeling', 'Grandview Hts 43212', '(614) 555-0128', 15, '$5,610', 'Contractor', 'reserved', false],
+      ['J. Whitfield', 'Gahanna 43230', '(614) 555-0150', 3, '$972', 'Active', 'deployed', false],
+      ['M. Ito', 'Upper Arlington 43221', '(614) 555-0136', 4, '$1,368', 'Finished', 'done', false]
+    ].map(([name, where, phone, rentals, lifetime, state, key, sel]) => Object.assign({
+      name, where, phone, rentals, lifetime, state,
+      sel: sel ? 'inset 0 0 0 3px var(--pink)' : 'none'
+    }, B(key)));
+
+    const custHistory = [
+      ['CL-121', '118 Ridge Ave · on site', '$348.30', P],
+      ['CL-117', '4120 Karl Rd · Jun 2026', '$294.20', G],
+      ['CL-108', '860 Hines Rd · Apr 2026', '$378.00', G],
+      ['CL-130', '77 Chase Ave · Feb 2026', '$274.00', G],
+      ['CL-104', '1188 Grandview · Nov 2025', '$439.00', G]
+    ].map(([id, where, total, color]) => ({ id, where, total, color }));
+
+    const transcript = [
+      ['0:02', 'Quo', 'Crazy Larry\u2019s Dumpsters, this line is recorded. What can I get for you?', U],
+      ['0:07', 'Caller', 'Hi — I\u2019ve got one of your cans on Cemetery Road in Hilliard and I need it a couple more days.', 'var(--ink-2)'],
+      ['0:19', 'Quo', 'That\u2019s the fifteen yard, CL-127, booked through the twenty-third. Two more days puts pickup on the twenty-fifth.', U],
+      ['0:31', 'Caller', 'Right. The drywall crew didn\u2019t show until Wednesday so we\u2019re behind on filling it.', 'var(--ink-2)'],
+      ['0:44', 'Quo', 'Understood. Extra days run eighteen dollars each, so thirty-six on the card ending 4242 if the office approves it.', U],
+      ['1:02', 'Caller', 'That\u2019s fine. I\u2019d rather pay the thirty-six than get charged for a second haul.', 'var(--ink-2)'],
+      ['1:48', 'Quo', 'I\u2019ve flagged it for the office. Someone will text you either way before end of day.', U]
+    ].map(([at, who, line, color]) => ({ at, who, line, color }));
+
+    const calls = [
+      ['Sanders Basement Co.', '(614) 555-0190', 'Today 8:41am', '3:12', 'Booked a 20 yard for Grove City today; asked about concrete — told it needs a dedicated can.', 'Booked', 'available'],
+      ['Unknown caller', '(614) 555-0207', 'Today 8:19am', '0:48', 'Price check on a 10 yard, said she would call back after talking to her husband.', 'Quoted', 'reserved'],
+      ['Vega Contracting', '(614) 555-0119', 'Today 7:55am', '4:36', 'Disputing $360 late charge on CL-105, says the can was blocked in by a concrete truck.', 'Callback', 'overdue'],
+      ['Northstar Roofing', '(614) 555-0177', 'Yesterday 4:22pm', '1:57', 'Standing order — two 15s for the Schrock Rd job starting Monday.', 'Booked', 'available'],
+      ['L. Pham', '(614) 555-0188', 'Yesterday 3:08pm', '2:04', 'Asked when the Canal Winchester can gets pulled; confirmed Friday morning.', 'Answered', 'done'],
+      ['Unknown caller', '(614) 555-0233', 'Yesterday 1:40pm', '0:11', 'Hung up before Quo finished the greeting. No callback number matched.', 'Missed', 'done'],
+      ['Bexley Property Grp', '(614) 555-0146', 'Yesterday 11:26am', '5:41', 'Wants monthly billing across four properties; needs Larry to approve terms.', 'Callback', 'overdue'],
+      ['D. Reyes', '(614) 555-0172', 'Yesterday 9:02am', '1:22', 'Moved a Clintonville drop from Thursday to Friday, no charge.', 'Answered', 'done']
+    ].map(([who, phone, at, len, summary, outcome, key]) => Object.assign({ who, phone, at, len, summary, outcome }, B(key)));
+
+    const viewLabels = [['day', 'Day'], ['week', 'Week'], ['month', 'Month']];
+
+    return {
+      theme: this.props.theme ?? 'light',
+      device: this.props.device ?? 'desktop',
+      logoSrc: (window.__resources && window.__resources['assets/logo.png']) || 'assets/logo.png',
+      isSchedule: screen === 'schedule',
+      isBookings: screen === 'bookings',
+      isDrivers: screen === 'drivers',
+      isCustomers: screen === 'customers',
+      isCalls: screen === 'calls',
+      isDay: view === 'day', isWeek: view === 'week', isMonth: view === 'month',
+      searchHint: mobile ? 'Search anything' : 'Search a can number, address, customer or booking',
+      schedTitle: view === 'day' ? 'Thursday, 27 August' : view === 'month' ? 'September 2026' : 'Week of 30 Aug – 5 Sep',
+      schedSub: view === 'day' ? '9 movements · 2 drivers out · 1 unassigned'
+        : view === 'month' ? '612 movements booked · 4 days at capacity'
+        : '140 movements · Friday is full · 1 job to place',
+      views: viewLabels.map(([k, label]) => ({
+        label,
+        bg: view === k ? 'var(--ink)' : 'transparent',
+        ink: view === k ? 'var(--surface)' : 'var(--ink-2)'
+      })),
+      nav: navDefs.map(([key, label, d, b]) => ({
+        label, icon: icon(d), active: screen === key ? '1' : '0', badge: b
+      })),
+      dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      bands: ['Early 6–9', 'Mid 9–1', 'Late 1–5'],
+      week, monthDays, dayRows, bookings, drivers, candidates, stops, customers, custHistory, transcript, calls,
+      statusFilters: [
+        { label: 'Reserved', n: 4, color: U },
+        { label: 'Deployed', n: 11, color: P },
+        { label: 'Overdue', n: 3, color: O },
+        { label: 'Finished', n: 211, color: G },
+        { label: 'Cancelled', n: 6, color: 'var(--ink-3)' }
+      ],
+      driverLoad: [
+        { name: 'Dale Prichard', label: '5 stops · 68 mi', pct: '78%', color: T },
+        { name: 'Marcus Feld', label: '4 stops · 54 mi', pct: '92%', color: P },
+        { name: 'Unplaced', label: '1 stop · Grove City', pct: '18%', color: O }
+      ],
+      routePins: [
+        { n: '1', x: '14%', y: '22%', label: 'Grandview', color: G },
+        { n: '2', x: '10%', y: '58%', label: 'Hilliard', color: G },
+        { n: '3', x: '52%', y: '30%', label: 'Bexley · next', color: T },
+        { n: '4', x: '38%', y: '74%', label: 'Grove City', color: O },
+        { n: '5', x: '68%', y: '52%', label: 'Riverside Dr', color: P }
+      ],
+      tabs: [
+        { label: 'Overview', active: '0', icon: icon(I.overview) },
+        { label: 'Fleet', active: '0', icon: icon(I.fleet) },
+        { label: 'Schedule', active: screen === 'schedule' ? '1' : '0', icon: icon(I.sched) },
+        { label: 'Bookings', active: screen === 'bookings' ? '1' : '0', icon: icon(I.book) },
+        { label: 'More', active: (screen === 'drivers' || screen === 'customers' || screen === 'calls') ? '1' : '0', icon: icon(I.more) }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

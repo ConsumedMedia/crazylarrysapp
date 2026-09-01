@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/styles.css">
+<script src="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cl-tokens.css">
+</helmet>
+
+<div data-cl="1" data-cl-theme="{{ theme }}" data-cl-dev="{{ device }}" style="background: var(--bg); color: var(--ink); display: flex; flex-direction: column; min-height: 100%; position: relative;">
+
+  <!-- Public header -->
+  <header style="background: var(--surface); border-bottom: 2px solid var(--line-strong);">
+    <div style="display: flex; align-items: center; gap: 16px; padding: 10px var(--pad); padding-top: calc(10px + var(--safe-top));">
+      <img src="{{ logoSrc }}" alt="Crazy Larry's Dumpster Rental" style="width: 46px; height: 46px; object-fit: contain; flex: 0 0 46px;">
+      <div style="min-width: 0;">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.1;">Crazy Larry's</div>
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);">Dumpster Rental · Columbus</div>
+      </div>
+      <div style="display: var(--tools); align-items: center; gap: 22px; margin-left: 28px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--pink);">Sizes &amp; pricing</span>
+        <span style="font-size: 13px; font-weight: 600; color: var(--ink-2);">How it works</span>
+        <span style="font-size: 13px; font-weight: 600; color: var(--ink-2);">Service area</span>
+        <span style="font-size: 13px; font-weight: 600; color: var(--ink-2);">What we can't take</span>
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+        <div style="display: var(--tools); flex-direction: column; align-items: flex-end;">
+          <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3);">Call the yard</span>
+          <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.01em;">(614) 555-0100</span>
+        </div>
+        <button style="border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 9px 13px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-align: left; white-space: nowrap;" style-hover="background: var(--tint);">My account</button>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0; border-top: 1px solid var(--line); padding: 0 var(--pad);">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+        <div style="flex: 1; padding: 10px 0; display: flex; align-items: center; gap: 8px; border-bottom: 4px solid {{ s.bar }}; min-width: 0;">
+          <span style="width: 20px; height: 20px; flex: 0 0 20px; background: {{ s.dotBg }}; color: {{ s.dotInk }}; display: grid; place-items: center; font-size: 11px; font-weight: 800;">{{ s.n }}</span>
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: {{ s.ink }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </header>
+
+  <!-- ══ STEP 1 · SIZE ══ -->
+  <sc-if value="{{ isSize }}" hint-placeholder-val="{{ true }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: 26px;">
+    <div style="max-width: 62ch;">
+      <h1 style="margin: 0 0 10px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Pick a dumpster size.</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2);">Every size includes five days on site, one ton of weight, delivery and haul-away. Availability below is live — it reads straight off the yard, so if you can pick it, we have it.</p>
+    </div>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--third);">
+      <sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="3">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface); display: flex; flex-direction: column;">
+          <div style="background: {{ sz.band }}; padding: 14px 16px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 30px; font-weight: 900; letter-spacing: -0.035em; color: #fff; line-height: 1;">{{ sz.yards }}<span style="font-size: 13px; font-weight: 700; letter-spacing: 0.06em;"> YARD</span></div>
+            <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-align: right;">{{ sz.tag }}</div>
+          </div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 13px; flex: 1;">
+            <div style="display: flex; align-items: baseline; gap: 7px;">
+              <div style="font-size: 36px; font-weight: 900; letter-spacing: -0.035em; line-height: 1;">{{ sz.price }}</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--ink-2);">flat · 5 days · 1 ton</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px; border-top: 1px solid var(--line); padding-top: 12px;">
+              <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 13px;"><span style="color: var(--ink-2);">Footprint</span><span style="font-weight: 700; text-align: right;">{{ sz.dims }}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 13px;"><span style="color: var(--ink-2);">Holds about</span><span style="font-weight: 700; text-align: right;">{{ sz.loads }}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 13px;"><span style="color: var(--ink-2);">Extra weight</span><span style="font-weight: 700; text-align: right;">$65 / ton</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 13px;"><span style="color: var(--ink-2);">Extra days</span><span style="font-weight: 700; text-align: right;">$18 / day</span></div>
+            </div>
+            <div style="font-size: 13px; line-height: 1.5; color: var(--ink-2); border-left: 3px solid {{ sz.band }}; padding-left: 10px;">{{ sz.best }}</div>
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 9px; height: 9px; flex: 0 0 9px; background: {{ sz.availColor }};"></span>
+                <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: {{ sz.availInk }};">{{ sz.avail }}</span>
+              </div>
+              <button style="width: 100%; border: 0; background: var(--teal); color: #fff; padding: 13px 15px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" style-hover="background: var(--teal-700);">Check dates <span>→</span></button>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: grid; gap: 2px; grid-template-columns: var(--third); background: var(--line-strong); border: 2px solid var(--line-strong);">
+      <div style="background: var(--surface); padding: 16px;">
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px;">Not sure which</div>
+        <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">One room gutted fits a 10. A whole kitchen or a roof usually needs the 15. Size up if you are guessing — a second haul costs more than the extra yardage.</div>
+      </div>
+      <div style="background: var(--surface); padding: 16px;">
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px;">What can't go in</div>
+        <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Tires, paint, batteries, appliances with refrigerant, anything wet or burning. Concrete, brick and dirt need a dedicated can — call the yard.</div>
+      </div>
+      <div style="background: var(--surface); padding: 16px;">
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px;">Where we deliver</div>
+        <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Columbus and everything inside I-270, plus Dublin, Westerville, Gahanna, Grove City, Hilliard and Canal Winchester. Outside that, ask.</div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ══ STEP 2 · CALENDAR ══ -->
+  <sc-if value="{{ isCal }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: 20px;">
+    <div>
+      <h1 style="margin: 0 0 8px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">When do you want it dropped?</h1>
+      <p style="margin: 0; font-size: 15px; color: var(--ink-2);">15 yard · $324 flat · five days on site. Grey days are booked out at this size.</p>
+    </div>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+      <div style="border: 2px solid var(--line-strong); background: var(--surface); align-self: start;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 2px solid var(--line-strong);">
+          <div style="font-size: 17px; font-weight: 800;">September 2026</div>
+          <div style="display: flex; gap: 4px;">
+            <button style="width: 34px; height: 34px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 800;" style-hover="border-color: var(--ink);">‹</button>
+            <button style="width: 34px; height: 34px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 800;" style-hover="border-color: var(--ink);">›</button>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); padding: 1px;">
+          <sc-for list="{{ dayNames }}" as="d" hint-placeholder-count="7">
+            <div style="background: var(--surface); text-align: center; padding: 7px 0; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);">{{ d }}</div>
+          </sc-for>
+          <sc-for list="{{ calDays }}" as="c" hint-placeholder-count="35">
+            <div style="background: {{ c.bg }}; min-height: 74px; padding: 7px; display: flex; flex-direction: column; gap: 3px; box-shadow: {{ c.ring }};">
+              <div style="font-size: 14px; font-weight: 800; color: {{ c.ink }}; font-variant-numeric: tabular-nums;">{{ c.n }}</div>
+              <div style="font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: {{ c.noteInk }}; line-height: 1.25;">{{ c.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 12px;">Your rental</div>
+          <div style="display: flex; flex-direction: column; gap: 9px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Drop-off</span><span style="font-weight: 800;">Mon 14 Sep</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Pickup</span><span style="font-weight: 800;">Sat 19 Sep</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Time window</span><span style="font-weight: 800;">7am – 11am</span></div>
+            <div style="display: flex; justify-content: space-between; border-top: 2px solid var(--line-strong); padding-top: 10px;"><span style="color: var(--ink-2);">15 yd · 5 days · 1 ton</span><span style="font-weight: 900; font-size: 18px;">$324.00</span></div>
+          </div>
+          <button style="width: 100%; margin-top: 14px; border: 0; background: var(--teal); color: #fff; padding: 14px 15px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" style-hover="background: var(--teal-700);">Continue to details <span>→</span></button>
+        </div>
+
+        <div style="border: 2px solid var(--line); background: var(--surface); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 11px;">Reading the calendar</div>
+          <div style="display: flex; flex-direction: column; gap: 9px;">
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;"><span style="width: 14px; height: 14px; flex: 0 0 14px; background: var(--surface); border: 2px solid var(--line);"></span>Open</div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;"><span style="width: 14px; height: 14px; flex: 0 0 14px; background: var(--teal);"></span>Your drop-off</div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;"><span style="width: 14px; height: 14px; flex: 0 0 14px; background: var(--teal-tint);"></span>On site</div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;"><span style="width: 14px; height: 14px; flex: 0 0 14px; background: var(--orange-tint); box-shadow: inset 0 0 0 2px var(--orange);"></span>One can left</div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;"><span style="width: 14px; height: 14px; flex: 0 0 14px; background: var(--tint);"></span>Booked out</div>
+          </div>
+        </div>
+
+        <div style="padding: 14px 16px; background: var(--orange-tint); border-left: 4px solid var(--orange);">
+          <div style="font-size: 13px; line-height: 1.5; color: var(--orange-tint-ink); font-weight: 600;">Four 15 yard cans are free this week and two of those are already spoken for on Friday. If your date is firm, book it today.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ══ STEP 3 · BOOKING FORM ══ -->
+  <sc-if value="{{ isForm }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: 20px;">
+    <div>
+      <h1 style="margin: 0 0 8px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Where is it going?</h1>
+      <p style="margin: 0; font-size: 15px; color: var(--ink-2);">The driver needs the address and where on the property to set it. Everything else is so we can reach you.</p>
+    </div>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Delivery address</div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Street address</label>
+              <input type="text" value="118 Ridge Ave" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+            </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">City</label>
+                <input type="text" value="Columbus" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">State</label>
+                <input type="text" value="OH" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">ZIP</label>
+                <input type="text" value="43214" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--teal-tint);">
+              <span style="width: 9px; height: 9px; flex: 0 0 9px; background: var(--teal);"></span>
+              <span style="font-size: 13px; font-weight: 700; color: var(--teal-tint-ink);">Inside the service area — no travel fee.</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Where to set it</div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; gap: 8px; grid-template-columns: var(--third);">
+              <sc-for list="{{ placements }}" as="p" hint-placeholder-count="4">
+                <div style="border: 2px solid {{ p.border }}; background: {{ p.bg }}; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; min-height: 62px;">
+                  <span style="font-size: 13px; font-weight: 800; color: {{ p.ink }};">{{ p.label }}</span>
+                  <span style="font-size: 11px; color: var(--ink-2); line-height: 1.35;">{{ p.note }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Anything the driver should know</label>
+              <textarea style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%; min-height: 76px; resize: vertical;">Gate code 4412. Low branch over the left side of the drive — please back in from the street.</textarea>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: flex-start; padding: 11px 13px; background: var(--tint);">
+              <span style="font-size: 12px; line-height: 1.5; color: var(--ink-2);">The truck needs about 60 feet of straight clearance and 23 feet of height to tip the can off. If that is tight, tell us here and we will call before we load.</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Contact</div>
+          <div style="padding: 16px; display: grid; gap: 14px; grid-template-columns: var(--third);">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Name</label>
+              <input type="text" value="Dana Whitmore" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Mobile — for the driver's text</label>
+              <input type="text" value="(614) 555-0182" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Email — for the receipt</label>
+              <input type="text" value="dana@whitmorebuild.com" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+            </div>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">What's going in it</div>
+          <div style="padding: 16px; display: grid; gap: 8px; grid-template-columns: var(--third);">
+            <sc-for list="{{ debris }}" as="d" hint-placeholder-count="6">
+              <div style="border: 2px solid {{ d.border }}; background: {{ d.bg }}; padding: 11px 12px; cursor: pointer; font-size: 13px; font-weight: 700; color: {{ d.ink }};">{{ d.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 12px;">Your booking so far</div>
+          <div style="display: flex; flex-direction: column; gap: 9px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Size</span><span style="font-weight: 800;">15 yard</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Drop-off</span><span style="font-weight: 800;">Mon 14 Sep</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Pickup</span><span style="font-weight: 800;">Sat 19 Sep</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Address</span><span style="font-weight: 800; text-align: right;">118 Ridge Ave<br>Columbus 43214</span></div>
+            <div style="display: flex; justify-content: space-between; border-top: 2px solid var(--line-strong); padding-top: 10px;"><span style="color: var(--ink-2);">Subtotal</span><span style="font-weight: 900; font-size: 18px;">$324.00</span></div>
+          </div>
+          <button style="width: 100%; margin-top: 14px; border: 0; background: var(--teal); color: #fff; padding: 14px 15px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" style-hover="background: var(--teal-700);">Review &amp; pay <span>→</span></button>
+          <button style="width: 100%; margin-top: 8px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 15px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer;" style-hover="background: var(--tint);">← Change the date</button>
+        </div>
+        <div style="border: 2px solid var(--line); background: var(--surface-2); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px;">No card yet</div>
+          <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Nothing is charged until the next screen, and nothing is held on the calendar until it is. Cancel free up to 24 hours before drop-off.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ══ STEP 4 · REVIEW & PAY ══ -->
+  <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: 20px;">
+    <div>
+      <h1 style="margin: 0 0 8px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Check it over and pay.</h1>
+      <p style="margin: 0; font-size: 15px; color: var(--ink-2);">Sign the rental agreement, pay the flat rate, and the can is on Monday's route.</p>
+    </div>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 16px; border-bottom: 2px solid var(--line-strong);">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Your booking</span>
+            <span style="font-size: 12px; font-weight: 800; color: var(--pink);">Edit</span>
+          </div>
+          <div style="padding: 16px; display: grid; gap: 16px; grid-template-columns: var(--third);">
+            <sc-for list="{{ summary }}" as="s" hint-placeholder-count="6">
+              <div>
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px;">{{ s.label }}</div>
+                <div style="font-size: 15px; font-weight: 800;">{{ s.a }}</div>
+                <div style="font-size: 13px; color: var(--ink-2);">{{ s.b }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="border: 2px solid {{ sig.cardBorder }}; background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid {{ sig.cardBorder }}; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Rental agreement</span>
+            <span style="display: flex; align-items: center; gap: 7px;">
+              <span style="width: 9px; height: 9px; flex: 0 0 9px; background: {{ sig.dot }};"></span>
+              <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: {{ sig.ink }};">{{ sig.state }}</span>
+            </span>
+          </div>
+          <div style="padding: 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 42px; height: 42px; flex: 0 0 42px; background: {{ sig.dot }}; color: #fff; display: grid; place-items: center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 17c1.5-3 2.5-3 4 0s2.5 1 4-1"></path></svg>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+              <div style="font-size: 15px; font-weight: 800;">{{ sig.title }}</div>
+              <div style="font-size: 13px; color: var(--ink-2); line-height: 1.45;">{{ sig.blurb }}</div>
+            </div>
+            <button style="border: 2px solid var(--ink); background: {{ sig.btnBg }}; color: var(--ink); padding: 11px 15px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; white-space: nowrap;" style-hover="background: var(--tint);">{{ sig.btn }}</button>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 16px; border-bottom: 2px solid var(--line-strong); flex-wrap: wrap;">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Payment</span>
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: flex; align-items: center; gap: 6px; background: #2ca01c; color: #fff; padding: 4px 8px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M14.5 9.2A3.2 3.2 0 0 0 9.4 12a3.2 3.2 0 0 0 3.2 3.2V7"></path></svg>
+                <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">QuickBooks Payments</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="10" width="16" height="11"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+                Encrypted
+              </span>
+            </span>
+          </div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 150px; border: 2px solid var(--ink); background: var(--tint); padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 9px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><rect x="2" y="5" width="20" height="14"></rect><path d="M2 10h20"></path></svg>
+                <span><span style="font-size: 13px; font-weight: 800; display: block;">Credit or debit card</span><span style="font-size: 11px; color: var(--ink-2);">2.99% processing, in the total</span></span>
+              </div>
+              <div style="flex: 1; min-width: 150px; border: 2px solid var(--line); background: transparent; padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 9px; color: var(--ink-2);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M3 10h18L12 4z"></path><path d="M5 10v9M19 10v9M3 19h18"></path></svg>
+                <span><span style="font-size: 13px; font-weight: 800; display: block; color: var(--ink);">Bank transfer (ACH)</span><span style="font-size: 11px;">1%, capped at $10</span></span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Card number</label>
+              <input type="text" value="4242 4242 4242 4242" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%; font-variant-numeric: tabular-nums;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Expiry</label>
+                <input type="text" value="09 / 29" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">CVC</label>
+                <input type="text" value="123" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Billing ZIP</label>
+                <input type="text" value="43214" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 12px;">Total</div>
+          <div style="display: flex; flex-direction: column; gap: 9px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">15 yd · 5 days · 1 ton</span><span style="font-weight: 700;">$324.00</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Delivery &amp; haul</span><span style="font-weight: 700;">Included</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Ohio sales tax</span><span style="font-weight: 700;">$24.30</span></div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 2px solid var(--line-strong); padding-top: 12px;"><span style="font-size: 15px; font-weight: 800;">Due now</span><span style="font-size: 28px; font-weight: 900; letter-spacing: -0.03em;">$348.30</span></div>
+          </div>
+          <button style="width: 100%; margin-top: 16px; border: 0; background: var(--teal); color: #fff; padding: 16px; font-family: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" style-hover="background: var(--teal-700);">Pay &amp; book it <span>→</span></button>
+          <div style="font-size: 12px; color: var(--ink-3); margin-top: 10px; line-height: 1.5;">Weight over one ton is billed at $65 per ton after the can is weighed. Days past the fifth are $18 each.</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2ca01c" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="10" width="16" height="11"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ink-3); line-height: 1.4;">Card details go straight to QuickBooks Payments. Larry's office never sees or stores your number.</span>
+          </div>
+        </div>
+        <div style="border: 2px solid var(--line); background: var(--surface-2); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 11px;">What happens next</div>
+          <div style="display: flex; flex-direction: column; gap: 11px;">
+            <div style="display: flex; gap: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.45;"><span style="width: 20px; height: 20px; flex: 0 0 20px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">1</span>Text and emailed receipt within a minute.</div>
+            <div style="display: flex; gap: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.45;"><span style="width: 20px; height: 20px; flex: 0 0 20px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">2</span>Sunday night: the driver texts your two-hour window.</div>
+            <div style="display: flex; gap: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.45;"><span style="width: 20px; height: 20px; flex: 0 0 20px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">3</span>A photo of the placement the moment it lands.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DocuSign modal — a wrapper around Larry's existing envelope link -->
+  <sc-if value="{{ showModal }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; inset: 0; background: rgba(6,8,11,0.72); display: flex; align-items: flex-start; justify-content: center; padding: var(--modal-pad); z-index: 50;">
+    <div style="width: 100%; max-width: 860px; background: var(--surface); border: 2px solid var(--line-strong); box-shadow: 0 24px 60px rgba(0,0,0,0.45); display: flex; flex-direction: column; max-height: 100%;">
+
+      <div style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 2px solid var(--line-strong);">
+        <div style="min-width: 0; flex: 1;">
+          <div style="font-size: 15px; font-weight: 800; letter-spacing: -0.01em;">Rental agreement · 15 yard</div>
+          <div style="font-size: 11px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="10" width="16" height="11"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            Hosted by DocuSign · envelope 9F4C-2210
+          </div>
+        </div>
+        <button style="width: 36px; height: 36px; flex: 0 0 36px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; display: grid; place-items: center;" style-hover="border-color: var(--ink); background: var(--tint);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: {{ modal.bannerBg }}; border-bottom: 2px solid {{ modal.bannerLine }};">
+        <span style="width: 10px; height: 10px; flex: 0 0 10px; background: {{ modal.bannerDot }};"></span>
+        <span style="font-size: 12px; font-weight: 800; color: {{ modal.bannerInk }}; line-height: 1.4;">{{ modal.banner }}</span>
+      </div>
+
+      <!-- iframe area: Larry's existing DocuSign link loads here -->
+      <div style="flex: 1; min-height: 0; overflow: hidden; background: var(--bg); border-bottom: 2px solid var(--line-strong); padding: 14px; display: flex;">
+        <div style="flex: 1; min-height: {{ modal.frameH }}; border: 2px dashed var(--line-strong); background: var(--surface-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 22px; text-align: center;">
+          <div style="width: 46px; height: 46px; background: {{ modal.bannerDot }}; color: #fff; display: grid; place-items: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 17c1.5-3 2.5-3 4 0s2.5 1 4-1"></path></svg>
+          </div>
+          <div style="font-size: 14px; font-weight: 800;">{{ modal.frameTitle }}</div>
+          <div style="font-size: 12px; color: var(--ink-2); max-width: 46ch; line-height: 1.55;">{{ modal.frameNote }}</div>
+          <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">iframe · docusign.net/signing/9F4C-2210</div>
+        </div>
+      </div>
+
+      <div style="padding: 13px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 170px; font-size: 12px; color: var(--ink-2); line-height: 1.45;">{{ modal.foot }}</div>
+        <button style="border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 10px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; white-space: nowrap;" style-hover="background: var(--tint);">Email it to me instead</button>
+        <button style="border: 0; background: {{ modal.ctaBg }}; color: {{ modal.ctaInk }}; padding: 12px 15px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; white-space: nowrap;">{{ modal.cta }}</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+  </sc-if>
+
+  <!-- ══ CONFIRMATION ══ -->
+  <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap);">
+
+    <div style="border: 2px solid var(--line-strong); background: var(--surface); border-top: 8px solid var(--teal); padding: var(--pad); display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap;">
+      <div style="width: 56px; height: 56px; flex: 0 0 56px; background: var(--teal); color: #fff; display: grid; place-items: center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m4 12.5 5 5L20 6.5"></path></svg>
+      </div>
+      <div style="flex: 1; min-width: 240px;">
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal-tint-ink); margin-bottom: 8px;">Paid · signed · on the route</div>
+        <h1 style="margin: 0 0 8px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">You're booked for Monday.</h1>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); max-width: 58ch;">A 15 yard can lands at 118 Ridge Ave between 7 and 11am on Monday 14 September. Receipt and signed agreement are in your email already.</p>
+      </div>
+      <div style="border: 2px solid var(--line-strong); padding: 12px 16px; min-width: 190px;">
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px;">Booking number</div>
+        <div style="font-size: 26px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">CL-8841</div>
+        <div style="font-size: 12px; color: var(--ink-2); margin-top: 4px;">Have this ready if you call.</div>
+      </div>
+    </div>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">What you booked</div>
+          <div style="padding: 16px; display: grid; gap: 16px; grid-template-columns: var(--third);">
+            <sc-for list="{{ summary }}" as="s" hint-placeholder-count="6">
+              <div>
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px;">{{ s.label }}</div>
+                <div style="font-size: 15px; font-weight: 800;">{{ s.a }}</div>
+                <div style="font-size: 13px; color: var(--ink-2);">{{ s.b }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding: 14px 16px; border-top: 2px solid var(--line-strong); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: flex; align-items: center; gap: 6px; background: #2ca01c; color: #fff; padding: 4px 8px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m4 12.5 5 5L20 6.5"></path></svg>
+                <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">Paid via QuickBooks</span>
+              </span>
+              <span style="font-size: 12px; color: var(--ink-2);">Visa ···· 4242 · 27 Aug</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">Total paid</span>
+              <span style="font-size: 26px; font-weight: 900; letter-spacing: -0.03em;">$348.30</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">What happens next</div>
+          <div style="padding: 16px; display: grid; gap: 14px; grid-template-columns: var(--third);">
+            <div style="display: flex; gap: 11px; align-items: flex-start;">
+              <span style="width: 24px; height: 24px; flex: 0 0 24px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">1</span>
+              <div><div style="font-size: 14px; font-weight: 800; margin-bottom: 2px;">Receipt sent</div><div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Text and email are already out, with the signed agreement attached.</div></div>
+            </div>
+            <div style="display: flex; gap: 11px; align-items: flex-start;">
+              <span style="width: 24px; height: 24px; flex: 0 0 24px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">2</span>
+              <div><div style="font-size: 14px; font-weight: 800; margin-bottom: 2px;">Sunday night</div><div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Your driver texts a two-hour window and his direct number.</div></div>
+            </div>
+            <div style="display: flex; gap: 11px; align-items: flex-start;">
+              <span style="width: 24px; height: 24px; flex: 0 0 24px; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">3</span>
+              <div><div style="font-size: 14px; font-weight: 800; margin-bottom: 2px;">On delivery</div><div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">A photo of exactly where the can was set, so you know before you get home.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 2px; grid-template-columns: var(--third); background: var(--line-strong); border: 2px solid var(--line-strong);">
+          <div style="background: var(--surface); padding: 16px;">
+            <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px;">Before Monday</div>
+            <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Clear 60 feet of straight driveway and move cars off the left side. The driver cannot set a can he cannot back up to.</div>
+          </div>
+          <div style="background: var(--surface); padding: 16px;">
+            <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px;">Need to change it</div>
+            <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Free up to 24 hours before drop-off, from your account or by calling the yard at (614) 555-0100.</div>
+          </div>
+          <div style="background: var(--surface); padding: 16px;">
+            <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 6px;">Keep the lid down</div>
+            <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Nothing above the top rail — we cannot legally haul an overfilled can, and a return trip is billed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+        <div style="border: 2px solid var(--pink); background: var(--surface);">
+          <div style="padding: 10px 16px; background: var(--pink); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Set up your account</div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 13px;">
+            <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">One password and you can watch this rental, change the pickup date, and re-book the same can in two taps next time.</div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Email</label>
+              <input type="text" value="dana@whitmorebuild.com" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 14px; width: 100%;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Pick a password</label>
+              <input type="password" value="············" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 14px; width: 100%;">
+            </div>
+            <button style="width: 100%; border: 0; background: var(--teal); color: #fff; padding: 14px 15px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" style-hover="background: var(--teal-700);">Create my account <span>→</span></button>
+            <div style="font-size: 12px; color: var(--ink-3); line-height: 1.5;">Already have one? <a href="#" style="font-weight: 800;">Sign in</a> — this booking attaches automatically.</div>
+          </div>
+        </div>
+        <div style="border: 2px solid var(--line); background: var(--surface-2); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">Keep for your records</div>
+          <button style="width: 100%; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer;" style-hover="background: var(--tint);">Download the receipt (PDF)</button>
+          <button style="width: 100%; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer;" style-hover="background: var(--tint);">Download the signed agreement</button>
+          <button style="width: 100%; border: 0; background: transparent; color: var(--pink); padding: 8px 0; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer;">Add to my calendar →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;size&quot;,&quot;calendar&quot;,&quot;form&quot;,&quot;review&quot;,&quot;done&quot;],&quot;default&quot;:&quot;size&quot;,&quot;tsType&quot;:&quot;'size' | 'calendar' | 'form' | 'review' | 'done'&quot;},&quot;signing&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;waiting&quot;,&quot;signed&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;'none' | 'waiting' | 'signed'&quot;,&quot;section&quot;:&quot;Agreement&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;'desktop' | 'mobile'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const screen = this.props.screen ?? 'size';
+    const step = { size: 1, calendar: 2, form: 3, review: 4, done: 5 }[screen] || 1;
+    // 'none' | 'waiting' | 'signed' — drives both the card and the modal
+    const sigState = this.props.signing ?? 'none';
+    const signed = sigState === 'signed';
+
+    const mobile = (this.props.device ?? 'desktop') === 'mobile';
+    const labels = mobile
+      ? ['Size', 'Dates', 'Details', 'Pay']
+      : ['Size', 'Dates', 'Details', 'Review & pay'];
+    const steps = labels.map((label, i) => {
+      const n = i + 1;
+      const state = n === step ? 'now' : n < step ? 'done' : 'todo';
+      return {
+        n, label,
+        bar: state === 'now' ? 'var(--pink)' : state === 'done' ? 'var(--teal)' : 'transparent',
+        dotBg: state === 'now' ? 'var(--pink)' : state === 'done' ? 'var(--teal)' : 'var(--tint)',
+        dotInk: state === 'todo' ? 'var(--ink-3)' : '#fff',
+        ink: state === 'todo' ? 'var(--ink-3)' : 'var(--ink)'
+      };
+    });
+
+    // September 2026 — Sun-first grid, 1 Sep is a Tuesday
+    const booked = [3, 4, 11, 25];
+    const low = [10, 17, 22, 23];
+    const closed = [6, 13, 20, 27];
+    const drop = 14, onSite = [15, 16, 17, 18], pickup = 19;
+    const lead = [30, 31];
+    const trail = [1, 2, 3];
+    const cells = [];
+    lead.forEach((n) => cells.push({ n, kind: 'other', label: 'Aug' }));
+    for (let n = 1; n <= 30; n++) cells.push({ n, kind: 'sep' });
+    trail.forEach((n) => cells.push({ n, kind: 'other', label: 'Oct' }));
+
+    const calDays = cells.map((c) => {
+      if (c.kind === 'other') {
+        return { n: c.n, bg: 'var(--bg)', ink: 'var(--ink-3)', note: c.label, noteInk: 'var(--ink-3)', ring: 'none' };
+      }
+      const n = c.n;
+      if (n === drop) return { n, bg: 'var(--teal)', ink: '#fff', note: 'Drop-off', noteInk: 'rgba(255,255,255,0.9)', ring: 'none' };
+      if (n === pickup) return { n, bg: 'var(--teal)', ink: '#fff', note: 'Pickup', noteInk: 'rgba(255,255,255,0.9)', ring: 'none' };
+      if (onSite.includes(n)) return { n, bg: 'var(--teal-tint)', ink: 'var(--teal-tint-ink)', note: 'On site', noteInk: 'var(--teal-tint-ink)', ring: 'none' };
+      if (closed.includes(n)) return { n, bg: 'var(--tint)', ink: 'var(--ink-3)', note: 'Closed', noteInk: 'var(--ink-3)', ring: 'none' };
+      if (booked.includes(n)) return { n, bg: 'var(--tint)', ink: 'var(--ink-3)', note: mobile ? 'Booked' : 'Booked out', noteInk: 'var(--ink-3)', ring: 'none' };
+      if (low.includes(n)) return { n, bg: 'var(--orange-tint)', ink: 'var(--orange-tint-ink)', note: '1 left', noteInk: 'var(--orange-tint-ink)', ring: 'inset 0 0 0 2px var(--orange)' };
+      return { n, bg: 'var(--surface)', ink: 'var(--ink)', note: 'Open', noteInk: 'var(--ink-3)', ring: 'none' };
+    });
+
+    const pick = (on) => ({
+      border: on ? 'var(--teal)' : 'var(--line)',
+      bg: on ? 'var(--teal-tint)' : 'transparent',
+      ink: on ? 'var(--teal-tint-ink)' : 'var(--ink)'
+    });
+
+    return {
+      logoSrc: (window.__resources && window.__resources['assets/logo.png']) || 'assets/logo.png',
+      theme: this.props.theme ?? 'light',
+      device: this.props.device ?? 'desktop',
+      isSize: screen === 'size',
+      isCal: screen === 'calendar',
+      isForm: screen === 'form',
+      isReview: screen === 'review',
+      isDone: screen === 'done',
+      showModal: sigState !== 'none',
+      sig: signed
+        ? {
+            state: 'Signed', dot: 'var(--teal)', ink: 'var(--teal-tint-ink)', cardBorder: 'var(--teal)',
+            title: 'Signed 27 Aug, 4:12pm',
+            blurb: 'Dana Whitmore · countersigned by the office. A copy is in your email and attached to the booking.',
+            btn: 'View the signed copy', btnBg: 'var(--tint)'
+          }
+        : {
+            state: 'Signature needed', dot: 'var(--purple)', ink: 'var(--purple-tint-ink)', cardBorder: 'var(--line-strong)',
+            title: 'Rental agreement · 2 pages',
+            blurb: 'What can go in the can, the weight limit, and who pays if the driveway cracks. Opens in DocuSign — nothing to print.',
+            btn: 'Read & sign →', btnBg: 'transparent'
+          },
+      modal: signed
+        ? {
+            banner: 'Signed and returned. DocuSign has notified the office — you can close this and pay.',
+            bannerBg: 'var(--teal-tint)', bannerLine: 'var(--teal)', bannerDot: 'var(--teal)', bannerInk: 'var(--teal-tint-ink)',
+            frameTitle: 'Agreement complete', frameH: '260px',
+            frameNote: 'The completed envelope renders here. Larry\u2019s office receives the countersigned PDF automatically; you get a copy by email.',
+            foot: 'Signed by Dana Whitmore · 27 Aug 2026, 4:12pm EDT · IP recorded by DocuSign.',
+            cta: 'Close & pay →', ctaBg: 'var(--teal)', ctaInk: '#fff'
+          }
+        : {
+            banner: 'Waiting for your signature — this window closes itself once DocuSign confirms.',
+            bannerBg: 'var(--purple-tint)', bannerLine: 'var(--purple)', bannerDot: 'var(--purple)', bannerInk: 'var(--purple-tint-ink)',
+            frameTitle: 'Loading Larry\u2019s agreement from DocuSign', frameH: '300px',
+            frameNote: 'Larry\u2019s existing DocuSign template loads in this frame — the same document he sends today, nothing rebuilt. Scroll, initial the two marked spots, then hit Finish inside the frame.',
+            foot: 'Trouble with the frame? Email it to yourself and sign from your inbox — the booking waits.',
+            cta: 'Waiting on DocuSign', ctaBg: 'var(--tint)', ctaInk: 'var(--ink-3)'
+          },
+      steps,
+      dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      calDays,
+      sizes: [
+        {
+          yards: '10', tag: 'Smallest', price: '$274', band: 'var(--teal)',
+          dims: "12' × 8' × 3.5'", loads: '3–4 pickup loads',
+          best: 'One bathroom, a garage clear-out, a small deck tear-off. Low walls, so you can throw over the side.',
+          avail: '6 of 11 free this week', availColor: 'var(--teal)', availInk: 'var(--teal-tint-ink)'
+        },
+        {
+          yards: '15', tag: 'Most booked', price: '$324', band: 'var(--pink)',
+          dims: "16' × 8' × 4'", loads: '5–6 pickup loads',
+          best: 'A kitchen, a full roof on a small house, or a whole basement. The size most people should be renting.',
+          avail: '4 of 12 free this week', availColor: 'var(--teal)', availInk: 'var(--teal-tint-ink)'
+        },
+        {
+          yards: '20', tag: 'Biggest', price: '$374', band: 'var(--purple)',
+          dims: "22' × 8' × 4.5'", loads: '7–8 pickup loads',
+          best: 'Whole-house cleanouts, big additions, commercial jobs. Needs 60 feet of straight driveway to set down.',
+          avail: 'Only 3 of 9 left', availColor: 'var(--orange)', availInk: 'var(--orange-tint-ink)'
+        }
+      ],
+      placements: [
+        Object.assign({ label: 'Driveway', note: 'Most common. We put boards down.' }, pick(true)),
+        Object.assign({ label: 'Street', note: 'Columbus permit — we can pull it.' }, pick(false)),
+        Object.assign({ label: 'Yard or lot', note: 'Firm ground only, no soft grass.' }, pick(false))
+      ],
+      debris: [
+        Object.assign({ label: 'Household junk' }, pick(false)),
+        Object.assign({ label: 'Remodel debris' }, pick(true)),
+        Object.assign({ label: 'Roofing' }, pick(false)),
+        Object.assign({ label: 'Yard waste' }, pick(false)),
+        Object.assign({ label: 'Furniture' }, pick(false)),
+        Object.assign({ label: 'Mixed / not sure' }, pick(false))
+      ],
+      summary: [
+        { label: 'Dumpster', a: '15 yard', b: '5 days · 1 ton included' },
+        { label: 'Drop-off', a: 'Mon 14 Sep', b: '7am – 11am window' },
+        { label: 'Pickup', a: 'Sat 19 Sep', b: 'No call needed' },
+        { label: 'Address', a: '118 Ridge Ave', b: 'Columbus, OH 43214' },
+        { label: 'Placement', a: 'Driveway', b: 'Gate code 4412 · back in from street' },
+        { label: 'Contact', a: 'Dana Whitmore', b: '(614) 555-0182' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

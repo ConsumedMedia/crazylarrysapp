@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/styles.css">
+<script src="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cl-tokens.css">
+<style>
+  body { background: #101317; }
+</style>
+</helmet>
+
+<div style="background: #101317; padding: 56px 56px 96px 56px; font-family: 'Archivo', system-ui, sans-serif; color: #f2f3f5;">
+
+  <section style="display: flex; flex-direction: column; gap: 56px;">
+
+    <div style="display: flex; align-items: flex-start; gap: 28px; max-width: 1100px;">
+      <img src="assets/logo.png" alt="Crazy Larry's Dumpster Rental" style="width: 96px; height: 96px; object-fit: contain; flex: 0 0 96px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: #e91e8c; margin-bottom: 10px;">Round 3 · Driver app — phone first</div>
+        <h1 style="margin: 0 0 14px 0; font-size: 44px; font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Built for a gloved thumb<br>in a loud cab.</h1>
+        <p style="margin: 0 0 16px 0; max-width: 78ch; font-size: 15px; line-height: 1.65; color: #98a0ac;">Same palette and rules as the office tools, but every size steps up: 17px body, 19–26px times, and no tap target under 52px. The chrome is different on purpose — a pink-underlined black bar with the driver's name, truck and jobs remaining, so it never gets mistaken for the dispatcher's screen. Desktop exists for the yard office wall, not for driving.</p>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap; font-size: 12px; color: #6b7280;">
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Screens</div>Job list · job detail · day map</div>
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Min tap target</div>52px · primary action 64px</div>
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Order</div>Optimized route, not booking time</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3n · JOB LIST -->
+    <div id="3n" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3n</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Daily job list</h2>
+        <span style="font-size: 13px; color: #6b7280;">Phone first · route order</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Stop number in a filled square on the left, then time, job type and can number on one line. Completed stops drop to 55% opacity and keep their place — a driver checking &ldquo;did I do the Hilliard one&rdquo; needs to see it, not lose it. The next stop is the only teal-bordered card, and the two square buttons are call-customer and navigate, sized for a work glove.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1180px">
+            <dc-import name="DriverApp" screen="jobs" theme="light" device="mobile" hint-size="402px,1180px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1180px">
+            <dc-import name="DriverApp" screen="jobs" theme="dark" device="mobile" hint-size="402px,1180px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1100px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="DriverApp" screen="jobs" theme="light" device="desktop" hint-size="100%,1100px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1100px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="DriverApp" screen="jobs" theme="dark" device="desktop" hint-size="100%,1100px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3o · JOB DETAIL -->
+    <div id="3o" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3o</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Job detail</h2>
+        <span style="font-size: 13px; color: #6b7280;">One-tap mark complete</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Address is set larger than the customer name, because that is what the driver is actually looking for. Driver notes get the orange alert treatment — gate codes and low branches are the things that turn a ten-minute stop into an hour. Mark complete is a 64px teal bar with the placement photo prompt directly above it, so the photo reads as part of finishing rather than an optional extra. &ldquo;Can't complete&rdquo; sits below as a secondary, never hidden.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1180px">
+            <dc-import name="DriverApp" screen="detail" theme="light" device="mobile" hint-size="402px,1180px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1180px">
+            <dc-import name="DriverApp" screen="detail" theme="dark" device="mobile" hint-size="402px,1180px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1100px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="DriverApp" screen="detail" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1100px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="DriverApp" screen="detail" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3p · MAP -->
+    <div id="3p" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3p</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Day route map</h2>
+        <span style="font-size: 13px; color: #6b7280;">Numbered stops · next-stop card · rest of the run</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Pins carry the stop number rather than an icon, so the map and the list are the same mental object. Done stops go grey, the next one is teal, everything ahead is pink. The next-stop card under the map repeats the one thing worth reading at a glance with a black navigate bar, then the remaining stops in order — 56px rows, tabular times.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="DriverApp" screen="map" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="DriverApp" screen="map" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1100px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="DriverApp" screen="map" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1100px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="DriverApp" screen="map" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <div style="max-width: 1100px;">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #e91e8c; margin-bottom: 12px;">Worth deciding before build</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #2a3038; border: 2px solid #2a3038;">
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Photo required or optional?</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Drawn as required on drops, optional on hauls. If drivers will skip it, mark complete needs to work without one and flag the job instead.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Navigation handoff</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Navigate hands the address to whatever the driver already uses. Building a map inside the app is a bigger job and probably worse than Google Maps.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Offline in the truck</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Coverage south of Grove City is patchy. Worth deciding whether the day's list caches on load and completions queue until signal returns.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, phoneW: 402, phoneH: 1180 };
+  }
+}
+
+</script>
+</body>
+</html>

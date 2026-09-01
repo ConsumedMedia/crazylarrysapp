@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/styles.css">
+<script src="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cl-tokens.css">
+<style>
+  body { background: #101317; }
+</style>
+</helmet>
+
+<div style="background: #101317; padding: 56px 56px 96px 56px; font-family: 'Archivo', system-ui, sans-serif; color: #f2f3f5;">
+
+  <!-- ══════════ Turn 3 ══════════ -->
+  <section style="display: flex; flex-direction: column; gap: 56px; margin-bottom: 80px;">
+
+    <div style="display: flex; align-items: flex-start; gap: 28px; max-width: 1100px;">
+      <img src="assets/logo.png" alt="Crazy Larry's Dumpster Rental" style="width: 96px; height: 96px; object-fit: contain; flex: 0 0 96px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: #e91e8c; margin-bottom: 10px;">Round 3 · Customer side — fixes, confirmation, account portal</div>
+        <h1 style="margin: 0 0 14px 0; font-size: 44px; font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Signing is a DocuSign window.<br>Paying says QuickBooks on it.</h1>
+        <p style="margin: 0; max-width: 78ch; font-size: 15px; line-height: 1.65; color: #98a0ac;">Both Round 2 notes are fixed below, then the two new customer surfaces. The signing card no longer pretends to be a signature pad — it is a status line plus a button that opens Larry's real envelope in a modal, with an explicit waiting and signed state. Round 2's four screens are unchanged further down the page.</p>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3a · REVIEW & PAY, FIXED -->
+    <div id="3a" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3a</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Fix · Review &amp; pay</h2>
+        <span style="font-size: 13px; color: #6b7280;">Agreement status card + QuickBooks-branded payment</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">Card and ACH are now labelled with their real processing cost, the QuickBooks mark sits in the section header rather than as a vague &ldquo;secured by&rdquo; line, and a closing note tells the customer Larry's office never holds the card number. The agreement card carries its own state chip so the customer can see at a glance whether signing is still outstanding.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="review" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="review" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="review" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="review" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3b · DOCUSIGN MODAL -->
+    <div id="3b" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3b</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Fix · DocuSign modal</h2>
+        <span style="font-size: 13px; color: #6b7280;">Waiting for signature → signed</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">A thin wrapper: overlay, header naming the envelope, a status banner, the iframe area where Larry's existing signing link loads, and a footer with an email-it-to-me escape hatch. The banner and the footer button are the two things that flip when DocuSign posts back completion — nothing else in the modal changes, so the transition is quiet. On a phone the overlay padding drops to 10px and the modal fills the screen.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Waiting · desktop light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="review" signing="waiting" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Signed · desktop dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="review" signing="signed" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Waiting · phone light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="review" signing="waiting" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Signed · phone dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="review" signing="signed" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3c · CONFIRMATION -->
+    <div id="3c" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3c</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">New · Booking confirmation</h2>
+        <span style="font-size: 13px; color: #6b7280;">Locked in, what happens next, account creation</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">The booking number is set in a bordered block because it is the one thing a customer reads aloud on the phone. The same three-step &ldquo;what happens next&rdquo; pattern from Round 2 runs across the full width here, and account creation is a pink-framed panel on the right rather than a nagging banner — pre-filled with the email they just paid with, so it is one password away.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="done" theme="light" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="done" theme="dark" device="desktop" hint-size="100%,900px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="done" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="done" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3d · SIGN IN -->
+    <div id="3d" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3d</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">New · Sign in / create account</h2>
+        <span style="font-size: 13px; color: #6b7280;">Never a gate on booking — only a door to the rest</span>
+      </div>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerAccount" screen="login" theme="light" device="desktop" hint-size="100%,700px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerAccount" screen="login" theme="dark" device="desktop" hint-size="100%,700px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="login" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="login" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3e · ACCOUNT DASHBOARD -->
+    <div id="3e" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3e</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">New · Account dashboard</h2>
+        <span style="font-size: 13px; color: #6b7280;">Their own can, in the admin fleet-tile language</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">The rental panel borrows the fleet tile's grammar — pink cap for deployed, the status chip reading &ldquo;day 3 of 5&rdquo;, the can number set large and tabular — scoped to the one can they have. The pending change request sits at the top in purple, the same reserved-purple the admin board uses for &ldquo;committed but not settled&rdquo;.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerAccount" screen="dash" theme="light" device="desktop" hint-size="100%,800px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerAccount" screen="dash" theme="dark" device="desktop" hint-size="100%,800px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="dash" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="dash" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3f · BOOKING HISTORY -->
+    <div id="3f" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3f</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">New · Booking history</h2>
+        <span style="font-size: 13px; color: #6b7280;">Every can, with re-book as the standing action</span>
+      </div>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerAccount" screen="history" theme="light" device="desktop" hint-size="100%,620px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerAccount" screen="history" theme="dark" device="desktop" hint-size="100%,620px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="history" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="history" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 3g · REQUEST A CHANGE -->
+    <div id="3g" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">3g</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">New · Request a change</h2>
+        <span style="font-size: 13px; color: #6b7280;">Routes to admin · pending state made explicit</span>
+      </div>
+      <p style="margin: 0; max-width: 78ch; font-size: 14px; line-height: 1.6; color: #98a0ac;">The wording never implies the customer can move the schedule themselves — the button says &ldquo;send to the office&rdquo;, days that are full or closed are unpickable, the cost of extra days is stated before sending, and the panel on the right shows the exact chip they will see afterwards. The old date holds until an approval comes back.</p>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerAccount" screen="change" theme="light" device="desktop" hint-size="100%,860px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerAccount" screen="change" theme="dark" device="desktop" hint-size="100%,860px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="change" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerAccount" screen="change" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <div style="max-width: 1100px;">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #e91e8c; margin-bottom: 12px;">Round 3, elsewhere</div>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: #2a3038; border: 2px solid #2a3038;">
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Admin tools</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Scheduling (day/week/month with drag-to-reassign), booking table, driver management and route view, customer records, Quo call log — in <strong>Crazy Larry's Admin Tools</strong>.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Driver app</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Route-ordered job list, job detail with one-tap complete, day map — phone first, in <strong>Crazy Larry's Driver App</strong>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="height: 3px; background: #e91e8c; margin-bottom: 80px;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: 56px;">
+
+    <div style="display: flex; align-items: flex-start; gap: 28px; max-width: 1100px;">
+      <img src="assets/logo.png" alt="Crazy Larry's Dumpster Rental" style="width: 96px; height: 96px; object-fit: contain; flex: 0 0 96px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: #e91e8c; margin-bottom: 10px;">Crazy Larry's · Customer booking portal · Round 2</div>
+        <h1 style="margin: 0 0 14px 0; font-size: 44px; font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Four screens, no login, one flat price.</h1>
+        <p style="margin: 0 0 16px 0; max-width: 76ch; font-size: 15px; line-height: 1.65; color: #98a0ac;">Same chassis as the operations tools — square corners, 2px rules, teal for every action — but the type comes up a size and the density comes down, because this is read once by a stranger on a phone rather than all day by Larry. The availability calendar reads directly off the fleet board: when the last 20 yard is committed, that size stops being selectable.</p>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap; font-size: 12px; color: #6b7280;">
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Flow</div>Size → Dates → Details → Review &amp; pay</div>
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Pricing shown</div>$274 / $324 / $374 · 5 days · 1 ton</div>
+          <div><div style="font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #98a0ac; margin-bottom: 3px;">Overages</div>$65 / ton · $18 / extra day</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 2a · SIZE -->
+    <div id="2a" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">2a</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Step 1 · Pick a size</h2>
+        <span style="font-size: 13px; color: #6b7280;">Live availability per size, straight from the yard</span>
+      </div>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="size" theme="light" device="desktop" hint-size="100%,860px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="size" theme="dark" device="desktop" hint-size="100%,860px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="size" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="size" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 2b · CALENDAR -->
+    <div id="2b" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">2b</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Step 2 · Availability calendar</h2>
+        <span style="font-size: 13px; color: #6b7280;">Open / one-left / booked out, plus the five-day window drawn in</span>
+      </div>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="calendar" theme="light" device="desktop" hint-size="100%,780px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="calendar" theme="dark" device="desktop" hint-size="100%,780px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="calendar" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="calendar" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 2c · BOOKING FORM -->
+    <div id="2c" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">2c</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Step 3 · Booking details</h2>
+        <span style="font-size: 13px; color: #6b7280;">Address, placement, driver notes, contact, debris type — running total pinned right</span>
+      </div>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="form" theme="light" device="desktop" hint-size="100%,1000px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="form" theme="dark" device="desktop" hint-size="100%,1000px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="form" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="form" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <!-- 2d · REVIEW & PAY -->
+    <div id="2d" style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+        <span style="background: #e91e8c; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 5px 10px;">2d</span>
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Step 4 · Review &amp; pay</h2>
+        <span style="font-size: 13px; color: #6b7280;">Summary, agreement signature, card or bank transfer</span>
+      </div>
+      <div style="display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · light</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #f4f4f5;">
+            <dc-import name="CustomerPortal" screen="review" theme="light" device="desktop" hint-size="100%,880px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Desktop · dark</div>
+          <div style="width: 1280px; border: 2px solid #2a3038; background: #0e1116;">
+            <dc-import name="CustomerPortal" screen="review" theme="dark" device="desktop" hint-size="100%,880px" style="width: 100%;"></dc-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · light</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="review" theme="light" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280;">Phone · dark</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ phoneW }}" height="{{ phoneH }}" dark="{{ yes }}" hint-size="402px,1080px">
+            <dc-import name="CustomerPortal" screen="review" theme="dark" device="mobile" hint-size="402px,1080px" style="width: 100%;"></dc-import>
+          </x-import>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 2px; background: #2a3038;"></div>
+
+    <div style="max-width: 1100px;">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #e91e8c; margin-bottom: 12px;">Open decisions on this surface</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #2a3038; border: 2px solid #2a3038;">
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Sunday delivery</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Sundays are drawn as closed. If you do run Sundays, say so and the calendar opens them.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Street permits</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Street placement says &ldquo;we can pull the permit.&rdquo; If that is a fee, it needs a line in the total.</div>
+        </div>
+        <div style="background: #171b22; padding: 18px;">
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 6px;">Still to build</div>
+          <div style="font-size: 13px; line-height: 1.55; color: #98a0ac;">Confirmation screen and the post-login account portal — booking history, active rental, request-a-change.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true, phoneW: 402, phoneH: 1080 };
+  }
+}
+
+</script>
+</body>
+</html>

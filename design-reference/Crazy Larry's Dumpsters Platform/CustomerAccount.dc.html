@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/styles.css">
+<script src="_ds/modernist-cf925dc5-bbba-4912-8764-497780dc8a87/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cl-tokens.css">
+</helmet>
+
+<div data-cl="1" data-cl-theme="{{ theme }}" data-cl-dev="{{ device }}" style="background: var(--bg); color: var(--ink); display: flex; flex-direction: column; min-height: 100%; position: relative;">
+
+  <header style="background: var(--surface); border-bottom: 2px solid var(--line-strong);">
+    <div style="display: flex; align-items: center; gap: 16px; padding: 10px var(--pad); padding-top: calc(10px + var(--safe-top));">
+      <img src="{{ logoSrc }}" alt="Crazy Larry's Dumpster Rental" style="width: 46px; height: 46px; object-fit: contain; flex: 0 0 46px;">
+      <div style="min-width: 0;">
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.1;">Crazy Larry's</div>
+        <div style="font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);">{{ headerTag }}</div>
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+        <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+          <div style="display: var(--tools); flex-direction: column; align-items: flex-end;">
+            <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3);">Call the yard</span>
+            <span style="font-size: 16px; font-weight: 900; letter-spacing: -0.01em;">(614) 555-0100</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+          <button style="border: 0; background: var(--teal); color: #fff; padding: 10px 14px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-align: left; white-space: nowrap;" style-hover="background: var(--teal-700);">+ Book another</button>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 3px 10px 3px 3px; border: 2px solid var(--line);">
+            <div style="width: 28px; height: 28px; background: var(--pink); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">DW</div>
+            <div style="display: var(--tools); font-size: 12px; font-weight: 700;">Dana W.</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; gap: 0; border-top: 1px solid var(--line); padding: 0 var(--pad); overflow: hidden;">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+        <div data-cltab="1" data-active="{{ t.active }}" style="padding: 12px 0; margin-right: 24px; border-bottom: 4px solid {{ t.bar }}; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: {{ t.ink }}; cursor: pointer; white-space: nowrap;">{{ t.label }}</div>
+      </sc-for>
+    </div>
+    </sc-if>
+  </header>
+
+  <!-- ══ LOGIN / CREATE ══ -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+  <main style="padding: var(--pad); display: grid; gap: var(--gap); grid-template-columns: var(--split); align-items: start;">
+    <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+      <div style="display: flex; border-bottom: 2px solid var(--line-strong);">
+        <div style="flex: 1; padding: 13px 16px; background: var(--ink); color: var(--surface); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;">Sign in</div>
+        <div style="flex: 1; padding: 13px 16px; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); cursor: pointer;">Create an account</div>
+      </div>
+      <div style="padding: var(--pad); display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <h1 style="margin: 0 0 6px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.05;">Check on your can.</h1>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2);">Sign in to see where your rental stands, move a pickup date, or re-book in two taps. No account needed to book — this is only for after.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Email or mobile</label>
+          <input type="text" value="dana@whitmorebuild.com" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 13px; font-family: inherit; font-size: 15px; width: 100%;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Password</label>
+          <input type="password" value="············" style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 13px; font-family: inherit; font-size: 15px; width: 100%;">
+        </div>
+        <button style="width: 100%; border: 0; background: var(--teal); color: #fff; padding: 15px; font-family: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 48px;" style-hover="background: var(--teal-700);">Sign in <span>→</span></button>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="flex: 1; height: 1px; background: var(--line);"></div>
+          <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">or</span>
+          <div style="flex: 1; height: 1px; background: var(--line);"></div>
+        </div>
+        <button style="width: 100%; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 13px 15px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; min-height: 48px;" style-hover="background: var(--tint);">Text me a one-time code</button>
+        <div style="font-size: 13px; color: var(--ink-3);"><a href="#" style="font-weight: 800;">Forgot your password?</a></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: var(--gap);">
+      <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+        <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">What an account gets you</div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; gap: 11px; align-items: flex-start;">
+            <span style="width: 22px; height: 22px; flex: 0 0 22px; background: var(--pink); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">1</span>
+            <div><div style="font-size: 14px; font-weight: 800;">Live status on your can</div><div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Where it is, which day it goes, how many days you have left.</div></div>
+          </div>
+          <div style="display: flex; gap: 11px; align-items: flex-start;">
+            <span style="width: 22px; height: 22px; flex: 0 0 22px; background: var(--pink); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">2</span>
+            <div><div style="font-size: 14px; font-weight: 800;">Move a pickup without calling</div><div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Request a new date and the office confirms, usually same day.</div></div>
+          </div>
+          <div style="display: flex; gap: 11px; align-items: flex-start;">
+            <span style="width: 22px; height: 22px; flex: 0 0 22px; background: var(--pink); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;">3</span>
+            <div><div style="font-size: 14px; font-weight: 800;">Receipts and agreements in one place</div><div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Every rental, every signed PDF — useful come tax time.</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="border: 2px solid var(--line); background: var(--surface-2); padding: 16px;">
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;">Contractors</div>
+        <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);">Running several jobs at once? Ask the office for a company account — all your sites on one dashboard, billed monthly instead of per can.</div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ══ DASHBOARD ══ -->
+  <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap);">
+    <div>
+      <h1 style="margin: 0 0 4px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em;">Afternoon, Dana.</h1>
+      <div style="font-size: 13px; color: var(--ink-2);">One can on site · one change request waiting on the office</div>
+    </div>
+
+    <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+    <div style="border: 2px solid var(--purple); background: var(--surface); display: flex; align-items: center; gap: 14px; padding: 14px 16px; flex-wrap: wrap;">
+      <span style="width: 34px; height: 34px; flex: 0 0 34px; background: var(--purple); color: #fff; display: grid; place-items: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      </span>
+      <div style="flex: 1; min-width: 200px;">
+        <div style="font-size: 14px; font-weight: 800;">Pickup change requested — waiting on the office</div>
+        <div style="font-size: 13px; color: var(--ink-2); line-height: 1.45;">You asked to move pickup from Sat 19 Sep to Tue 22 Sep. Submitted 27 Aug, 4:40pm. Extra days bill at $18 each if approved.</div>
+      </div>
+      <span style="background: var(--purple-tint); color: var(--purple-tint-ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 9px; white-space: nowrap;">Pending approval</span>
+      <button style="border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 9px 13px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-align: left; white-space: nowrap;" style-hover="background: var(--tint);">Withdraw</button>
+    </div>
+    </sc-if>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+        <!-- active rental tile — the customer's own can, in fleet-tile language -->
+        <div style="border: 2px solid var(--line-strong); background: var(--surface); border-top: 6px solid var(--pink);">
+          <div style="padding: 12px 16px; border-bottom: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Your rental</span>
+            <span style="background: var(--pink-tint); color: var(--pink-tint-ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 9px;">On site · day 3 of 5</span>
+          </div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap;">
+              <div style="min-width: 130px;">
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Can</div>
+                <div style="font-size: 30px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;">CL-121</div>
+                <div style="font-size: 13px; color: var(--ink-2);">15 yard · 1 ton included</div>
+              </div>
+              <div style="min-width: 130px;">
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Days left</div>
+                <div style="font-size: 30px; font-weight: 900; letter-spacing: -0.03em; line-height: 1;">2</div>
+                <div style="font-size: 13px; color: var(--ink-2);">Then $18 per extra day</div>
+              </div>
+              <div style="min-width: 150px;">
+                <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px;">Site</div>
+                <div style="font-size: 15px; font-weight: 800;">118 Ridge Ave</div>
+                <div style="font-size: 13px; color: var(--ink-2);">Driveway, left side</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px;"><span>Dropped Mon 14 Sep</span><span>Pickup Sat 19 Sep</span></div>
+              <div style="height: 14px; background: var(--tint); display: flex;">
+                <div style="width: 60%; background: var(--pink);"></div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 2px; background: var(--line); border: 2px solid var(--line);">
+              <sc-for list="{{ timeline }}" as="e" hint-placeholder-count="4">
+                <div style="background: var(--surface); padding: 11px 13px; display: flex; align-items: center; gap: 12px;">
+                  <span style="width: 8px; height: 26px; flex: 0 0 8px; background: {{ e.color }};"></span>
+                  <div style="width: 92px; flex: 0 0 92px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ e.when }}</div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 13px; font-weight: 700;">{{ e.what }}</div>
+                    <div style="font-size: 12px; color: var(--ink-2);">{{ e.who }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button style="flex: 1; min-width: 150px; border: 0; background: var(--teal); color: #fff; padding: 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; min-height: 48px;" style-hover="background: var(--teal-700);">Request a change</button>
+              <button style="flex: 1; min-width: 150px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 12px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; min-height: 48px;" style-hover="background: var(--tint);">See the drop-off photo</button>
+              <button style="flex: 1; min-width: 150px; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 12px 14px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left; min-height: 48px;" style-hover="background: var(--tint);">Call the yard</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 12px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">This rental</div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 9px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Booking</span><span style="font-weight: 800;">CL-8841</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Paid 27 Aug</span><span style="font-weight: 800;">$348.30</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Agreement</span><span style="font-weight: 800; color: var(--teal-tint-ink);">Signed</span></div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 9px;"><span style="color: var(--ink-2);">Est. weight charge</span><span style="font-weight: 800;">$0.00</span></div>
+            <div style="font-size: 12px; color: var(--ink-3); line-height: 1.5;">Billed after the can is weighed at the transfer station.</div>
+          </div>
+        </div>
+        <div style="border: 2px solid var(--line); background: var(--surface-2); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);">Documents</div>
+          <button style="width: 100%; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer;" style-hover="background: var(--tint);">Receipt (PDF)</button>
+          <button style="width: 100%; border: 2px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 14px; font-family: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer;" style-hover="background: var(--tint);">Signed agreement</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ══ HISTORY ══ -->
+  <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap);">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+      <div>
+        <h1 style="margin: 0 0 4px 0; font-size: var(--h1); font-weight: 800; letter-spacing: -0.02em;">Your rentals</h1>
+        <div style="font-size: 13px; color: var(--ink-2);">7 cans since March 2025 · $2,412 spent</div>
+      </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <span style="background: var(--ink); color: var(--surface); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 11px;">All 7</span>
+        <span style="border: 2px solid var(--line); color: var(--ink-2); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px;">Active 1</span>
+        <span style="border: 2px solid var(--line); color: var(--ink-2); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px;">Finished 6</span>
+      </div>
+    </div>
+
+    <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+      <sc-for list="{{ history }}" as="h" hint-placeholder-count="7">
+        <div data-clrow="1" style="display: flex; align-items: center; gap: 13px; padding: 13px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; cursor: pointer;">
+          <div style="width: 8px; height: 38px; flex: 0 0 8px; background: {{ h.color }};"></div>
+          <div style="width: 78px; flex: 0 0 78px;">
+            <div style="font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums;">{{ h.id }}</div>
+            <div style="font-size: 11px; color: var(--ink-3);">{{ h.size }}</div>
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <div style="font-size: 14px; font-weight: 700;">{{ h.where }}</div>
+            <div style="font-size: 12px; color: var(--ink-2);">{{ h.dates }}</div>
+          </div>
+          <div style="width: 108px; flex: 0 0 108px;">
+            <span style="background: {{ h.badgeBg }}; color: {{ h.badgeInk }}; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; padding: 5px 8px;">{{ h.status }}</span>
+          </div>
+          <div style="width: 92px; flex: 0 0 92px; text-align: right;">
+            <div style="font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ h.total }}</div>
+            <div style="font-size: 11px; color: var(--ink-3);">{{ h.extra }}</div>
+          </div>
+          <span style="font-size: 12px; font-weight: 800; color: var(--pink); white-space: nowrap;">{{ h.cta }}</span>
+        </div>
+      </sc-for>
+      <div style="padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 12px; color: var(--ink-3);">Showing all 7 rentals</span>
+        <button style="border: 0; background: transparent; color: var(--pink); padding: 0; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer;">Download every receipt →</button>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ══ REQUEST A CHANGE ══ -->
+  <sc-if value="{{ isChange }}" hint-placeholder-val="{{ false }}">
+  <main style="padding: var(--pad); display: flex; flex-direction: column; gap: var(--gap);">
+    <div>
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--pink); margin-bottom: 8px;">CL-8841 · 15 yard · 118 Ridge Ave</div>
+      <h1 style="margin: 0 0 8px 0; font-size: var(--hero); font-weight: 900; letter-spacing: -0.035em; line-height: 1.03;">Need to change something?</h1>
+      <p style="margin: 0; max-width: 62ch; font-size: 15px; line-height: 1.6; color: var(--ink-2);">Requests go to the office rather than changing the schedule outright — Larry has to have a truck and a driver free that day. Most get answered within the hour during business hours.</p>
+    </div>
+
+    <div style="display: grid; gap: var(--gap); grid-template-columns: var(--split);">
+      <div style="display: flex; flex-direction: column; gap: var(--gap);">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">What needs changing</div>
+          <div style="padding: 16px; display: grid; gap: 8px; grid-template-columns: var(--third);">
+            <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="4">
+              <div style="border: 2px solid {{ r.border }}; background: {{ r.bg }}; padding: 13px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; min-height: 66px;">
+                <span style="font-size: 13px; font-weight: 800; color: {{ r.ink }};">{{ r.label }}</span>
+                <span style="font-size: 11px; color: var(--ink-2); line-height: 1.35;">{{ r.note }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--line-strong); background: var(--surface);">
+          <div style="padding: 11px 16px; border-bottom: 2px solid var(--line-strong); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Pick a new pickup date</span>
+            <span style="font-size: 11px; color: var(--ink-3);">Current: Sat 19 Sep</span>
+          </div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line); padding: 1px;">
+              <sc-for list="{{ dayNames }}" as="d" hint-placeholder-count="7">
+                <div style="background: var(--surface); text-align: center; padding: 7px 0; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);">{{ d }}</div>
+              </sc-for>
+              <sc-for list="{{ changeDays }}" as="c" hint-placeholder-count="14">
+                <div style="background: {{ c.bg }}; min-height: 62px; padding: 7px; display: flex; flex-direction: column; gap: 3px; box-shadow: {{ c.ring }};">
+                  <div style="font-size: 14px; font-weight: 800; color: {{ c.ink }}; font-variant-numeric: tabular-nums;">{{ c.n }}</div>
+                  <div style="font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: {{ c.noteInk }}; line-height: 1.25;">{{ c.note }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <label style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);">Anything else the office should know</label>
+              <textarea style="border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 12px; font-family: inherit; font-size: 15px; width: 100%; min-height: 74px; resize: vertical; margin-top: 5px;">Drywall crew pushed to Thursday, so we won't be done filling it until Monday. Tuesday morning is fine.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div style="border: 2px solid var(--orange); background: var(--surface); padding: 16px; display: flex; gap: 12px; align-items: flex-start;">
+          <span style="width: 28px; height: 28px; flex: 0 0 28px; background: var(--orange); color: #14161a; display: grid; place-items: center; font-size: 15px; font-weight: 900;">!</span>
+          <div style="font-size: 13px; line-height: 1.55; color: var(--ink-2);"><strong style="color: var(--ink);">Three extra days at $18 = $54.00.</strong> Charged to the card on file only if the office approves the new date. Nothing is charged for asking.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap); align-self: start;">
+        <div style="border: 2px solid var(--line-strong); background: var(--surface); padding: 16px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); margin-bottom: 12px;">Your request</div>
+          <div style="display: flex; flex-direction: column; gap: 9px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">Change</span><span style="font-weight: 800;">Pickup date</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">From</span><span style="font-weight: 800;">Sat 19 Sep</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--ink-2);">To</span><span style="font-weight: 800; color: var(--teal-tint-ink);">Tue 22 Sep</span></div>
+            <div style="display: flex; justify-content: space-between; border-top: 2px solid var(--line-strong); padding-top: 10px;"><span style="color: var(--ink-2);">If approved</span><span style="font-weight: 900; font-size: 18px;">+$54.00</span></div>
+          </div>
+          <button style="width: 100%; margin-top: 14px; border: 0; background: var(--teal); color: #fff; padding: 15px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 48px;" style-hover="background: var(--teal-700);">Send to the office <span>→</span></button>
+          <div style="font-size: 12px; color: var(--ink-3); margin-top: 10px; line-height: 1.5;">You will get a text either way. If it is urgent, call (614) 555-0100 — a person answers until 5pm.</div>
+        </div>
+
+        <div style="border: 2px solid var(--purple); background: var(--surface);">
+          <div style="padding: 10px 16px; background: var(--purple); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;">Once you send it</div>
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 13px;">
+            <div style="display: flex; gap: 11px; align-items: flex-start;">
+              <span style="width: 22px; height: 22px; flex: 0 0 22px; background: var(--purple); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">1</span>
+              <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;"><strong style="color: var(--ink);">Pending approval</strong> shows on your dashboard and on Larry's board.</div>
+            </div>
+            <div style="display: flex; gap: 11px; align-items: flex-start;">
+              <span style="width: 22px; height: 22px; flex: 0 0 22px; background: var(--purple); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">2</span>
+              <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">The office checks a truck is free that morning.</div>
+            </div>
+            <div style="display: flex; gap: 11px; align-items: flex-start;">
+              <span style="width: 22px; height: 22px; flex: 0 0 22px; background: var(--purple); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800;">3</span>
+              <div style="font-size: 13px; color: var(--ink-2); line-height: 1.5;">Approved or declined by text — the old date holds until then.</div>
+            </div>
+            <div style="border-top: 1px solid var(--line); padding-top: 12px; display: flex; align-items: center; gap: 9px;">
+              <span style="background: var(--purple-tint); color: var(--purple-tint-ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 9px;">Pending approval</span>
+              <span style="font-size: 12px; color: var(--ink-3);">the state you will see</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;dash&quot;,&quot;history&quot;,&quot;change&quot;],&quot;default&quot;:&quot;login&quot;,&quot;tsType&quot;:&quot;'login' | 'dash' | 'history' | 'change'&quot;},&quot;pendingRequest&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Dashboard&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;'desktop' | 'mobile'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const P = 'var(--pink)', T = 'var(--teal)', U = 'var(--purple)', G = 'var(--gray-st)', O = 'var(--orange)';
+    const screen = this.props.screen ?? 'login';
+    const mobile = (this.props.device ?? 'desktop') === 'mobile';
+    const loggedIn = screen !== 'login';
+
+    const tabLabels = [
+      ['dash', mobile ? 'Rental' : 'Active rental'],
+      ['history', mobile ? 'History' : 'Booking history'],
+      ['change', mobile ? 'Change' : 'Request a change']
+    ];
+
+    const pick = (on) => ({
+      border: on ? 'var(--teal)' : 'var(--line)',
+      bg: on ? 'var(--teal-tint)' : 'transparent',
+      ink: on ? 'var(--teal-tint-ink)' : 'var(--ink)'
+    });
+
+    // Sep 14–27 strip for the change request
+    const changeDays = [];
+    for (let n = 13; n <= 26; n++) {
+      if (n === 19) changeDays.push({ n, bg: 'var(--tint)', ink: 'var(--ink)', note: 'Current', noteInk: 'var(--ink-2)', ring: 'inset 0 0 0 2px var(--ink)' });
+      else if (n === 22) changeDays.push({ n, bg: T, ink: '#fff', note: 'Requested', noteInk: 'rgba(255,255,255,0.9)', ring: 'none' });
+      else if (n === 20) changeDays.push({ n, bg: 'var(--tint)', ink: 'var(--ink-3)', note: 'Closed', noteInk: 'var(--ink-3)', ring: 'none' });
+      else if (n === 21 || n === 25) changeDays.push({ n, bg: 'var(--tint)', ink: 'var(--ink-3)', note: 'Full', noteInk: 'var(--ink-3)', ring: 'none' });
+      else if (n < 19) changeDays.push({ n, bg: 'var(--bg)', ink: 'var(--ink-3)', note: '', noteInk: 'var(--ink-3)', ring: 'none' });
+      else changeDays.push({ n, bg: 'var(--surface)', ink: 'var(--ink)', note: 'Open', noteInk: 'var(--ink-3)', ring: 'none' });
+    }
+
+    return {
+      theme: this.props.theme ?? 'light',
+      device: this.props.device ?? 'desktop',
+      logoSrc: (window.__resources && window.__resources['assets/logo.png']) || 'assets/logo.png',
+      headerTag: loggedIn ? 'My account' : 'Dumpster Rental · Columbus',
+      isLogin: screen === 'login',
+      isDash: screen === 'dash',
+      isHistory: screen === 'history',
+      isChange: screen === 'change',
+      loggedIn,
+      hasPending: (this.props.pendingRequest ?? true) === true,
+      dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      changeDays,
+      tabs: tabLabels.map(([key, label]) => ({
+        label,
+        active: screen === key ? '1' : '0',
+        bar: screen === key ? P : 'transparent',
+        ink: screen === key ? 'var(--ink)' : 'var(--ink-2)'
+      })),
+      timeline: [
+        { when: 'Sat 19 Sep', what: 'Pickup scheduled', who: 'Change requested — waiting on the office', color: U },
+        { when: 'Wed 16 Sep', what: 'Halfway reminder texted', who: 'Two days left on the rental', color: 'var(--line-strong)' },
+        { when: 'Mon 14 Sep', what: 'Delivered, photo on file', who: 'Dale · 8:12am · driveway, left side', color: P },
+        { when: 'Thu 27 Aug', what: 'Booked, signed and paid', who: '$348.30 · Visa ···· 4242', color: T }
+      ],
+      reasons: [
+        Object.assign({ label: 'Move the pickup', note: 'Later or earlier than booked' }, pick(true)),
+        Object.assign({ label: 'Move the drop-off', note: 'Only before it is loaded' }, pick(false)),
+        Object.assign({ label: 'Swap for an empty', note: 'Full and still working' }, pick(false)),
+        Object.assign({ label: 'Cancel the rental', note: 'Free until 24h before' }, pick(false))
+      ],
+      history: [
+        { id: 'CL-121', size: '15 yd', where: '118 Ridge Ave, Columbus', dates: '14 – 19 Sep 2026 · booking CL-8841', status: 'On site', badgeBg: 'var(--pink-tint)', badgeInk: 'var(--pink-tint-ink)', color: P, total: '$348.30', extra: 'paid', cta: 'Manage' },
+        { id: 'CL-117', size: '10 yd', where: '4120 Karl Rd, Columbus', dates: '2 – 7 Jun 2026', status: 'Finished', badgeBg: 'var(--tint)', badgeInk: 'var(--ink-2)', color: G, total: '$294.20', extra: '+$20 weight', cta: 'Re-book' },
+        { id: 'CL-108', size: '15 yd', where: '860 Hines Rd, Gahanna', dates: '11 – 18 Apr 2026', status: 'Finished', badgeBg: 'var(--tint)', badgeInk: 'var(--ink-2)', color: G, total: '$378.00', extra: '+3 days', cta: 'Re-book' },
+        { id: 'CL-130', size: '10 yd', where: '77 Chase Ave, Clintonville', dates: '5 – 10 Feb 2026', status: 'Finished', badgeBg: 'var(--tint)', badgeInk: 'var(--ink-2)', color: G, total: '$274.00', extra: '—', cta: 'Re-book' },
+        { id: 'CL-104', size: '20 yd', where: '1188 Grandview Ave', dates: '19 – 24 Nov 2025', status: 'Finished', badgeBg: 'var(--tint)', badgeInk: 'var(--ink-2)', color: G, total: '$439.00', extra: '+$65 weight', cta: 'Re-book' },
+        { id: 'CL-112', size: '15 yd', where: '2401 E Main St, Bexley', dates: '8 – 13 Aug 2025', status: 'Finished', badgeBg: 'var(--tint)', badgeInk: 'var(--ink-2)', color: G, total: '$324.00', extra: '—', cta: 'Re-book' },
+        { id: 'CL-126', size: '10 yd', where: '515 Weber Rd, Columbus', dates: '3 – 8 Mar 2025', status: 'Cancelled', badgeBg: 'var(--orange-tint)', badgeInk: 'var(--orange-tint-ink)', color: O, total: '$0.00', extra: 'refunded', cta: 'Details' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

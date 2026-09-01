@@ -1,0 +1,58 @@
+/* Crazy Larry's platform — theme + device tokens.
+   Brand colors sampled from the logo; interface neutrals are their own scale. */
+html, body { margin: 0; padding: 0; }
+* { box-sizing: border-box; text-wrap: pretty; }
+a { color: #14b5a8; text-decoration: none; }
+a:hover { color: #e91e8c; }
+::selection { background: #f8bcdd; color: #14161a; }
+:focus-visible { outline: 2px solid #e91e8c; outline-offset: 2px; }
+
+[data-cl] {
+  --pink: #e91e8c; --pink-700: #b3126a; --pink-100: #fde4f1;
+  --teal: #14b5a8; --teal-700: #0b7d74; --teal-100: #d6f5f2;
+  --orange: #ff6b1a; --orange-700: #a83d00; --orange-100: #ffe8d9;
+  --purple: #8b4fd0; --purple-700: #5c2e91; --purple-100: #ece0fa;
+  --gray-st: #7d8592;
+  --rail-ink: #ffffff; --rail-ink-2: #8b929e;
+  font-family: "Archivo", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+[data-cl-theme="light"] {
+  --bg: #f4f4f5; --surface: #ffffff; --surface-2: #fafafb;
+  --ink: #14161a; --ink-2: #5c636e; --ink-3: #949aa4;
+  --line: #e4e6ea; --line-strong: #14161a; --tint: #f0f1f3;
+  --rail-bg: #14161a; --map-bg: #14161a;
+  --pink-tint-ink: #b3126a; --teal-tint-ink: #0b7d74; --purple-tint-ink: #5c2e91; --orange-tint-ink: #a83d00;
+  --pink-tint: #fde4f1; --teal-tint: #d6f5f2; --purple-tint: #ece0fa; --orange-tint: #ffe8d9;
+}
+[data-cl-theme="dark"] {
+  --bg: #0e1116; --surface: #171b22; --surface-2: #1d222a;
+  --ink: #f2f3f5; --ink-2: #98a0ac; --ink-3: #6b7280;
+  --line: #262c35; --line-strong: #3d4550; --tint: #21262f;
+  --rail-bg: #090c10; --map-bg: #090c10;
+  --pink-tint-ink: #ff8dc7; --teal-tint-ink: #58e0d4; --purple-tint-ink: #c39bf0; --orange-tint-ink: #ffb083;
+  --pink-tint: #2c1020; --teal-tint: #0a2320; --purple-tint: #1d1430; --orange-tint: #2e1608;
+}
+[data-cl-dev="desktop"] {
+  --rail-w: 236px; --pad: 28px; --gap: 18px; --safe-top: 0px;
+  --stat-cols: repeat(4, 1fr); --split: 1.8fr 1fr; --third: repeat(3, 1fr);
+  --sb: flex; --bb: none; --tools: flex;
+  --h1: 30px; --fleet-cols: repeat(6, 1fr); --hero: 44px; --modal-pad: 48px;
+  --tbl: block; --cards: none; --map-h: 460px; --wk-grid: grid; --wk-stack: none; --chip: flex; --wk-cols: 64px repeat(7, minmax(0, 1fr)); --two: repeat(2, 1fr);
+}
+[data-cl-dev="mobile"] {
+  --rail-w: 0px; --pad: 14px; --gap: 12px; --safe-top: 58px;
+  --stat-cols: repeat(2, 1fr); --split: 1fr; --third: 1fr;
+  --sb: none; --bb: flex; --tools: none;
+  --h1: 21px; --fleet-cols: repeat(3, 1fr); --hero: 30px; --modal-pad: 10px;
+  --tbl: none; --cards: flex; --map-h: 340px; --wk-grid: none; --wk-stack: flex; --chip: none; --wk-cols: 42px repeat(7, minmax(0, 1fr)); --two: 1fr;
+}
+[data-clnav][data-active="1"] {
+  background: color-mix(in srgb, #e91e8c 18%, transparent);
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #e91e8c;
+}
+[data-clnav]:hover { color: #ffffff; background: rgba(255,255,255,0.07); }
+[data-cltab][data-active="1"] { color: #e91e8c; }
+[data-clrow]:hover { background: var(--tint); }
+[data-clcan]:hover { outline: 3px solid var(--ink); outline-offset: -3px; cursor: pointer; }
