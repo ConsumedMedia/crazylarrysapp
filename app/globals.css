@@ -2,26 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Theme tokens — verbatim from
+ * design-reference/Crazy Larry's Dumpsters Platform/cl-tokens.css
+ *
+ * Light is the default on :root and on [data-cl-theme="light"].
+ * Dark applies via [data-cl-theme="dark"] OR prefers-color-scheme: dark
+ * (unless an explicit [data-cl-theme="light"] wins).
+ */
+
+:root,
+[data-cl-theme="light"] {
+  --cl-bg: #f4f4f5;
+  --cl-surface: #ffffff;
+  --cl-surface-2: #fafafb;
+  --cl-ink: #14161a;
+  --cl-ink-2: #5c636e;
+  --cl-ink-3: #949aa4;
+  --cl-line: #e4e6ea;
+  --cl-line-strong: #14161a;
+  --cl-tint: #f0f1f3;
+  --cl-rail-bg: #14161a;
+
+  --cl-pink-tint-ink: #b3126a;
+  --cl-pink-tint: #fde4f1;
+  --cl-teal-tint-ink: #0b7d74;
+  --cl-teal-tint: #d6f5f2;
+  --cl-purple-tint-ink: #5c2e91;
+  --cl-purple-tint: #ece0fa;
+  --cl-orange-tint-ink: #a83d00;
+  --cl-orange-tint: #ffe8d9;
+}
+
+[data-cl-theme="dark"] {
+  --cl-bg: #0e1116;
+  --cl-surface: #171b22;
+  --cl-surface-2: #1d222a;
+  --cl-ink: #f2f3f5;
+  --cl-ink-2: #98a0ac;
+  --cl-ink-3: #6b7280;
+  --cl-line: #262c35;
+  --cl-line-strong: #3d4550;
+  --cl-tint: #21262f;
+  --cl-rail-bg: #090c10;
+
+  --cl-pink-tint-ink: #ff8dc7;
+  --cl-pink-tint: #2c1020;
+  --cl-teal-tint-ink: #58e0d4;
+  --cl-teal-tint: #0a2320;
+  --cl-purple-tint-ink: #c39bf0;
+  --cl-purple-tint: #1d1430;
+  --cl-orange-tint-ink: #ffb083;
+  --cl-orange-tint: #2e1608;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-cl-theme="light"]) {
+    --cl-bg: #0e1116;
+    --cl-surface: #171b22;
+    --cl-surface-2: #1d222a;
+    --cl-ink: #f2f3f5;
+    --cl-ink-2: #98a0ac;
+    --cl-ink-3: #6b7280;
+    --cl-line: #262c35;
+    --cl-line-strong: #3d4550;
+    --cl-tint: #21262f;
+    --cl-rail-bg: #090c10;
+
+    --cl-pink-tint-ink: #ff8dc7;
+    --cl-pink-tint: #2c1020;
+    --cl-teal-tint-ink: #58e0d4;
+    --cl-teal-tint: #0a2320;
+    --cl-purple-tint-ink: #c39bf0;
+    --cl-purple-tint: #1d1430;
+    --cl-orange-tint-ink: #ffb083;
+    --cl-orange-tint: #2e1608;
   }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cl-bg);
+  color: var(--cl-ink);
+  font-family: "Archivo", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: #f8bcdd;
+  color: #14161a;
+}
+
+:focus-visible {
+  outline: 2px solid #e91e8c;
+  outline-offset: 2px;
+}
+
+/* Tabular numerals for all data (can IDs, counts, money). */
+.cl-nums {
+  font-variant-numeric: tabular-nums;
 }
