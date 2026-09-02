@@ -1,18 +1,18 @@
-import Link from "next/link";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { SignOutButton } from "./_components/SignOutButton";
+import { SidebarNav, BottomNav, type NavItem } from "./_components/AdminNav";
 
 export const dynamic = "force-dynamic";
 
-const NAV = [
+const NAV: NavItem[] = [
   { key: "overview", label: "Overview", href: null },
   { key: "fleet", label: "Fleet", href: "/fleet" },
-  { key: "schedule", label: "Schedule", href: null },
+  { key: "schedule", label: "Schedule", href: "/schedule" },
   { key: "bookings", label: "Bookings", href: null },
   { key: "drivers", label: "Drivers", href: null },
   { key: "customers", label: "Customers", href: null },
   { key: "call-log", label: "Call log", href: null },
-] as const;
+];
 
 function initials(name: string | null, email: string | null) {
   const src = name ?? email ?? "?";
@@ -29,9 +29,8 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-bg text-ink">
-      {/* Desktop sidebar */}
-      <nav className="hidden md:flex w-[236px] flex-none flex-col bg-rail-bg border-r-2 border-line-strong">
-        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-white/10">
+      <nav className="hidden w-[236px] flex-none flex-col border-r-2 border-line-strong bg-rail-bg md:flex">
+        <div className="flex items-center gap-2.5 border-b border-white/10 px-4 py-4">
           <div className="grid h-8 w-8 flex-none place-items-center bg-pink text-[13px] font-black text-white">
             CL
           </div>
@@ -43,33 +42,9 @@ export default async function AdminLayout({
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-px py-3">
-          {NAV.map((item) =>
-            item.href ? (
-              <Link
-                key={item.key}
-                href={item.href}
-                data-active="1"
-                className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-white bg-pink/[0.18] shadow-[inset_3px_0_0_#e91e8c]"
-              >
-                {item.label}
-                {item.key === "fleet" && (
-                  <span className="ml-auto bg-orange px-1.5 py-0.5 text-[10px] font-extrabold text-[#14161a]">
-                    3
-                  </span>
-                )}
-              </Link>
-            ) : (
-              <span
-                key={item.key}
-                aria-disabled
-                className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-rail-ink-2/60 cursor-not-allowed"
-              >
-                {item.label}
-              </span>
-            ),
-          )}
-        </div>
+
+        <SidebarNav items={NAV} />
+
         <div className="mt-auto flex items-center gap-2.5 border-t border-white/10 p-4">
           <div className="grid h-8 w-8 flex-none place-items-center bg-pink text-[11px] font-extrabold text-white">
             {initials(staff.fullName, staff.email)}
@@ -86,7 +61,6 @@ export default async function AdminLayout({
         </div>
       </nav>
 
-      {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-3 border-b-2 border-line-strong bg-surface px-4 py-3 md:px-7">
           <div className="flex flex-1 items-center gap-2.5 border-2 border-line bg-bg px-3 py-2">
@@ -122,28 +96,7 @@ export default async function AdminLayout({
         <main className="flex-1 pb-24 md:pb-0">{children}</main>
       </div>
 
-      {/* Mobile bottom bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t-2 border-line-strong bg-surface md:hidden">
-        {NAV.slice(0, 5).map((item) =>
-          item.href ? (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-bold uppercase tracking-wide text-pink"
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <span
-              key={item.key}
-              aria-disabled
-              className="flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-bold uppercase tracking-wide text-ink-3"
-            >
-              {item.label}
-            </span>
-          ),
-        )}
-      </nav>
+      <BottomNav items={NAV.slice(0, 5)} />
     </div>
   );
 }
