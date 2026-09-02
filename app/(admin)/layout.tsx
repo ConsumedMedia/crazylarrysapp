@@ -8,10 +8,11 @@ const NAV: NavItem[] = [
   { key: "overview", label: "Overview", href: null },
   { key: "fleet", label: "Fleet", href: "/fleet" },
   { key: "schedule", label: "Schedule", href: "/schedule" },
-  { key: "bookings", label: "Bookings", href: null },
+  { key: "bookings", label: "Bookings", href: "/bookings" },
   { key: "drivers", label: "Drivers", href: null },
   { key: "customers", label: "Customers", href: null },
   { key: "call-log", label: "Call log", href: null },
+  { key: "settings", label: "Settings", href: "/settings" },
 ];
 
 function initials(name: string | null, email: string | null) {

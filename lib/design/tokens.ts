@@ -27,6 +27,15 @@ export const STATUS_BADGE_CLASS: Record<DumpsterStatus, string> = {
   out_of_service: "bg-tint text-ink-2",
 };
 
+/** Badge classes (tint bg + deep ink text) keyed by brand color. */
+export const BRAND_BADGE_CLASS: Record<BrandColor, string> = {
+  teal: "bg-teal-tint text-teal-tint-ink",
+  purple: "bg-purple-tint text-purple-tint-ink",
+  pink: "bg-pink-tint text-pink-tint-ink",
+  orange: "bg-orange-tint text-orange-tint-ink",
+  "gray-st": "bg-tint text-ink-2",
+};
+
 export const STATUS_HEX: Record<DumpsterStatus, string> = {
   available: BRAND_HEX.teal,
   reserved: BRAND_HEX.purple,
