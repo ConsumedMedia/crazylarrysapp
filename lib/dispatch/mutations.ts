@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { assertStaff } from "@/lib/auth/requireStaff";
+import { notifyJobAssigned, notifyJobComplete } from "@/lib/notifications/notify";
 
 export class DispatchError extends Error {
   code: string;
@@ -38,6 +39,7 @@ export async function assignJob(input: {
     p_override: input.override ?? false,
   });
   if (error) wrap(error);
+  await notifyJobAssigned(input.jobId, input.driverId);
 }
 
 export async function unassignJob(jobId: string): Promise<void> {
@@ -93,6 +95,10 @@ export async function confirmJobTags(bookingId: string, tags: string[]): Promise
 export async function completeJobAsStaff(jobId: string): Promise<void> {
   await assertStaff();
   const supabase = createClient();
-  const { error } = await supabase.rpc("complete_job", { p_job_id: jobId });
+  const { data, error } = await supabase.rpc("complete_job", { p_job_id: jobId });
   if (error) wrap(error);
+  const job = data as { id: string; type: "delivery" | "pickup"; booking_id: string } | null;
+  if (job?.booking_id) {
+    await notifyJobComplete({ id: job.id, type: job.type, booking_id: job.booking_id });
+  }
 }

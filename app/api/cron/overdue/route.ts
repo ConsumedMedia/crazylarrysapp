@@ -1,18 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { notifyOverdue } from "@/lib/notifications/notify";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Daily sweep: move active / pickup_scheduled bookings past their pickup_date
- * to 'overdue'. Calls the idempotent public.mark_overdue_bookings() RPC.
+ * to 'overdue', then send an overdue notice (email + SMS) for each one flagged.
  *
- * Not yet wired to a scheduler. Trigger manually, or point a cron at it:
- *   GET /api/cron/overdue  with  Authorization: Bearer $CL_CRON_SECRET
+ * mark_overdue_bookings() returns the ids it flagged this run.
  *
- * TODO: schedule via Supabase scheduled functions or a platform cron; also
- * flip each overdue booking's assigned dumpster to 'overdue' once units are
- * assigned at dispatch (Phase 6).
+ *   GET /api/cron/overdue   Authorization: Bearer $CL_CRON_SECRET
+ *
+ * NOTE: not yet wired to a scheduler — see the Vercel Cron open item.
  */
 export async function GET(request: NextRequest) {
   const secret = process.env.CL_CRON_SECRET;
@@ -27,5 +27,16 @@ export async function GET(request: NextRequest) {
     console.error("[cron/overdue]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ marked_overdue: data ?? 0 });
+
+  const ids: string[] = Array.isArray(data)
+    ? data.map((r: unknown) =>
+        typeof r === "string" ? r : (r as { mark_overdue_bookings?: string }).mark_overdue_bookings ?? "",
+      ).filter(Boolean)
+    : [];
+
+  for (const id of ids) {
+    await notifyOverdue(id);
+  }
+
+  return NextResponse.json({ marked_overdue: ids.length, booking_ids: ids });
 }

@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { createBooking, BookingCreateError } from "./create";
 import { createCharge, refundCharge, PaymentError } from "@/lib/quickbooks/payments";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
+import { notifyBookingConfirmation } from "@/lib/notifications/notify";
 import type { CreateBookingInput } from "./types";
 
 export interface CheckoutResult {
@@ -148,6 +149,9 @@ export async function payAndBook(
   } catch (e) {
     console.error("[checkout] invoice sync threw:", (e as Error).message);
   }
+
+  // ---- 6. confirmation email + SMS (never throws) -----------------
+  await notifyBookingConfirmation(bookingId);
 
   return { ok: true, bookingId };
 }

@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { requireDriver } from "@/lib/auth/requireDriver";
+import { notifyJobComplete } from "@/lib/notifications/notify";
 
 export class DriverActionError extends Error {
   code: string;
@@ -19,7 +20,7 @@ export class DriverActionError extends Error {
 export async function completeMyJob(jobId: string): Promise<void> {
   await requireDriver();
   const supabase = createClient();
-  const { error } = await supabase.rpc("complete_job", { p_job_id: jobId });
+  const { data, error } = await supabase.rpc("complete_job", { p_job_id: jobId });
   if (error) {
     const map: Record<string, string> = {
       "42501": "This job isn't assigned to you.",
@@ -30,5 +31,9 @@ export async function completeMyJob(jobId: string): Promise<void> {
       map[error.code ?? ""] ?? error.message,
       error.code ?? "rpc_failed",
     );
+  }
+  const job = data as { id: string; type: "delivery" | "pickup"; booking_id: string } | null;
+  if (job?.booking_id) {
+    await notifyJobComplete({ id: job.id, type: job.type, booking_id: job.booking_id });
   }
 }
