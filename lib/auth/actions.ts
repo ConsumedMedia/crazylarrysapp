@@ -35,12 +35,20 @@ export async function signInAction(
     .maybeSingle();
 
   const role = (profile?.role as string | undefined) ?? "";
-  if (role !== "staff" && role !== "owner") {
-    await supabase.auth.signOut();
-    return { error: "This account does not have operations access." };
+
+  // One login page, routed by role. Customers book as guests and have no
+  // login here (a customer account portal is a later phase).
+  if (role === "staff" || role === "owner") {
+    redirect("/fleet");
+  }
+  if (role === "driver") {
+    redirect("/driver");
   }
 
-  redirect("/fleet");
+  await supabase.auth.signOut();
+  return {
+    error: "This account isn't set up for the operations or driver app.",
+  };
 }
 
 export async function signOutAction(): Promise<void> {
