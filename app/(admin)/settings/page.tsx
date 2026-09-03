@@ -4,11 +4,16 @@ import {
   SizePricingRow,
   GlobalSettingsForm,
 } from "./_components/PricingForms";
+import { QuickBooksPanel } from "./_components/QuickBooksPanel";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings · Crazy Larry's" };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: { qb?: string };
+}) {
   const staff = await requireStaff();
   const canEdit = staff.role === "owner";
   const config = await getPricingConfig();
@@ -47,6 +52,8 @@ export default async function SettingsPage() {
         </div>
         <GlobalSettingsForm config={config} canEdit={canEdit} />
       </section>
+
+      {canEdit && <QuickBooksPanel notice={searchParams.qb} />}
     </div>
   );
 }

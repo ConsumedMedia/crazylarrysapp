@@ -18,9 +18,25 @@ export interface BookingRow {
   tax: number;
   total: number;
   quickbooks_invoice_id: string | null;
+  payment_status: "unpaid" | "paid" | "failed" | "refunded";
   docusign_status: DocusignStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface InvoiceRow {
+  id: string;
+  booking_id: string;
+  amount: number;
+  status: string;
+  qb_charge_id: string | null;
+  qb_payment_id: string | null;
+  qb_refund_id: string | null;
+  refund_kind: "void" | "refund" | null;
+  refunded_amount: number | null;
+  refunded_at: string | null;
+  sync_status: "pending" | "synced" | "error";
+  quickbooks_invoice_id: string | null;
 }
 
 export interface CustomerRow {
@@ -46,6 +62,7 @@ export interface JobRow {
 export interface BookingDetail {
   booking: BookingRow;
   customer: CustomerRow;
+  invoice: InvoiceRow | null;
   jobs: JobRow[];
   history: Array<{
     id: string;

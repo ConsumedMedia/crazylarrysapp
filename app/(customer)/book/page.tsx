@@ -1,4 +1,5 @@
 import { getPricingConfig } from "@/lib/bookings/pricing";
+import { quickBooksConfigured } from "@/lib/quickbooks/config";
 import { BookingWizard } from "./_components/BookingWizard";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,15 @@ export const metadata = { title: "Book a dumpster · Crazy Larry's" };
 export default async function BookPage() {
   const pricing = await getPricingConfig();
   const docusignUrl = process.env.NEXT_PUBLIC_DOCUSIGN_URL ?? null;
+
+  // Card data is POSTed from the browser straight to this Intuit endpoint;
+  // the host is environment-dependent and is not a secret.
+  const qbEnv = process.env.QUICKBOOKS_ENVIRONMENT ?? "sandbox";
+  const tokenizeUrl =
+    qbEnv === "production"
+      ? "https://api.intuit.com/quickbooks/v4/payments/tokens"
+      : "https://sandbox.api.intuit.com/quickbooks/v4/payments/tokens";
+  const paymentsReady = quickBooksConfigured();
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
@@ -22,7 +32,12 @@ export default async function BookPage() {
           </span>
         </div>
       </div>
-      <BookingWizard pricing={pricing} docusignUrl={docusignUrl} />
+      <BookingWizard
+        pricing={pricing}
+        docusignUrl={docusignUrl}
+        tokenizeUrl={tokenizeUrl}
+        paymentsReady={paymentsReady}
+      />
     </main>
   );
 }

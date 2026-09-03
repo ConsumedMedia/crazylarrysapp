@@ -89,5 +89,26 @@ export async function assertStaff(): Promise<StaffContext> {
   };
 }
 
+/**
+ * Owner-only gate. Business-level actions (connecting QuickBooks, etc.) that a
+ * regular staff member should not be able to trigger. Redirecting variant.
+ */
+export async function requireOwner(): Promise<StaffContext> {
+  const ctx = await requireStaff();
+  if (ctx.role !== "owner") {
+    redirect("/login?denied=1");
+  }
+  return ctx;
+}
+
+/** Non-redirecting owner gate for route handlers / server actions. */
+export async function assertOwner(): Promise<StaffContext> {
+  const ctx = await assertStaff();
+  if (ctx.role !== "owner") {
+    throw new NotAuthorizedError("Owner access required");
+  }
+  return ctx;
+}
+
 // Re-export for convenience in callers that also need the status union.
 export type { DumpsterStatus };

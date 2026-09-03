@@ -65,23 +65,77 @@ export async function setDocusignStatus(
 }
 
 /**
- * DEV-ONLY payment stub. Marks a booking "paid" for testing without QuickBooks
- * (Phase 5). Guarded by CL_ENABLE_DEV_STUBS — never enable in production.
- * For now it only records the intent on quickbooks_invoice_id as a sentinel;
- * no invoices row is written until Phase 5.
+ * Admin refund. Reads the stored charge id, calls the QuickBooks Payments
+ * refund endpoint (Intuit decides void vs refund based on settlement), then
+ * records it through the DB RPC.
+ *
+ *   cancel = false -> record_refund       (refund only; booking status untouched)
+ *   cancel = true  -> cancel_and_refund   (refund + booking -> cancelled, atomic)
+ *
+ * Both RPCs re-check is_staff() against the caller's own session — this runs
+ * with the staff cookie client, never the service role.
  */
-export async function devSimulatePayment(id: string): Promise<void> {
-  if (process.env.CL_ENABLE_DEV_STUBS !== "1") {
-    throw new BookingMutationError(
-      "Dev payment stub is disabled.",
-      "stub_disabled",
-    );
-  }
+export async function refundBooking(
+  id: string,
+  opts: { cancel: boolean },
+): Promise<{ refundKind: "void" | "refund"; refundId: string }> {
   await assertStaff();
   const supabase = createClient();
-  const { error } = await supabase
-    .from("bookings")
-    .update({ quickbooks_invoice_id: "DEV-STUB-PAID" })
-    .eq("id", id);
-  if (error) throw new BookingMutationError(error.message, "update_failed");
+
+  const { data: invoice, error: invErr } = await supabase
+    .from("invoices")
+    .select("qb_charge_id, qb_refund_id, amount, status")
+    .eq("booking_id", id)
+    .maybeSingle();
+  if (invErr) throw new BookingMutationError(invErr.message, "invoice_read");
+  if (!invoice) {
+    throw new BookingMutationError(
+      "No payment on file for this booking.",
+      "no_invoice",
+    );
+  }
+  if (invoice.status === "refunded" || invoice.qb_refund_id) {
+    throw new BookingMutationError(
+      "This payment has already been refunded.",
+      "already_refunded",
+    );
+  }
+  if (!invoice.qb_charge_id) {
+    throw new BookingMutationError(
+      "This booking has no QuickBooks charge to refund (was it paid another way?).",
+      "no_charge",
+    );
+  }
+
+  const amount = Number(invoice.amount).toFixed(2);
+
+  // Lazy import keeps the Intuit layer out of bundles that never refund.
+  const { refundCharge, PaymentError } = await import("@/lib/quickbooks/payments");
+  let refund;
+  try {
+    refund = await refundCharge({ chargeId: invoice.qb_charge_id as string, amount });
+  } catch (e) {
+    if (e instanceof PaymentError) {
+      throw new BookingMutationError(e.message, e.code);
+    }
+    throw e;
+  }
+
+  const rpc = opts.cancel ? "cancel_and_refund" : "record_refund";
+  const { error: rpcErr } = await supabase.rpc(rpc, {
+    p_booking_id: id,
+    p_qb_refund_id: refund.refundId,
+    p_refund_kind: refund.kind,
+    p_amount: Number(amount),
+  });
+  if (rpcErr) {
+    // The money is already back with the customer; the DB write failed.
+    console.error(
+      `[refundBooking] ${rpc} failed after successful QB refund ${refund.refundId} for booking ${id}:`,
+      rpcErr.message,
+    );
+    mapRpcError(rpcErr);
+  }
+
+  return { refundKind: refund.kind, refundId: refund.refundId };
 }

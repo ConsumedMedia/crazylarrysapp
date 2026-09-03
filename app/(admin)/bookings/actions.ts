@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   changeBookingStatus,
   setDocusignStatus,
-  devSimulatePayment,
+  refundBooking,
   BookingMutationError,
 } from "@/lib/bookings/mutations";
 import { NotAuthorizedError } from "@/lib/auth/requireStaff";
@@ -54,15 +54,23 @@ export async function setAgreementAction(
   }
 }
 
-export async function devPayAction(
+export async function refundAction(
   _prev: BookingActionState,
   formData: FormData,
 ): Promise<BookingActionState> {
   const id = String(formData.get("id") ?? "");
+  const cancel = String(formData.get("cancel") ?? "") === "1";
   try {
-    await devSimulatePayment(id);
+    const { refundKind } = await refundBooking(id, { cancel });
     revalidatePath(`/bookings/${id}`);
-    return { ok: true, message: "Dev: marked paid (no charge)." };
+    revalidatePath("/bookings");
+    const did = refundKind === "void" ? "voided (pre-settlement)" : "refunded";
+    return {
+      ok: true,
+      message: cancel
+        ? `Payment ${did} and booking cancelled.`
+        : `Payment ${did}.`,
+    };
   } catch (e) {
     return toState(e);
   }

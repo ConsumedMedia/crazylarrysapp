@@ -12,7 +12,7 @@ import {
 import {
   changeStatusAction,
   setAgreementAction,
-  devPayAction,
+  refundAction,
   type BookingActionState,
 } from "../../actions";
 
@@ -39,24 +39,34 @@ function Feedback({ state }: { state: BookingActionState }) {
   return null;
 }
 
+const PAYMENT_LABEL: Record<string, string> = {
+  unpaid: "Unpaid",
+  paid: "Paid",
+  failed: "Payment failed",
+  refunded: "Refunded",
+};
+
 export function BookingControls({
   id,
   status,
   docusignStatus,
-  devStubs,
-  paid,
+  paymentStatus,
+  refundKind,
+  hasCharge,
 }: {
   id: string;
   status: BookingStatus;
   docusignStatus: DocusignStatus;
-  devStubs: boolean;
-  paid: boolean;
+  paymentStatus: "unpaid" | "paid" | "failed" | "refunded";
+  refundKind: "void" | "refund" | null;
+  hasCharge: boolean;
 }) {
   const [statusState, statusAction] = useFormState(changeStatusAction, init);
   const [agrState, agrAction] = useFormState(setAgreementAction, init);
-  const [payState, payAction] = useFormState(devPayAction, init);
+  const [refundState, refundFormAction] = useFormState(refundAction, init);
 
   const nexts = nextBookingStatuses(status);
+  const canRefund = paymentStatus === "paid" && hasCharge;
 
   return (
     <div className="flex flex-col gap-5">
@@ -125,32 +135,74 @@ export function BookingControls({
 
       <div>
         <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-          Payment
+          Payment — {PAYMENT_LABEL[paymentStatus] ?? paymentStatus}
+          {paymentStatus === "refunded" && refundKind
+            ? ` (${refundKind === "void" ? "voided pre-settlement" : "refunded"})`
+            : ""}
         </div>
-        {paid ? (
-          <p className="text-[12px] font-semibold text-teal-tint-ink">
-            Marked paid (dev stub — no real charge).
-          </p>
-        ) : devStubs ? (
-          <form action={payAction}>
-            <input type="hidden" name="id" value={id} />
-            <Pending>
-              {(p) => (
-                <button
-                  disabled={p}
-                  className="border-2 border-dashed border-ink px-3 py-2 text-[12px] font-extrabold hover:bg-tint disabled:opacity-60"
-                >
-                  Dev: simulate successful payment
-                </button>
-              )}
-            </Pending>
-          </form>
-        ) : (
+
+        {canRefund ? (
+          <div className="flex flex-wrap gap-2">
+            <form
+              action={refundFormAction}
+              onSubmit={(e) => {
+                if (
+                  !confirm(
+                    "Refund this payment in QuickBooks? QuickBooks will void it if it hasn't settled yet, otherwise issue a refund.",
+                  )
+                )
+                  e.preventDefault();
+              }}
+            >
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="cancel" value="0" />
+              <Pending>
+                {(p) => (
+                  <button
+                    disabled={p}
+                    className="border-2 border-ink px-3 py-2 text-[12px] font-extrabold hover:bg-tint disabled:opacity-60"
+                  >
+                    Refund payment
+                  </button>
+                )}
+              </Pending>
+            </form>
+            {status !== "cancelled" && status !== "returned" && (
+              <form
+                action={refundFormAction}
+                onSubmit={(e) => {
+                  if (
+                    !confirm(
+                      "Refund the payment AND cancel this booking? This cancels open jobs and frees any assigned unit.",
+                    )
+                  )
+                    e.preventDefault();
+                }}
+              >
+                <input type="hidden" name="id" value={id} />
+                <input type="hidden" name="cancel" value="1" />
+                <Pending>
+                  {(p) => (
+                    <button
+                      disabled={p}
+                      className="bg-orange px-3 py-2 text-[12px] font-extrabold text-white hover:opacity-90 disabled:opacity-60"
+                    >
+                      Cancel &amp; refund
+                    </button>
+                  )}
+                </Pending>
+              </form>
+            )}
+          </div>
+        ) : paymentStatus === "unpaid" ? (
           <p className="text-[12px] text-ink-2">
-            QuickBooks Payments — Phase 5. (Dev stub disabled.)
+            No successful charge on this booking.
           </p>
-        )}
-        <Feedback state={payState} />
+        ) : null}
+
+        <div className="mt-1.5">
+          <Feedback state={refundState} />
+        </div>
       </div>
     </div>
   );

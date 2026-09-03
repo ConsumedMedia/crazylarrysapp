@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { AgreementModal } from "./AgreementModal";
-import { createBookingAction } from "../actions";
+import { PaymentForm } from "./PaymentForm";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { rentalWindow } from "@/lib/availability/dates";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
@@ -57,11 +56,14 @@ const STEPS = ["Size", "Dates", "Details", "Review & pay"];
 export function BookingWizard({
   pricing,
   docusignUrl,
+  tokenizeUrl,
+  paymentsReady,
 }: {
   pricing: PricingConfig;
   docusignUrl: string | null;
+  tokenizeUrl: string;
+  paymentsReady: boolean;
 }) {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [size, setSize] = useState<DumpsterSize | null>(null);
   const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
@@ -80,8 +82,6 @@ export function BookingWizard({
 
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [agreementAck, setAgreementAck] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
 
   const quote = useMemo(() => {
     if (!size) return null;
@@ -105,32 +105,24 @@ export function BookingWizard({
     contactName.trim() &&
     (contactEmail.trim() || contactPhone.trim());
 
-  function submit() {
-    if (!size || !deliveryDate) return;
-    setError(null);
-    startTransition(async () => {
-      const res = await createBookingAction({
-        size,
-        deliveryDate,
-        rentalDays: DEFAULT_RENTAL_DAYS,
-        street,
-        city,
-        state: stateAbbr,
-        zip,
-        placementNotes: `Placement: ${placement}${driverNotes ? ` — ${driverNotes}` : ""}`,
-        debrisType: debris || undefined,
-        contactName,
-        contactEmail: contactEmail || undefined,
-        contactPhone: contactPhone || undefined,
-        companyName: companyName || undefined,
-        agreementAcknowledged: agreementAck,
-      });
-      if (res.ok && res.bookingId) {
-        router.push(`/book/confirmed/${res.bookingId}`);
-      } else {
-        setError(res.error ?? "Booking failed.");
-      }
-    });
+  function buildBookingInput() {
+    if (!size || !deliveryDate) return null;
+    return {
+      size,
+      deliveryDate,
+      rentalDays: DEFAULT_RENTAL_DAYS,
+      street,
+      city,
+      state: stateAbbr,
+      zip,
+      placementNotes: `Placement: ${placement}${driverNotes ? ` — ${driverNotes}` : ""}`,
+      debrisType: debris || undefined,
+      contactName,
+      contactEmail: contactEmail || undefined,
+      contactPhone: contactPhone || undefined,
+      companyName: companyName || undefined,
+      agreementAcknowledged: agreementAck,
+    };
   }
 
   return (
@@ -531,26 +523,22 @@ export function BookingWizard({
                   </div>
                 </div>
 
-                <div className="border-2 border-line-strong bg-surface">
-                  <div className="flex items-center justify-between border-b-2 border-line-strong px-4 py-3">
-                    <span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">
-                      Payment
-                    </span>
-                    <span className="bg-[#2ca01c] px-2 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-white">
-                      QuickBooks Payments
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2 p-4">
-                    <p className="border-2 border-dashed border-line bg-surface-2 px-3 py-3 text-[13px] text-ink-2">
-                      <strong className="text-ink">
-                        Payment isn&apos;t wired up yet (Phase 5).
-                      </strong>{" "}
-                      QuickBooks Payments card + ACH entry goes here. For now,
-                      &quot;Pay &amp; book it&quot; creates the booking without
-                      charging anything.
-                    </p>
-                  </div>
-                </div>
+                <PaymentForm
+                  tokenizeUrl={tokenizeUrl}
+                  total={quote?.total ?? null}
+                  disabled={!agreementAck || !quote || !paymentsReady}
+                  disabledReason={
+                    !paymentsReady
+                      ? "Card payment is being set up. Please call the yard to reserve a can."
+                      : !agreementAck
+                        ? "Complete the rental agreement above to continue."
+                        : !quote
+                          ? "Pricing unavailable — call the yard."
+                          : undefined
+                  }
+                  buildInput={buildBookingInput}
+                  onCompensated={() => setStep(2)}
+                />
               </div>
 
               <div className="flex flex-col gap-4 self-start">
@@ -597,23 +585,10 @@ export function BookingWizard({
                       Pricing unavailable — call the yard.
                     </p>
                   )}
-                  <button
-                    disabled={pending || !agreementAck || !quote}
-                    onClick={submit}
-                    className="mt-4 flex w-full items-center justify-between bg-teal px-4 py-4 text-[15px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50"
-                  >
-                    {pending ? "Booking…" : "Pay & book it"} <span>→</span>
-                  </button>
-                  {!agreementAck && (
-                    <p className="mt-2 text-[12px] text-ink-3">
-                      Complete the rental agreement to continue.
-                    </p>
-                  )}
-                  {error && (
-                    <p className="mt-2 border-l-4 border-orange bg-orange-tint px-3 py-2 text-[12px] font-semibold text-orange-tint-ink">
-                      {error}
-                    </p>
-                  )}
+                  <p className="mt-3 text-[12px] text-ink-3">
+                    You&apos;re charged once, now. Nothing is held on the
+                    calendar until the payment clears.
+                  </p>
                 </div>
               </div>
             </div>

@@ -35,8 +35,26 @@ export default async function BookingDetailPage({
   await requireStaff();
   const detail = await getBookingDetail(params.id);
   if (!detail) notFound();
-  const { booking, customer, jobs, history } = detail;
-  const devStubs = process.env.CL_ENABLE_DEV_STUBS === "1";
+  const { booking, customer, invoice, jobs, history } = detail;
+
+  const paymentValue =
+    booking.payment_status === "paid"
+      ? `Paid${invoice?.qb_charge_id ? ` · charge ${invoice.qb_charge_id}` : ""}${
+          invoice?.quickbooks_invoice_id
+            ? ` · QBO inv ${invoice.quickbooks_invoice_id}`
+            : invoice?.sync_status === "error"
+              ? " · QBO sync failed (cron will retry)"
+              : invoice
+                ? " · QBO sync pending"
+                : ""
+        }`
+      : booking.payment_status === "refunded"
+        ? `Refunded${invoice?.refund_kind ? ` (${invoice.refund_kind})` : ""}${
+            invoice?.qb_refund_id ? ` · ${invoice.qb_refund_id}` : ""
+          }`
+        : booking.payment_status === "failed"
+          ? "Payment failed"
+          : "Unpaid";
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-7">
@@ -86,14 +104,7 @@ export default async function BookingDetailPage({
                 label="Total"
                 value={`$${booking.total.toFixed(2)}  (sub $${booking.subtotal.toFixed(2)} + tax $${booking.tax.toFixed(2)})`}
               />
-              <Item
-                label="Payment"
-                value={
-                  booking.quickbooks_invoice_id
-                    ? booking.quickbooks_invoice_id
-                    : "Unpaid (Phase 5)"
-                }
-              />
+              <Item label="Payment" value={paymentValue} />
             </dl>
           </section>
 
@@ -163,8 +174,9 @@ export default async function BookingDetailPage({
             id={booking.id}
             status={booking.status}
             docusignStatus={booking.docusign_status}
-            devStubs={devStubs}
-            paid={!!booking.quickbooks_invoice_id}
+            paymentStatus={booking.payment_status}
+            refundKind={invoice?.refund_kind ?? null}
+            hasCharge={!!invoice?.qb_charge_id}
           />
         </div>
       </div>

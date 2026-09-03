@@ -2,10 +2,19 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { requireStaff } from "@/lib/auth/requireStaff";
-import type { BookingRow, BookingDetail, CustomerRow, JobRow } from "./types";
+import type {
+  BookingRow,
+  BookingDetail,
+  CustomerRow,
+  InvoiceRow,
+  JobRow,
+} from "./types";
 
 const BOOKING_COLS =
-  "id, customer_id, dumpster_id, size_requested, delivery_address, delivery_date, pickup_date, status, placement_notes, debris_type, subtotal, tax, total, quickbooks_invoice_id, docusign_status, created_at, updated_at";
+  "id, customer_id, dumpster_id, size_requested, delivery_address, delivery_date, pickup_date, status, placement_notes, debris_type, subtotal, tax, total, quickbooks_invoice_id, payment_status, docusign_status, created_at, updated_at";
+
+const INVOICE_COLS =
+  "id, booking_id, amount, status, qb_charge_id, qb_payment_id, qb_refund_id, refund_kind, refunded_amount, refunded_at, sync_status, quickbooks_invoice_id";
 
 export interface BookingListRow extends BookingRow {
   customer_name: string;
@@ -51,12 +60,17 @@ export async function getBookingDetail(
   if (!booking) return null;
   const b = booking as BookingRow;
 
-  const [{ data: customer }, { data: jobs }, { data: history }] =
+  const [{ data: customer }, { data: invoice }, { data: jobs }, { data: history }] =
     await Promise.all([
       supabase
         .from("customers")
         .select("id, profile_id, full_name, email, phone, company_name")
         .eq("id", b.customer_id)
+        .maybeSingle(),
+      supabase
+        .from("invoices")
+        .select(INVOICE_COLS)
+        .eq("booking_id", id)
         .maybeSingle(),
       supabase
         .from("jobs")
@@ -83,6 +97,7 @@ export async function getBookingDetail(
       phone: null,
       company_name: null,
     }) as CustomerRow,
+    invoice: (invoice as InvoiceRow | null) ?? null,
     jobs: (jobs ?? []) as JobRow[],
     history: (history ?? []) as BookingDetail["history"],
   };
