@@ -22,11 +22,12 @@ interface LogRow {
   type: string;
   channel: Channel;
   recipient: string;
-  delivery_status: "sent" | "failed";
+  delivery_status: "sent" | "failed" | "skipped";
   sent_at: string | null;
   body: string;
   error: string | null;
   provider_message_id: string | null;
+  failure_category: string | null;
 }
 
 async function writeLog(row: LogRow): Promise<void> {
@@ -52,11 +53,12 @@ function logRowFrom(
     type: base.type,
     channel,
     recipient,
-    delivery_status: result.ok ? "sent" : "failed",
+    delivery_status: result.ok ? "sent" : result.skipped ? "skipped" : "failed",
     sent_at: result.ok ? new Date().toISOString() : null,
     body,
     error: result.ok ? null : (result.error ?? "unknown error"),
     provider_message_id: result.providerMessageId ?? null,
+    failure_category: result.ok ? null : (result.category ?? null),
   };
 }
 
@@ -80,6 +82,7 @@ async function dispatch(opts: {
         writeLog(
           logRowFrom(base, "sms", opts.phone ?? "(none)", opts.rendered.sms, {
             ok: false,
+            category: "recipient_missing",
             error: opts.phone ? `unparseable phone: ${opts.phone}` : "no phone on file",
           }),
         ),
@@ -99,6 +102,7 @@ async function dispatch(opts: {
         writeLog(
           logRowFrom(base, "email", "(none)", opts.rendered.email.text, {
             ok: false,
+            category: "recipient_missing",
             error: "no email on file",
           }),
         ),

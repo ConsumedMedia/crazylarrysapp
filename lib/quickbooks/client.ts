@@ -25,6 +25,7 @@ export async function quickbooksFetch(
     return fetch(url, {
       ...init,
       headers: {
+        "Content-Type": "application/json",
         ...(init.headers ?? {}),
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",

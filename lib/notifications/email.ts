@@ -1,5 +1,5 @@
 import "server-only";
-import type { SendResult } from "./sms";
+import type { FailureCategory, SendResult } from "./sms";
 
 /**
  * Resend transactional email. POST https://api.resend.com/emails
@@ -10,6 +10,16 @@ import type { SendResult } from "./sms";
 
 const RESEND_URL = "https://api.resend.com/emails";
 const TIMEOUT_MS = 8000;
+
+/** Resend's domain-not-verified / account-suspended errors read as 403/422. */
+function categorizeResendError(status: number, detail: string): FailureCategory {
+  if (status === 429) return "rate_limited";
+  if (status >= 500) return "transient";
+  if (/domain is not verified|not verified|suspended|restricted/i.test(detail)) {
+    return "account_blocked";
+  }
+  return "provider_rejected";
+}
 
 export function emailEnabled(): boolean {
   return (
@@ -26,12 +36,22 @@ export async function sendEmail(opts: {
   html: string;
 }): Promise<SendResult> {
   if (process.env.CL_NOTIFICATIONS_ENABLED !== "1") {
-    return { ok: false, skipped: true, error: "notifications disabled (dev)" };
+    return {
+      ok: false,
+      skipped: true,
+      category: "disabled",
+      error: "notifications disabled (dev)",
+    };
   }
   const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM;
   if (!key || !from) {
-    return { ok: false, skipped: true, error: "RESEND_API_KEY / RESEND_FROM not set" };
+    return {
+      ok: false,
+      skipped: false,
+      category: "not_configured",
+      error: "RESEND_API_KEY / RESEND_FROM not set",
+    };
   }
 
   // CL_NOTIFICATIONS_TEST_TO redirects only when it's an email; a phone number
@@ -44,6 +64,7 @@ export async function sendEmail(opts: {
       return {
         ok: false,
         skipped: true,
+        category: "test_mode",
         error: "CL_NOTIFICATIONS_TEST_TO is a phone number — email skipped in test mode",
       };
     }
@@ -80,7 +101,11 @@ export async function sendEmail(opts: {
       } catch {
         /* keep raw */
       }
-      return { ok: false, error: `Resend ${res.status}: ${detail}` };
+      return {
+        ok: false,
+        category: categorizeResendError(res.status, detail),
+        error: `Resend ${res.status}: ${detail}`,
+      };
     }
 
     let id: string | undefined;
@@ -91,10 +116,11 @@ export async function sendEmail(opts: {
     }
     return { ok: true, providerMessageId: id };
   } catch (e) {
-    const msg =
-      (e as Error).name === "AbortError"
-        ? "Resend request timed out"
-        : (e as Error).message;
-    return { ok: false, error: msg.slice(0, 300) };
+    const isTimeout = (e as Error).name === "AbortError";
+    return {
+      ok: false,
+      category: "transient",
+      error: (isTimeout ? "Resend request timed out" : (e as Error).message).slice(0, 300),
+    };
   }
 }

@@ -39,7 +39,7 @@ export async function signInAction(
   // One login page, routed by role. Customers book as guests and have no
   // login here (a customer account portal is a later phase).
   if (role === "staff" || role === "owner") {
-    redirect("/fleet");
+    redirect("/dashboard");
   }
   if (role === "driver") {
     redirect("/driver");

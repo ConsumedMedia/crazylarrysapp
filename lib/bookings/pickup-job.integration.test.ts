@@ -90,28 +90,48 @@ describe.skipIf(!RUN)("set_booking_status → pickup_scheduled creates a pickup 
     });
   });
 
+  // Cleanup must run — and must clean up whatever actually got created — no
+  // matter how far beforeAll got or which `it()` failed an assertion:
+  //  - vitest runs afterAll after every test in the describe block regardless
+  //    of pass/fail, AND even if beforeAll itself threw partway through. So
+  //    a failed expect() inside an it() is never a cleanup risk here: bookingId
+  //    / customerId are set once in beforeAll, not touched by test outcomes.
+  //  - the real risk is a PARTIAL beforeAll (e.g. the customer insert
+  //    succeeds but the booking insert then throws) — this used to gate the
+  //    entire cleanup on `if (!bookingId) return`, which would silently
+  //    orphan the customer row. Each step below is now independently guarded
+  //    and independently fault-tolerant, so it deletes everything that got
+  //    created, in dependency order, and one step failing can't block the rest.
   afterAll(async () => {
-    if (!bookingId) return;
-    const { data: jobIds } = await service
-      .from("jobs")
-      .select("id")
-      .eq("booking_id", bookingId);
-    const ids = (jobIds ?? []).map((j) => j.id);
-    if (ids.length) {
-      await service
-        .from("status_log")
-        .delete()
-        .eq("entity_type", "job")
-        .in("entity_id", ids);
+    const step = async (label: string, fn: () => PromiseLike<{ error: unknown }>) => {
+      try {
+        const { error } = await fn();
+        if (error) console.error(`[pickup-job cleanup] ${label} failed:`, error);
+      } catch (e) {
+        console.error(`[pickup-job cleanup] ${label} threw:`, (e as Error).message);
+      }
+    };
+
+    if (bookingId) {
+      const { data: jobIds } = await service
+        .from("jobs")
+        .select("id")
+        .eq("booking_id", bookingId);
+      const ids = (jobIds ?? []).map((j) => j.id);
+      if (ids.length) {
+        await step("job status_log", () =>
+          service.from("status_log").delete().eq("entity_type", "job").in("entity_id", ids),
+        );
+      }
+      await step("booking status_log", () =>
+        service.from("status_log").delete().eq("entity_type", "booking").eq("entity_id", bookingId),
+      );
+      await step("jobs", () => service.from("jobs").delete().eq("booking_id", bookingId));
+      await step("booking", () => service.from("bookings").delete().eq("id", bookingId));
     }
-    await service
-      .from("status_log")
-      .delete()
-      .eq("entity_type", "booking")
-      .eq("entity_id", bookingId);
-    await service.from("jobs").delete().eq("booking_id", bookingId);
-    await service.from("bookings").delete().eq("id", bookingId);
-    if (customerId) await service.from("customers").delete().eq("id", customerId);
+    if (customerId) {
+      await step("customer", () => service.from("customers").delete().eq("id", customerId));
+    }
   });
 
   it("creates exactly one pickup job with scheduled_date = pickup_date", async () => {

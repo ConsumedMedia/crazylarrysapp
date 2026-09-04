@@ -5,14 +5,14 @@ import { SidebarNav, BottomNav, type NavItem } from "./_components/AdminNav";
 export const dynamic = "force-dynamic";
 
 const NAV: NavItem[] = [
-  { key: "overview", label: "Overview", href: null },
+  { key: "overview", label: "Overview", href: "/dashboard" },
   { key: "fleet", label: "Fleet", href: "/fleet" },
   { key: "schedule", label: "Schedule", href: "/schedule" },
   { key: "dispatch", label: "Dispatch", href: "/dispatch" },
   { key: "bookings", label: "Bookings", href: "/bookings" },
   { key: "drivers", label: "Drivers", href: "/drivers" },
-  { key: "customers", label: "Customers", href: null },
-  { key: "call-log", label: "Call log", href: null },
+  { key: "customers", label: "Customers", href: "/customers" },
+  { key: "call-log", label: "Call log", href: "/call-log" },
   { key: "settings", label: "Settings", href: "/settings" },
 ];
 

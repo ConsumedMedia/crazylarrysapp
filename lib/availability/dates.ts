@@ -80,3 +80,10 @@ export function tomorrowYmd(now = new Date()): string {
   d.setUTCDate(d.getUTCDate() + 1);
   return ymd(d);
 }
+
+/** Today (UTC) as yyyy-mm-dd. */
+export function todayYmd(now = new Date()): string {
+  return ymd(
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())),
+  );
+}

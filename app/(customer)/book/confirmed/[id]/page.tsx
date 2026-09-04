@@ -60,12 +60,6 @@ export default async function ConfirmedPage({
         </dl>
       </div>
 
-      <div className="mt-4 border-2 border-dashed border-line bg-surface-2 px-4 py-3 text-[13px] text-ink-2">
-        <strong className="text-ink">Dev note:</strong> no payment was charged —
-        QuickBooks Payments is Phase 5. Larry&apos;s office confirms the DocuSign
-        signature before dispatch.
-      </div>
-
       <Link
         href="/book"
         className="mt-6 inline-block border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint"
