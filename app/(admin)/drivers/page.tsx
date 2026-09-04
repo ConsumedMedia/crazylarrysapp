@@ -32,32 +32,17 @@ export default async function DriversPage() {
         <AddDriver candidates={candidates} trucks={trucks} />
       </div>
 
-      <div className="overflow-x-auto border-2 border-line-strong">
-        <table className="w-full min-w-[640px] border-collapse bg-surface text-[13px]">
-          <thead>
-            <tr className="border-b-2 border-line-strong text-left text-[10px] font-extrabold uppercase tracking-[0.1em] text-ink-3">
-              <th className="px-3 py-2.5">Name</th>
-              <th className="px-3 py-2.5">Phone</th>
-              <th className="px-3 py-2.5">Truck</th>
-              <th className="px-3 py-2.5">Vehicle</th>
-              <th className="px-3 py-2.5">Status</th>
-              <th className="px-3 py-2.5"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {drivers.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-ink-2">
-                  No drivers yet.
-                </td>
-              </tr>
-            )}
-            {drivers.map((d) => (
-              <DriverRowEditor key={d.id} driver={d} trucks={trucks} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {drivers.length === 0 ? (
+        <p className="border-2 border-line-strong bg-surface p-6 text-center text-[13px] text-ink-2">
+          No drivers yet.
+        </p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {drivers.map((d) => (
+            <DriverRowEditor key={d.id} driver={d} trucks={trucks} />
+          ))}
+        </div>
+      )}
 
       <p className="text-[12px] text-ink-3">
         A driver needs a login (Supabase Auth). Invite them there first; unlinked

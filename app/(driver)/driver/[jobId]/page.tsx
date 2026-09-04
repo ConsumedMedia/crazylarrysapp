@@ -96,23 +96,23 @@ export default async function DriverJobPage({
         )}
       </div>
 
-      {(job.placement_notes || job.debris_type) && (
+      {job.debris_type && (
         <div className="border-2 border-line-strong bg-surface p-4">
-          {job.placement_notes && (
-            <>
-              <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-                Placement / driver notes
-              </div>
-              <div className="mt-1 text-[14px] leading-snug">
-                {job.placement_notes}
-              </div>
-            </>
-          )}
-          {job.debris_type && (
-            <div className="mt-2 text-[13px] text-ink-2">
-              Debris: {job.debris_type}
-            </div>
-          )}
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+            Debris
+          </div>
+          <div className="mt-1 text-[14px] leading-snug">{job.debris_type}</div>
+        </div>
+      )}
+
+      {job.placement_notes && (
+        <div className="border-2 border-orange bg-orange-tint p-4">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-orange-tint-ink">
+            Driver notes
+          </div>
+          <div className="mt-1 text-[14px] leading-snug text-orange-tint-ink">
+            {job.placement_notes}
+          </div>
         </div>
       )}
 

@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { getBookingDetail } from "@/lib/bookings/queries";
+import { listChangeRequestsForBooking } from "@/lib/bookings/change-requests";
 import { BOOKING_STATUS_META, DOCUSIGN_META } from "@/lib/bookings/state-machine";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
 import { BookingControls } from "./_components/BookingControls";
+import { ResolveRequestForm } from "../../requests/_components/ResolveRequestForm";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,7 @@ export default async function BookingDetailPage({
   const detail = await getBookingDetail(params.id);
   if (!detail) notFound();
   const { booking, customer, invoice, jobs, history } = detail;
+  const changeRequests = await listChangeRequestsForBooking(booking.id);
 
   const paymentValue =
     booking.payment_status === "paid"
@@ -122,6 +125,47 @@ export default async function BookingDetailPage({
               />
             </dl>
           </section>
+
+          {changeRequests.length > 0 && (
+            <section className="border-2 border-line-strong bg-surface">
+              <div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">
+                Change requests
+              </div>
+              <ul className="flex flex-col">
+                {changeRequests.map((r) => (
+                  <li key={r.id} className="border-b border-line px-4 py-3 last:border-b-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="border-2 border-line px-1.5 py-0.5 text-[10px] font-extrabold uppercase">
+                        {r.status}
+                      </span>
+                      <span className="text-[11px] text-ink-3">
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-[13px]">
+                      {r.requested_delivery_date && (
+                        <div>New delivery: {fmt(r.requested_delivery_date)}</div>
+                      )}
+                      {r.requested_pickup_date && (
+                        <div>New pickup: {fmt(r.requested_pickup_date)}</div>
+                      )}
+                      <div className="text-ink-2">&ldquo;{r.reason}&rdquo;</div>
+                      {r.staff_response && (
+                        <div className="mt-1 border-l-2 border-line pl-2 text-ink-2">
+                          Staff: {r.staff_response}
+                        </div>
+                      )}
+                    </div>
+                    {r.status === "pending" && (
+                      <div className="mt-2 max-w-sm">
+                        <ResolveRequestForm id={r.id} bookingId={booking.id} />
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="border-2 border-line-strong bg-surface">
             <div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">

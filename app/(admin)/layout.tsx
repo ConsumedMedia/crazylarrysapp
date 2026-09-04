@@ -1,20 +1,29 @@
 import { requireStaff } from "@/lib/auth/requireStaff";
+import { countPendingChangeRequests } from "@/lib/bookings/change-requests";
 import { SignOutButton } from "./_components/SignOutButton";
 import { SidebarNav, BottomNav, type NavItem } from "./_components/AdminNav";
 
 export const dynamic = "force-dynamic";
 
-const NAV: NavItem[] = [
-  { key: "overview", label: "Overview", href: "/dashboard" },
-  { key: "fleet", label: "Fleet", href: "/fleet" },
-  { key: "schedule", label: "Schedule", href: "/schedule" },
-  { key: "dispatch", label: "Dispatch", href: "/dispatch" },
-  { key: "bookings", label: "Bookings", href: "/bookings" },
-  { key: "drivers", label: "Drivers", href: "/drivers" },
-  { key: "customers", label: "Customers", href: "/customers" },
-  { key: "call-log", label: "Call log", href: "/call-log" },
-  { key: "settings", label: "Settings", href: "/settings" },
-];
+function buildNav(pendingRequests: number): NavItem[] {
+  return [
+    { key: "overview", label: "Overview", href: "/dashboard" },
+    { key: "fleet", label: "Fleet", href: "/fleet" },
+    { key: "schedule", label: "Schedule", href: "/schedule" },
+    { key: "dispatch", label: "Dispatch", href: "/dispatch" },
+    { key: "bookings", label: "Bookings", href: "/bookings" },
+    {
+      key: "requests",
+      label: "Requests",
+      href: "/requests",
+      badge: pendingRequests > 0 ? String(pendingRequests) : undefined,
+    },
+    { key: "drivers", label: "Drivers", href: "/drivers" },
+    { key: "customers", label: "Customers", href: "/customers" },
+    { key: "call-log", label: "Call log", href: "/call-log" },
+    { key: "settings", label: "Settings", href: "/settings" },
+  ];
+}
 
 function initials(name: string | null, email: string | null) {
   const src = name ?? email ?? "?";
@@ -28,6 +37,8 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const staff = await requireStaff();
+  const pendingRequests = await countPendingChangeRequests();
+  const NAV = buildNav(pendingRequests);
 
   return (
     <div className="flex min-h-screen bg-bg text-ink">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import type { DriverRow } from "@/lib/dispatch/types";
 import type { TruckOption, CandidateProfile } from "@/lib/drivers/manage";
+import { BRAND_HEX } from "@/lib/design/tokens";
 import {
   createDriverAction,
   updateDriverAction,
@@ -13,6 +14,11 @@ import {
 
 const init: DriverActionState = { ok: false };
 const inputCls = "border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink";
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return (parts[0]?.[0] ?? "?").concat(parts[1]?.[0] ?? "").toUpperCase();
+}
 
 function Save({ label = "Save" }: { label?: string }) {
   const { pending } = useFormStatus();
@@ -149,21 +155,34 @@ export function DriverRowEditor({
 
   if (state.ok && editing) setTimeout(() => setEditing(false), 300);
 
+  const color = driver.active ? BRAND_HEX.teal : BRAND_HEX["gray-st"];
+
   if (!editing) {
     return (
-      <tr className="border-b border-line last:border-b-0">
-        <td className="px-3 py-2.5 font-bold">{driver.full_name}</td>
-        <td className="cl-nums px-3 py-2.5">{driver.phone ?? "—"}</td>
-        <td className="px-3 py-2.5">
-          {driver.truck_nickname ?? <span className="text-ink-3">—</span>}
-        </td>
-        <td className="px-3 py-2.5 text-ink-2">{driver.vehicle_info ?? "—"}</td>
-        <td className="px-3 py-2.5">
-          <form action={toggleAction} className="inline">
+      <div
+        className="flex flex-col gap-3 border-2 border-line-strong bg-surface p-4"
+        style={{ borderTop: `5px solid ${color}` }}
+      >
+        <div className="flex items-start gap-2.5">
+          <div
+            className="grid h-10 w-10 flex-none place-items-center text-[13px] font-extrabold text-white"
+            style={{ background: color }}
+          >
+            {initials(driver.full_name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-extrabold leading-tight">
+              {driver.full_name}
+            </div>
+            <div className="cl-nums text-[12px] text-ink-2">
+              {driver.phone ?? "—"}
+            </div>
+          </div>
+          <form action={toggleAction} className="flex-none">
             <input type="hidden" name="driver_id" value={driver.id} />
             <input type="hidden" name="active" value={(!driver.active).toString()} />
             <button
-              className={`px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${
+              className={`whitespace-nowrap px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${
                 driver.active
                   ? "bg-teal-tint text-teal-tint-ink"
                   : "bg-tint text-ink-2"
@@ -172,65 +191,85 @@ export function DriverRowEditor({
               {driver.active ? "Active" : "Inactive"}
             </button>
           </form>
-          {toggleState.error && (
-            <div className="text-[11px] text-orange-tint-ink">{toggleState.error}</div>
-          )}
-        </td>
-        <td className="px-3 py-2.5 text-right">
-          <button
-            onClick={() => setEditing(true)}
-            className="border-2 border-line px-2 py-1 text-[11px] font-extrabold hover:border-ink"
-          >
-            Edit
-          </button>
-        </td>
-      </tr>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 border-t border-line pt-3">
+          <div>
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-ink-3">
+              Truck
+            </div>
+            <div className="text-[13px] font-bold">
+              {driver.truck_nickname ?? <span className="text-ink-3">—</span>}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-ink-3">
+              Vehicle
+            </div>
+            <div className="text-[13px] font-bold text-ink-2">
+              {driver.vehicle_info ?? "—"}
+            </div>
+          </div>
+        </div>
+
+        {toggleState.error && (
+          <div className="text-[11px] text-orange-tint-ink">{toggleState.error}</div>
+        )}
+
+        <button
+          onClick={() => setEditing(true)}
+          className="self-start border-2 border-line px-2.5 py-1.5 text-[11px] font-extrabold hover:border-ink"
+        >
+          Edit
+        </button>
+      </div>
     );
   }
 
   return (
-    <tr className="border-b border-line last:border-b-0 bg-tint">
-      <td colSpan={6} className="p-3">
-        <form action={action} className="flex flex-wrap items-end gap-3">
-          <input type="hidden" name="driver_id" value={driver.id} />
-          <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-            Name
-            <input name="full_name" defaultValue={driver.full_name} className={inputCls} />
-          </label>
-          <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-            Phone
-            <input name="phone" defaultValue={driver.phone ?? ""} className={inputCls} />
-          </label>
-          <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-            Truck
-            <select
-              name="truck_id"
-              defaultValue={driver.truck_id ?? ""}
-              className={inputCls}
-            >
-              <option value="">— none —</option>
-              {truckOptions(trucks, driver.id)}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-            Vehicle info
-            <input
-              name="vehicle_info"
-              defaultValue={driver.vehicle_info ?? ""}
-              className={inputCls}
-            />
-          </label>
-          <Save />
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="border-2 border-line px-3 py-2 text-[12px] font-extrabold text-ink-2 hover:border-ink"
+    <div
+      className="flex flex-col gap-3 border-2 border-line-strong bg-tint p-4"
+      style={{ borderTop: `5px solid ${color}` }}
+    >
+      <form action={action} className="flex flex-wrap items-end gap-3">
+        <input type="hidden" name="driver_id" value={driver.id} />
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Name
+          <input name="full_name" defaultValue={driver.full_name} className={inputCls} />
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Phone
+          <input name="phone" defaultValue={driver.phone ?? ""} className={inputCls} />
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Truck
+          <select
+            name="truck_id"
+            defaultValue={driver.truck_id ?? ""}
+            className={inputCls}
           >
-            Cancel
-          </button>
-          <Msg s={state} />
-        </form>
-      </td>
-    </tr>
+            <option value="">— none —</option>
+            {truckOptions(trucks, driver.id)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Vehicle info
+          <input
+            name="vehicle_info"
+            defaultValue={driver.vehicle_info ?? ""}
+            className={inputCls}
+          />
+        </label>
+        <Save />
+        <button
+          type="button"
+          onClick={() => setEditing(false)}
+          className="border-2 border-line px-3 py-2 text-[12px] font-extrabold text-ink-2 hover:border-ink"
+        >
+          Cancel
+        </button>
+        <Msg s={state} />
+      </form>
+    </div>
   );
 }
