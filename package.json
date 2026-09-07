@@ -20,6 +20,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@types/google.maps": "^3.66.2",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
     "@types/react": "^18",

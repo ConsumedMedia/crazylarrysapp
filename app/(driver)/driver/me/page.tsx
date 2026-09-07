@@ -1,11 +1,14 @@
 import { myDriverProfile } from "@/lib/driver/queries";
 import { signOutAction } from "@/lib/auth/actions";
+import { ThemeToggle } from "@/lib/design/ThemeToggle";
+import { getThemeChoice } from "@/lib/design/theme.server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Me · Crazy Larry's" };
 
 export default async function DriverMePage() {
   const profile = await myDriverProfile();
+  const theme = getThemeChoice();
 
   return (
     <div className="flex flex-col gap-4 lg:max-w-md">
@@ -57,6 +60,13 @@ export default async function DriverMePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div>
+        <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Appearance
+        </div>
+        <ThemeToggle initialChoice={theme} />
       </div>
 
       <form action={signOutAction}>

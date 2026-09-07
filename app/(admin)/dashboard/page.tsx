@@ -6,6 +6,7 @@ import { MovementsToday } from "./_components/MovementsToday";
 import { NeedsAction } from "./_components/NeedsAction";
 import { NotificationHealthBanner } from "./_components/NotificationHealthBanner";
 import { RevenueToday } from "./_components/RevenueToday";
+import { DeployedUnitsMap } from "./_components/DeployedUnitsMap";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Overview · Crazy Larry's" };
@@ -60,6 +61,8 @@ export default async function DashboardPage() {
           />
         </div>
       </div>
+
+      <DeployedUnitsMap />
     </div>
   );
 }

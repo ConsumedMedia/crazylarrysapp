@@ -62,9 +62,7 @@ export default async function FleetPage({
           <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
             Fleet status board
           </h1>
-          <p className="text-[12px] text-ink-2">
-            Every can, every state, one screen
-          </p>
+          <p className="text-[12px] text-ink-2">Every can, every state, one screen</p>
         </div>
         <AddCan />
       </div>

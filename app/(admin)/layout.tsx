@@ -1,6 +1,8 @@
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { countPendingChangeRequests } from "@/lib/bookings/change-requests";
 import { RouteFade } from "@/lib/design/RouteFade";
+import { ThemeToggle } from "@/lib/design/ThemeToggle";
+import { getThemeChoice } from "@/lib/design/theme.server";
 import { SignOutButton } from "./_components/SignOutButton";
 import { SidebarNav, BottomNav, type NavItem } from "./_components/AdminNav";
 
@@ -40,6 +42,7 @@ export default async function AdminLayout({
   const staff = await requireStaff();
   const pendingRequests = await countPendingChangeRequests();
   const NAV = buildNav(pendingRequests);
+  const theme = getThemeChoice();
 
   return (
     <div className="flex min-h-screen bg-bg text-ink">
@@ -59,19 +62,22 @@ export default async function AdminLayout({
 
         <SidebarNav items={NAV} />
 
-        <div className="mt-auto flex items-center gap-2.5 border-t border-white/10 p-4">
-          <div className="grid h-8 w-8 flex-none place-items-center bg-pink text-[11px] font-extrabold text-white">
-            {initials(staff.fullName, staff.email)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[12px] font-bold text-rail-ink">
-              {staff.fullName ?? staff.email}
+        <div className="mt-auto flex flex-col gap-3 border-t border-white/10 p-4">
+          <ThemeToggle initialChoice={theme} />
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-8 w-8 flex-none place-items-center bg-pink text-[11px] font-extrabold text-white">
+              {initials(staff.fullName, staff.email)}
             </div>
-            <div className="text-[9px] uppercase tracking-[0.14em] text-rail-ink-2">
-              {staff.role}
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[12px] font-bold text-rail-ink">
+                {staff.fullName ?? staff.email}
+              </div>
+              <div className="text-[9px] uppercase tracking-[0.14em] text-rail-ink-2">
+                {staff.role}
+              </div>
             </div>
+            <SignOutButton />
           </div>
-          <SignOutButton />
         </div>
       </nav>
 

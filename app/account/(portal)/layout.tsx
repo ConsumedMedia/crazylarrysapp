@@ -1,6 +1,8 @@
 import { requireCustomer } from "@/lib/auth/requireCustomer";
 import { createClient } from "@/lib/supabase/server";
 import { RouteFade } from "@/lib/design/RouteFade";
+import { ThemeToggle } from "@/lib/design/ThemeToggle";
+import { getThemeChoice } from "@/lib/design/theme.server";
 import { SignOutButton } from "./_components/SignOutButton";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +13,7 @@ export default async function AccountPortalLayout({
   children: React.ReactNode;
 }) {
   const customer = await requireCustomer();
+  const theme = getThemeChoice();
 
   // Best-effort: link any guest booking made under this verified email.
   // Idempotent and safe to call on every load — see claim_guest_bookings().
@@ -36,6 +39,7 @@ export default async function AccountPortalLayout({
           </div>
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <ThemeToggle initialChoice={theme} className="hidden sm:flex" />
           <span className="hidden text-[12px] font-bold text-ink-2 sm:inline">
             {customer.fullName ?? customer.email}
           </span>
