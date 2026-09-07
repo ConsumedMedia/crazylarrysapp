@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { STATUS_META, type DumpsterStatus } from "@/lib/dumpsters/state-machine";
 import {
@@ -44,7 +45,22 @@ export function CanActions({
     changeStatusAction,
     initial,
   );
-  const [notesState, notesFormAction] = useFormState(saveNotesAction, initial);
+
+  // Notes are free-text annotation, not a state-machine field — optimistic:
+  // "Saved" shows immediately, replaced with an error only if the save
+  // actually fails. The typed text itself is never touched either way.
+  const [notesPending, startNotesTransition] = useTransition();
+  const [notesState, setNotesState] = useState<ActionState>(initial);
+
+  function submitNotes(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    setNotesState({ ok: true, message: "Saved." });
+    startNotesTransition(async () => {
+      const result = await saveNotesAction(initial, fd);
+      if (!result.ok) setNotesState(result);
+    });
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -85,7 +101,7 @@ export function CanActions({
         </div>
       </div>
 
-      <form action={notesFormAction} className="flex flex-col gap-2">
+      <form onSubmit={submitNotes} className="flex flex-col gap-2">
         <input type="hidden" name="id" value={id} />
         <label className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
           Condition notes
@@ -98,17 +114,13 @@ export function CanActions({
           className="border-2 border-line bg-bg px-3 py-2 text-[13px] text-ink"
         />
         <div className="flex items-center gap-3">
-          <Pending>
-            {(pending) => (
-              <button
-                type="submit"
-                disabled={pending}
-                className="border-2 border-ink bg-transparent px-3 py-2 text-left text-[12px] font-extrabold text-ink hover:bg-tint disabled:opacity-60"
-              >
-                Save notes
-              </button>
-            )}
-          </Pending>
+          <button
+            type="submit"
+            disabled={notesPending}
+            className="border-2 border-ink bg-transparent px-3 py-2 text-left text-[12px] font-extrabold text-ink hover:bg-tint disabled:opacity-60"
+          >
+            Save notes
+          </button>
           <Feedback state={notesState} />
         </div>
       </form>

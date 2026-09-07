@@ -11,10 +11,13 @@ export function JobRow({
   job,
   stopNumber,
   isNext,
+  active = false,
 }: {
   job: DispatchJob;
   stopNumber: number;
   isNext: boolean;
+  /** Tablet rail only — this is the job currently shown in the right pane. */
+  active?: boolean;
 }) {
   const done = job.status === "completed";
   const c = done ? COLOR.done : isNext ? COLOR.next : COLOR.todo;
@@ -22,7 +25,7 @@ export function JobRow({
 
   return (
     <div
-      className={`flex flex-col gap-2.5 border-2 border-l-8 ${c.outer} ${c.left} bg-surface p-3.5 ${done ? "opacity-55" : ""}`}
+      className={`flex flex-col gap-2.5 border-2 border-l-8 ${c.outer} ${c.left} bg-surface p-3.5 ${done ? "opacity-55" : ""} ${active ? "ring-2 ring-ink ring-inset" : ""}`}
     >
       <div className="flex gap-3">
         <div
@@ -65,7 +68,7 @@ export function JobRow({
       <div className="flex gap-2">
         <Link
           href={`/driver/${job.id}`}
-          className={`flex flex-1 min-w-0 items-center justify-between px-3 py-3 text-[13px] font-extrabold ${
+          className={`cl-btn flex flex-1 min-w-0 items-center justify-between px-3 py-3 text-[13px] font-extrabold ${
             done
               ? "bg-tint text-ink-2"
               : isNext
@@ -82,7 +85,7 @@ export function JobRow({
               <a
                 href={`tel:${job.customer_phone}`}
                 aria-label="Call customer"
-                className="grid w-12 flex-none place-items-center border-2 border-ink text-ink hover:bg-tint"
+                className="cl-btn grid w-12 flex-none place-items-center border-2 border-ink text-ink hover:bg-tint"
               >
                 <svg
                   width="18"
@@ -102,7 +105,7 @@ export function JobRow({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Navigate"
-              className="grid w-12 flex-none place-items-center border-2 border-ink text-ink hover:bg-tint"
+              className="cl-btn grid w-12 flex-none place-items-center border-2 border-ink text-ink hover:bg-tint"
             >
               <svg
                 width="18"

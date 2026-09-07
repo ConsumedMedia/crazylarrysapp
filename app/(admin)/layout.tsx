@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { countPendingChangeRequests } from "@/lib/bookings/change-requests";
+import { RouteFade } from "@/lib/design/RouteFade";
 import { SignOutButton } from "./_components/SignOutButton";
 import { SidebarNav, BottomNav, type NavItem } from "./_components/AdminNav";
 
@@ -106,7 +107,9 @@ export default async function AdminLayout({
           </div>
         </header>
 
-        <main className="flex-1 pb-24 md:pb-0">{children}</main>
+        <main className="flex-1 pb-24 md:pb-0">
+          <RouteFade>{children}</RouteFade>
+        </main>
       </div>
 
       <BottomNav items={NAV.slice(0, 5)} />

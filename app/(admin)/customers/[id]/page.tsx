@@ -93,7 +93,7 @@ export default async function CustomerDetailPage({
               <li key={b.id} className="border-b border-line last:border-b-0">
                 <Link
                   href={`/bookings/${b.id}`}
-                  className="flex flex-wrap items-center gap-3 px-4 py-3 text-[13px] hover:bg-bg"
+                  className="cl-btn flex flex-wrap items-center gap-3 px-4 py-3 text-[13px] hover:bg-bg"
                 >
                   <span className="w-16 font-extrabold">
                     {b.size_requested.replace("yd", " yd")}

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import type { DriverRow } from "@/lib/dispatch/types";
 import type { TruckOption, CandidateProfile } from "@/lib/drivers/manage";
 import { BRAND_HEX } from "@/lib/design/tokens";
 import {
   createDriverAction,
-  updateDriverAction,
+  updateDriverContactAction,
+  updateDriverTruckAction,
   toggleDriverActiveAction,
   type DriverActionState,
 } from "../actions";
@@ -20,15 +21,16 @@ function initials(name: string): string {
   return (parts[0]?.[0] ?? "?").concat(parts[1]?.[0] ?? "").toUpperCase();
 }
 
-function Save({ label = "Save" }: { label?: string }) {
-  const { pending } = useFormStatus();
+function Save({ label = "Save", pending = false }: { label?: string; pending?: boolean }) {
+  const status = useFormStatus();
+  const isPending = pending || status.pending;
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={isPending}
       className="bg-teal px-3.5 py-2 text-left text-[12px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
     >
-      {pending ? "…" : label}
+      {isPending ? "…" : label}
     </button>
   );
 }
@@ -150,12 +152,63 @@ export function DriverRowEditor({
   trucks: TruckOption[];
 }) {
   const [editing, setEditing] = useState(false);
-  const [state, action] = useFormState(updateDriverAction, init);
-  const [toggleState, toggleAction] = useFormState(toggleDriverActiveAction, init);
 
-  if (state.ok && editing) setTimeout(() => setEditing(false), 300);
+  // Optimistic mirror of the fields that are safe to show before the server
+  // confirms (name/phone/vehicle/active). Truck assignment is deliberately
+  // NOT part of this — it stays whatever the server last confirmed until
+  // updateDriverTruckAction actually resolves.
+  const [localDriver, setLocalDriver] = useState(driver);
+  useEffect(() => setLocalDriver(driver), [driver]);
 
-  const color = driver.active ? BRAND_HEX.teal : BRAND_HEX["gray-st"];
+  const [activePending, startActiveTransition] = useTransition();
+  const [activeError, setActiveError] = useState<string | null>(null);
+
+  const [contactPending, startContactTransition] = useTransition();
+  const [contactError, setContactError] = useState<string | null>(null);
+
+  const [truckState, truckAction] = useFormState(updateDriverTruckAction, init);
+  useEffect(() => {
+    if (truckState.ok) setTimeout(() => setEditing(false), 300);
+  }, [truckState]);
+
+  function toggleActive() {
+    const nextActive = !localDriver.active;
+    setLocalDriver((d) => ({ ...d, active: nextActive }));
+    setActiveError(null);
+    startActiveTransition(async () => {
+      const fd = new FormData();
+      fd.set("driver_id", driver.id);
+      fd.set("active", String(nextActive));
+      const result = await toggleDriverActiveAction(init, fd);
+      if (!result.ok) {
+        setLocalDriver((d) => ({ ...d, active: !nextActive }));
+        setActiveError(result.error ?? "Couldn't update.");
+      }
+    });
+  }
+
+  function submitContact(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const next = {
+      ...localDriver,
+      full_name: String(fd.get("full_name") ?? localDriver.full_name).trim(),
+      phone: String(fd.get("phone") ?? "").trim() || null,
+      vehicle_info: String(fd.get("vehicle_info") ?? "").trim() || null,
+    };
+    setLocalDriver(next);
+    setContactError(null);
+    fd.set("driver_id", driver.id);
+    startContactTransition(async () => {
+      const result = await updateDriverContactAction(init, fd);
+      if (!result.ok) {
+        setLocalDriver(driver);
+        setContactError(result.error ?? "Couldn't save.");
+      }
+    });
+  }
+
+  const color = localDriver.active ? BRAND_HEX.teal : BRAND_HEX["gray-st"];
 
   if (!editing) {
     return (
@@ -168,29 +221,27 @@ export function DriverRowEditor({
             className="grid h-10 w-10 flex-none place-items-center text-[13px] font-extrabold text-white"
             style={{ background: color }}
           >
-            {initials(driver.full_name)}
+            {initials(localDriver.full_name)}
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[15px] font-extrabold leading-tight">
-              {driver.full_name}
+              {localDriver.full_name}
             </div>
             <div className="cl-nums text-[12px] text-ink-2">
-              {driver.phone ?? "—"}
+              {localDriver.phone ?? "—"}
             </div>
           </div>
-          <form action={toggleAction} className="flex-none">
-            <input type="hidden" name="driver_id" value={driver.id} />
-            <input type="hidden" name="active" value={(!driver.active).toString()} />
-            <button
-              className={`whitespace-nowrap px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${
-                driver.active
-                  ? "bg-teal-tint text-teal-tint-ink"
-                  : "bg-tint text-ink-2"
-              }`}
-            >
-              {driver.active ? "Active" : "Inactive"}
-            </button>
-          </form>
+          <button
+            onClick={toggleActive}
+            disabled={activePending}
+            className={`whitespace-nowrap px-1.5 py-0.5 text-[10px] font-extrabold uppercase disabled:opacity-70 ${
+              localDriver.active
+                ? "bg-teal-tint text-teal-tint-ink"
+                : "bg-tint text-ink-2"
+            }`}
+          >
+            {localDriver.active ? "Active" : "Inactive"}
+          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-3 border-t border-line pt-3">
@@ -207,13 +258,13 @@ export function DriverRowEditor({
               Vehicle
             </div>
             <div className="text-[13px] font-bold text-ink-2">
-              {driver.vehicle_info ?? "—"}
+              {localDriver.vehicle_info ?? "—"}
             </div>
           </div>
         </div>
 
-        {toggleState.error && (
-          <div className="text-[11px] text-orange-tint-ink">{toggleState.error}</div>
+        {activeError && (
+          <div className="text-[11px] text-orange-tint-ink">{activeError}</div>
         )}
 
         <button
@@ -228,19 +279,41 @@ export function DriverRowEditor({
 
   return (
     <div
-      className="flex flex-col gap-3 border-2 border-line-strong bg-tint p-4"
+      className="flex flex-col gap-4 border-2 border-line-strong bg-tint p-4"
       style={{ borderTop: `5px solid ${color}` }}
     >
-      <form action={action} className="flex flex-wrap items-end gap-3">
+      <form onSubmit={submitContact} className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="driver_id" value={driver.id} />
         <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
           Name
-          <input name="full_name" defaultValue={driver.full_name} className={inputCls} />
+          <input name="full_name" defaultValue={localDriver.full_name} className={inputCls} />
         </label>
         <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
           Phone
-          <input name="phone" defaultValue={driver.phone ?? ""} className={inputCls} />
+          <input name="phone" defaultValue={localDriver.phone ?? ""} className={inputCls} />
         </label>
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Vehicle info
+          <input
+            name="vehicle_info"
+            defaultValue={localDriver.vehicle_info ?? ""}
+            className={inputCls}
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={contactPending}
+          className="bg-teal px-3.5 py-2 text-left text-[12px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
+        >
+          Save
+        </button>
+        {contactError && (
+          <span className="text-[12px] font-semibold text-orange-tint-ink">{contactError}</span>
+        )}
+      </form>
+
+      <form action={truckAction} className="flex flex-wrap items-end gap-3 border-t border-line pt-3">
+        <input type="hidden" name="driver_id" value={driver.id} />
         <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
           Truck
           <select
@@ -252,24 +325,17 @@ export function DriverRowEditor({
             {truckOptions(trucks, driver.id)}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-          Vehicle info
-          <input
-            name="vehicle_info"
-            defaultValue={driver.vehicle_info ?? ""}
-            className={inputCls}
-          />
-        </label>
-        <Save />
-        <button
-          type="button"
-          onClick={() => setEditing(false)}
-          className="border-2 border-line px-3 py-2 text-[12px] font-extrabold text-ink-2 hover:border-ink"
-        >
-          Cancel
-        </button>
-        <Msg s={state} />
+        <Save label="Assign truck" />
+        <Msg s={truckState} />
       </form>
+
+      <button
+        type="button"
+        onClick={() => setEditing(false)}
+        className="self-start border-2 border-line px-3 py-2 text-[12px] font-extrabold text-ink-2 hover:border-ink"
+      >
+        Done
+      </button>
     </div>
   );
 }

@@ -56,6 +56,106 @@
   --cl-orange-tint: #2e1608;
 }
 
+:root {
+  /*
+   * Shared motion language — one vocabulary for every surface (admin,
+   * customer, driver). Durations sit in the 100-300ms range research points
+   * to as "fast enough to feel instant, slow enough to read as intentional."
+   *   instant — press/active feedback
+   *   fast    — hover states, small badge/status changes
+   *   base    — the default for everything else (color, opacity, border)
+   *   slow    — page-level transitions, larger layout shifts
+   * Easing: "standard" is Material's symmetric curve — the right choice for
+   * a state change that shouldn't call attention to itself. "out"/"in" are
+   * for things entering/leaving (decelerate in, accelerate away).
+   */
+  --motion-instant: 100ms;
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --motion-slow: 300ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Respect the OS-level motion preference everywhere, unconditionally —
+   built in from the start rather than bolted on per-component. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Baseline interactive motion. Applied at the element level so every
+   button/link/input gets a smooth, consistent hover/focus transition and
+   every real button gets a crisp press-down — without each component
+   needing to remember to opt in. Component-specific overrides (duration-*,
+   ease-* utilities) still win where something needs to differ. */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+  transition-duration: var(--motion-instant);
+}
+
+/* "This is a button," regardless of the underlying tag. Real <button>
+   elements already get press-scale from the rule above — this is for
+   <a>/<Link> (or anything else) styled to look like one, so the visual
+   language is "is this a button," never "what HTML element is this." */
+.cl-btn:not(:disabled):not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+  transition-duration: var(--motion-instant);
+}
+
+/* Generic reveal fade — used both for page-to-page transitions (RouteFade)
+   and for content replacing a skeleton (loading.tsx pages, the client-fetched
+   availability calendars). One fade, reused everywhere something appears,
+   not a separate animation per use site. */
+@keyframes cl-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.cl-fade-in {
+  animation: cl-fade-in var(--motion-base) var(--motion-ease-out);
+}
+
+/* Skeleton loading — a shaped placeholder that mirrors the real content's
+   layout (see each loading.tsx / the calendar components), not a spinner.
+   A gentle opacity pulse, not a moving shimmer — reads as "restrained,"
+   not "flashy." prefers-reduced-motion (above) already flattens this to a
+   static block for anyone who's asked for that. */
+@keyframes cl-skeleton-pulse {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.cl-skeleton {
+  background: var(--cl-tint);
+  animation: cl-skeleton-pulse 1.4s var(--motion-ease-standard) infinite alternate;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-cl-theme="light"]) {
     --cl-bg: #0e1116;

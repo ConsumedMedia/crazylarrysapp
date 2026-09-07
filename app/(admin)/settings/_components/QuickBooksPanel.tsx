@@ -101,7 +101,7 @@ export async function QuickBooksPanel({
         <div className="flex items-center gap-3">
           <a
             href="/api/quickbooks/connect"
-            className="bg-teal px-3.5 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700"
+            className="cl-btn bg-teal px-3.5 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700"
           >
             {connected ? "Reconnect" : "Connect QuickBooks"}
           </a>

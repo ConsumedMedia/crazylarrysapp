@@ -32,7 +32,7 @@ export default async function AccountBookingsPage() {
         </h1>
         <Link
           href="/book"
-          className="bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700"
+          className="cl-btn bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700"
         >
           Book a dumpster
         </Link>
@@ -54,7 +54,7 @@ export default async function AccountBookingsPage() {
             <li key={b.id}>
               <Link
                 href={`/account/bookings/${b.id}`}
-                className="flex flex-col gap-2 border-2 border-line-strong bg-surface p-4 hover:border-ink sm:flex-row sm:items-center sm:justify-between"
+                className="cl-btn flex flex-col gap-2 border-2 border-line-strong bg-surface p-4 hover:border-ink sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <div className="text-[14px] font-extrabold">

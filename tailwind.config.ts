@@ -56,6 +56,24 @@ const config: Config = {
         none: "0",
         DEFAULT: "0",
       },
+      // Shared motion language — same source-of-truth CSS vars as
+      // app/globals.css. DEFAULT changes mean a bare `transition`/
+      // `transition-colors` picks these up automatically; the named keys
+      // (duration-instant/fast/slow, ease-enter/exit) are for the cases
+      // that deliberately differ from the default.
+      transitionDuration: {
+        DEFAULT: "200ms",
+        instant: "var(--motion-instant)",
+        fast: "var(--motion-fast)",
+        base: "var(--motion-base)",
+        slow: "var(--motion-slow)",
+      },
+      transitionTimingFunction: {
+        DEFAULT: "var(--motion-ease-standard)",
+        standard: "var(--motion-ease-standard)",
+        enter: "var(--motion-ease-out)",
+        exit: "var(--motion-ease-in)",
+      },
     },
   },
   plugins: [],

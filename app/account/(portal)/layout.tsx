@@ -1,5 +1,6 @@
 import { requireCustomer } from "@/lib/auth/requireCustomer";
 import { createClient } from "@/lib/supabase/server";
+import { RouteFade } from "@/lib/design/RouteFade";
 import { SignOutButton } from "./_components/SignOutButton";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,9 @@ export default async function AccountPortalLayout({
           <SignOutButton />
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-6 md:px-7">{children}</main>
+      <main className="mx-auto max-w-3xl px-4 py-6 md:px-7">
+        <RouteFade>{children}</RouteFade>
+      </main>
     </div>
   );
 }

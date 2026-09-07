@@ -8,7 +8,7 @@ export default async function DriverMePage() {
   const profile = await myDriverProfile();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 lg:max-w-md">
       <h1 className="text-[22px] font-black leading-tight tracking-[-0.02em]">Me</h1>
 
       <div className="border-2 border-line-strong bg-surface p-4">

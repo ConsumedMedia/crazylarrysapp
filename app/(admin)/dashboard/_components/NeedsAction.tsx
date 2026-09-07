@@ -40,7 +40,7 @@ export function NeedsAction({
                   <li key={b.bookingId}>
                     <a
                       href={`/bookings/${b.bookingId}`}
-                      className="flex items-center justify-between gap-2 border-l-4 border-orange bg-orange-tint px-2.5 py-1.5 text-[12px] text-orange-tint-ink hover:opacity-90"
+                      className="cl-btn flex items-center justify-between gap-2 border-l-4 border-orange bg-orange-tint px-2.5 py-1.5 text-[12px] text-orange-tint-ink hover:opacity-90"
                     >
                       <span className="truncate">
                         {b.address} · {b.customerName}
@@ -65,7 +65,7 @@ export function NeedsAction({
                   <li key={j.jobId}>
                     <a
                       href={`/dispatch?sel=${j.jobId}`}
-                      className="flex items-center justify-between gap-2 border-2 border-line px-2.5 py-1.5 text-[12px] hover:border-ink"
+                      className="cl-btn flex items-center justify-between gap-2 border-2 border-line px-2.5 py-1.5 text-[12px] hover:border-ink"
                     >
                       <span className="truncate">
                         <span className="font-extrabold capitalize">{j.type}</span>{" "}

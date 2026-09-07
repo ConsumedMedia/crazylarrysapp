@@ -10,6 +10,7 @@ import {
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
 import type { AvailabilityDay, RangeAvailability } from "@/lib/availability/types";
+import { Skeleton } from "@/lib/design/Skeleton";
 
 type DayMap = Record<string, AvailabilityDay>;
 
@@ -145,7 +146,10 @@ export function AvailabilityCalendar({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-line p-px">
+        <div
+          key={`${grid.from}-${loading}`}
+          className="cl-fade-in grid grid-cols-7 gap-px bg-line p-px"
+        >
           {DAY_NAMES.map((d) => (
             <div
               key={d}
@@ -213,6 +217,7 @@ function DayCell({
   let note = "";
   let noteInk = "text-ink-3";
   let ring = "";
+  const showSkeleton = inMonth && !isDrop && !isPickup && !inWindow && (loading || !day);
 
   if (!inMonth) {
     bg = "bg-bg";
@@ -228,7 +233,7 @@ function DayCell({
     note = "On site";
     noteInk = "text-teal-tint-ink";
   } else if (loading || !day) {
-    note = loading ? "…" : "";
+    // handled by showSkeleton below
   } else if (day.state === "past") {
     bg = "bg-bg";
     ink = "text-ink-3";
@@ -263,7 +268,8 @@ function DayCell({
       <span className={`cl-nums text-[14px] font-extrabold ${ink}`}>
         {dayOfMonth}
       </span>
-      {note && (
+      {showSkeleton && <Skeleton className="h-[9px] w-8" />}
+      {!showSkeleton && note && (
         <span
           className={`text-[9px] font-extrabold uppercase leading-tight tracking-[0.06em] ${noteInk}`}
         >

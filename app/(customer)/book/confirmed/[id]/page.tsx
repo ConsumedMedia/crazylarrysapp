@@ -62,7 +62,7 @@ export default async function ConfirmedPage({
 
       <Link
         href="/book"
-        className="mt-6 inline-block border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint"
+        className="cl-btn mt-6 inline-block border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint"
       >
         Book another
       </Link>

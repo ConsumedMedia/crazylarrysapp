@@ -25,7 +25,7 @@ export function CanTile({
       href={href}
       scroll={false}
       data-active={active ? "1" : "0"}
-      className={`flex min-h-[96px] flex-col gap-1.5 bg-surface p-2.5 outline-offset-[-3px] hover:outline hover:outline-[3px] hover:outline-ink data-[active=1]:outline data-[active=1]:outline-[3px] data-[active=1]:outline-ink`}
+      className={`cl-btn flex min-h-[96px] flex-col gap-1.5 bg-surface p-2.5 outline-offset-[-3px] hover:outline hover:outline-[3px] hover:outline-ink data-[active=1]:outline data-[active=1]:outline-[3px] data-[active=1]:outline-ink`}
       style={{ borderTop: `5px solid ${STATUS_HEX[unit.status]}` }}
     >
       <div className="flex items-baseline justify-between gap-1">

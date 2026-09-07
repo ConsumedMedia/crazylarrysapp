@@ -33,7 +33,7 @@ export default async function BookingsPage({
   const bookings = await listBookings(active ? { status: active } : undefined);
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-7">
+    <div className="cl-fade-in flex flex-col gap-4 p-4 md:p-7">
       <div>
         <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           Bookings
@@ -47,7 +47,7 @@ export default async function BookingsPage({
       <div className="flex flex-wrap gap-1.5">
         <Link
           href="/bookings"
-          className={`border-2 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.06em] ${
+          className={`cl-btn border-2 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.06em] ${
             !active ? "border-ink bg-ink text-surface" : "border-line hover:border-ink"
           }`}
         >
@@ -57,7 +57,7 @@ export default async function BookingsPage({
           <Link
             key={s}
             href={`/bookings?status=${s}`}
-            className={`border-2 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.06em] ${
+            className={`cl-btn border-2 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.06em] ${
               active === s ? "border-ink text-ink" : "border-line hover:border-ink"
             }`}
           >

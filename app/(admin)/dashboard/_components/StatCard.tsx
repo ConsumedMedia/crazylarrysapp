@@ -27,7 +27,7 @@ export function StatCard({
   );
   if (!href) return body;
   return (
-    <a href={href} className="block transition hover:-translate-y-[1px]">
+    <a href={href} className="cl-btn block transition hover:-translate-y-[1px]">
       {body}
     </a>
   );

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DAY_NAMES, MONTH_NAMES, monthGrid, parseYmd } from "@/lib/availability/dates";
 import type { AvailabilityDay, RangeAvailability } from "@/lib/availability/types";
 import type { DumpsterSize } from "@/lib/dumpsters/state-machine";
+import { Skeleton } from "@/lib/design/Skeleton";
 
 type DayMap = Record<string, AvailabilityDay>;
 
@@ -106,7 +107,10 @@ export function ChangeDateCalendar({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-line p-px">
+        <div
+          key={`${grid.from}-${loading}`}
+          className="cl-fade-in grid grid-cols-7 gap-px bg-line p-px"
+        >
           {DAY_NAMES.map((d) => (
             <div
               key={d}
@@ -175,6 +179,7 @@ function DayCell({
   let note = "";
   let noteInk = "text-ink-3";
   let ring = "";
+  const showSkeleton = inMonth && !isSelected && (loading || !day);
 
   if (!inMonth) {
     bg = "bg-bg";
@@ -185,7 +190,7 @@ function DayCell({
     note = "Requested";
     noteInk = "text-white/90";
   } else if (loading || !day) {
-    note = loading ? "…" : "";
+    // handled by showSkeleton below
   } else if (day.state === "past") {
     bg = "bg-bg";
     ink = "text-ink-3";
@@ -208,7 +213,7 @@ function DayCell({
 
   if (isCurrent && !isSelected) {
     ring = "shadow-[inset_0_0_0_2px_var(--cl-ink)]";
-    note = note || "Current";
+    if (!showSkeleton) note = note || "Current";
   }
 
   const Tag = onSelect ? "button" : "div";
@@ -221,7 +226,8 @@ function DayCell({
       }`}
     >
       <span className={`cl-nums text-[12px] font-extrabold ${ink}`}>{dayOfMonth}</span>
-      {note && (
+      {showSkeleton && <Skeleton className="h-[8px] w-6" />}
+      {!showSkeleton && note && (
         <span
           className={`text-[8px] font-extrabold uppercase leading-tight tracking-[0.06em] ${noteInk}`}
         >

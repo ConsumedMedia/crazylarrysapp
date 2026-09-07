@@ -73,7 +73,7 @@ export default async function SchedulePage({
     return (
       <Link
         href={`/schedule?${params.toString()}`}
-        className={`border-2 px-3 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] ${
+        className={`cl-btn border-2 px-3 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] ${
           view === v
             ? "border-ink bg-ink text-surface"
             : "border-line text-ink hover:border-ink"
@@ -85,7 +85,7 @@ export default async function SchedulePage({
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-7">
+    <div className="cl-fade-in flex flex-col gap-4 p-4 md:p-7">
       <div className="flex flex-wrap items-end justify-between gap-3.5">
         <div>
           <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">

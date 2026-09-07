@@ -26,7 +26,7 @@ export function CanDetailPanel({
         <span className="cl-nums">{unit.unit_number}</span>
         <span className="flex items-center gap-3">
           {unit.size.replace("yd", " yd")}
-          <Link href={closeHref} scroll={false} className="text-white/80 hover:text-white">
+          <Link href={closeHref} scroll={false} className="cl-btn text-white/80 hover:text-white">
             ✕
           </Link>
         </span>

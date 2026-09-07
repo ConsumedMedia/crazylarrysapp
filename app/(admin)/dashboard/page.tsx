@@ -17,7 +17,7 @@ export default async function DashboardPage() {
     staff.role === "owner" ? await getRevenueToday() : null;
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-7">
+    <div className="cl-fade-in flex flex-col gap-4 p-4 md:p-7">
       <div>
         <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           Overview

@@ -1,5 +1,6 @@
 import { myJobs } from "@/lib/driver/queries";
-import { JobRow } from "./_components/JobRow";
+import { DriverListPane, summarizeJobs } from "./_components/DriverListPane";
+import { JobDetailContent } from "./_components/JobDetailContent";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My day · Crazy Larry's" };
@@ -23,46 +24,45 @@ export default async function DriverDayPage({
       ? searchParams.date
       : undefined;
   const { date: day, jobs } = await myJobs(date);
-
-  const doneCount = jobs.filter((j) => j.status === "completed").length;
-  const toGoCount = jobs.length - doneCount;
-  const nextJobId = jobs.find((j) => j.status !== "completed")?.id;
+  const { nextJobId } = summarizeJobs(jobs);
+  const nextJob = jobs.find((j) => j.id === nextJobId);
+  const nextJobStopNumber = nextJob ? jobs.findIndex((j) => j.id === nextJob.id) + 1 : 0;
+  const yardPhone = process.env.CL_YARD_PHONE || null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-[22px] font-black leading-tight tracking-[-0.02em]">
-          {fmtDate(day)}
-        </h1>
+    <div className="cl-fade-in">
+      {/* Phone: the list is the whole page. */}
+      <div className="lg:hidden">
+        <DriverListPane dateLabel={fmtDate(day)} jobs={jobs} nextJobId={nextJobId} />
       </div>
 
-      {jobs.length > 0 && (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="border-2 border-line-strong border-t-[5px] border-t-gray-st bg-surface p-3">
-            <div className="cl-nums text-[24px] font-black leading-none">{doneCount}</div>
-            <div className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-ink-3">
-              Done
-            </div>
-          </div>
-          <div className="border-2 border-line-strong border-t-[5px] border-t-pink bg-surface p-3">
-            <div className="cl-nums text-[24px] font-black leading-none">{toGoCount}</div>
-            <div className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-ink-3">
-              To go
-            </div>
-          </div>
+      {/* Tablet and up: list rail + a detail pane defaulting to the next
+          open job, so a driver glancing at a mounted screen sees what's
+          next without tapping anything first. */}
+      <div className="hidden lg:grid lg:grid-cols-[380px_1fr] lg:items-start lg:gap-5">
+        <DriverListPane
+          dateLabel={fmtDate(day)}
+          jobs={jobs}
+          nextJobId={nextJobId}
+          activeJobId={nextJobId}
+        />
+        <div className="border-2 border-line-strong bg-surface p-5">
+          {nextJob ? (
+            <JobDetailContent
+              job={nextJob}
+              stopNumber={nextJobStopNumber}
+              stopTotal={jobs.length}
+              yardPhone={yardPhone}
+              showBackHeader={false}
+            />
+          ) : (
+            <p className="text-[14px] text-ink-2">
+              {jobs.length === 0
+                ? "Nothing scheduled for you today."
+                : "All done for today — nice work."}
+            </p>
+          )}
         </div>
-      )}
-
-      {jobs.length === 0 && (
-        <p className="border-2 border-line bg-surface p-4 text-[14px] text-ink-2">
-          Nothing scheduled for you today.
-        </p>
-      )}
-
-      <div className="flex flex-col gap-3">
-        {jobs.map((j, i) => (
-          <JobRow key={j.id} job={j} stopNumber={i + 1} isNext={j.id === nextJobId} />
-        ))}
       </div>
     </div>
   );

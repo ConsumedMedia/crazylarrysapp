@@ -40,7 +40,7 @@ export default async function CustomersPage({
         {q && (
           <Link
             href="/customers"
-            className="border-2 border-line px-4 py-2.5 text-[13px] font-extrabold hover:border-ink"
+            className="cl-btn border-2 border-line px-4 py-2.5 text-[13px] font-extrabold hover:border-ink"
           >
             Clear
           </Link>
@@ -58,7 +58,7 @@ export default async function CustomersPage({
               <li key={c.id} className="border-b border-line last:border-b-0">
                 <Link
                   href={`/customers/${c.id}`}
-                  className="flex items-center gap-3 px-4 py-3 text-[13px] hover:bg-bg"
+                  className="cl-btn flex items-center gap-3 px-4 py-3 text-[13px] hover:bg-bg"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-extrabold">

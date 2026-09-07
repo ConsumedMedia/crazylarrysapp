@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import type { DispatchJob, DriverRow, AssignmentCheck } from "@/lib/dispatch/types";
@@ -291,25 +292,40 @@ function TagConfirm({ job }: { job: DispatchJob }) {
 export function DriverLane({
   driverId,
   date,
-  jobs,
+  jobs: serverJobs,
 }: {
   driverId: string;
   date: string;
   jobs: DispatchJob[];
 }) {
-  const [state, action] = useFormState(reorderAction, init);
   const [unState, unAction] = useFormState(unassignJobAction, init);
 
+  // Reordering is optimistic — pure route-sequence preference, no booking/
+  // inventory effect (see the shared motion-and-optimistic-UI plan). The
+  // list reorders instantly; a failed save reverts to the server's order.
+  const [jobs, setJobs] = useState(serverJobs);
+  useEffect(() => setJobs(serverJobs), [serverJobs]);
+  const [, startTransition] = useTransition();
+  const [reorderError, setReorderError] = useState<string | null>(null);
+
   function move(idx: number, dir: -1 | 1) {
-    const ids = jobs.map((j) => j.id);
     const t = idx + dir;
-    if (t < 0 || t >= ids.length) return;
-    [ids[idx], ids[t]] = [ids[t], ids[idx]];
+    if (t < 0 || t >= jobs.length) return;
+    const reordered = [...jobs];
+    [reordered[idx], reordered[t]] = [reordered[t], reordered[idx]];
+    setJobs(reordered);
+    setReorderError(null);
     const fd = new FormData();
     fd.set("driver_id", driverId);
     fd.set("date", date);
-    fd.set("job_ids", JSON.stringify(ids));
-    action(fd);
+    fd.set("job_ids", JSON.stringify(reordered.map((j) => j.id)));
+    startTransition(async () => {
+      const result = await reorderAction(init, fd);
+      if (!result.ok) {
+        setJobs(serverJobs);
+        setReorderError(result.error ?? "Couldn't reorder.");
+      }
+    });
   }
 
   return (
@@ -382,9 +398,9 @@ export function DriverLane({
           )}
         </div>
       ))}
-      {(state.error || unState.error) && (
+      {(reorderError || unState.error) && (
         <p className="text-[12px] font-semibold text-orange-tint-ink">
-          {state.error ?? unState.error}
+          {reorderError ?? unState.error}
         </p>
       )}
     </div>

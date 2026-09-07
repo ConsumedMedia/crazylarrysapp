@@ -35,16 +35,18 @@ export default async function DriverDonePage() {
         </p>
       )}
 
-      {Array.from(byDate.entries()).map(([date, dayJobs]) => (
-        <div key={date} className="flex flex-col gap-2">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-            {fmtDate(date)}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5">
+        {Array.from(byDate.entries()).map(([date, dayJobs]) => (
+          <div key={date} className="flex flex-col gap-2">
+            <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+              {fmtDate(date)}
+            </div>
+            {dayJobs.map((j, i) => (
+              <JobRow key={j.id} job={j} stopNumber={i + 1} isNext={false} />
+            ))}
           </div>
-          {dayJobs.map((j, i) => (
-            <JobRow key={j.id} job={j} stopNumber={i + 1} isNext={false} />
-          ))}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

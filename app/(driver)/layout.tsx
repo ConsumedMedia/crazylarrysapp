@@ -1,4 +1,5 @@
 import { myTodaySummary } from "@/lib/driver/queries";
+import { RouteFade } from "@/lib/design/RouteFade";
 import { BottomTabNav } from "./driver/_components/BottomTabNav";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +21,8 @@ export default async function DriverLayout({
   const summary = await myTodaySummary();
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-bg text-ink">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b-[3px] border-pink bg-rail-bg px-4 py-3">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-bg text-ink lg:max-w-6xl">
+      <header className="sticky top-0 z-10 flex items-center gap-3 border-b-[3px] border-pink bg-rail-bg px-4 py-3 lg:px-6">
         <div className="grid h-9 w-9 flex-none place-items-center bg-pink text-[13px] font-black text-white">
           CL
         </div>
@@ -48,7 +49,9 @@ export default async function DriverLayout({
           Your driver account is inactive. Talk to the office.
         </p>
       )}
-      <main className="flex-1 p-4">{children}</main>
+      <main className="flex-1 p-4 lg:p-6">
+        <RouteFade>{children}</RouteFade>
+      </main>
       <BottomTabNav />
     </div>
   );

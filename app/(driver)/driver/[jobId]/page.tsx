@@ -1,22 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { myJob, myJobs } from "@/lib/driver/queries";
-import { CompleteButton } from "../_components/CompleteButton";
+import { DriverListPane, summarizeJobs } from "../_components/DriverListPane";
+import { JobDetailContent } from "../_components/JobDetailContent";
 
 export const dynamic = "force-dynamic";
-
-function fmtDate(d: string) {
-  return new Date(d + "T00:00:00Z").toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-function todayYmd() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default async function DriverJobPage({
   params,
@@ -29,155 +16,42 @@ export default async function DriverJobPage({
   const { jobs: dayJobs } = await myJobs(job.scheduled_date);
   const stopNumber = dayJobs.findIndex((j) => j.id === job.id) + 1;
   const stopTotal = dayJobs.length;
-  const isToday = job.scheduled_date === todayYmd();
-
-  const mapsHref = `https://maps.google.com/?q=${encodeURIComponent(job.delivery_address)}`;
+  const { nextJobId } = summarizeJobs(dayJobs);
   const yardPhone = process.env.CL_YARD_PHONE || null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2.5">
-        <Link
-          href="/driver"
-          aria-label="Back to my day"
-          className="grid h-11 w-11 flex-none place-items-center border-2 border-ink text-ink"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </Link>
-        {stopNumber > 0 && (
-          <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ink-3">
-            Stop {stopNumber} of {stopTotal} · {isToday ? "today" : fmtDate(job.scheduled_date)}
-          </span>
-        )}
+    <>
+      {/* Phone: full-page detail, same as tapping through from the list. */}
+      <div className="lg:hidden">
+        <JobDetailContent
+          job={job}
+          stopNumber={stopNumber}
+          stopTotal={stopTotal}
+          yardPhone={yardPhone}
+        />
       </div>
 
-      <div className="flex items-center gap-2">
-        <span
-          className={`px-2 py-0.5 text-[11px] font-extrabold uppercase ${
-            job.type === "delivery"
-              ? "bg-teal-tint text-teal-tint-ink"
-              : "bg-purple-tint text-purple-tint-ink"
-          }`}
-        >
-          {job.type}
-        </span>
-        <span className="cl-nums text-[14px] font-bold">
-          {job.size_requested.replace("yd", " yd")}
-        </span>
-        {job.dumpster_unit && (
-          <span className="cl-nums text-[14px] text-ink-2">
-            unit {job.dumpster_unit}
-          </span>
-        )}
-        <span
-          className={`ml-auto px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${
-            job.status === "completed"
-              ? "bg-teal-tint text-teal-tint-ink"
-              : "bg-tint text-ink-2"
-          }`}
-        >
-          {job.status}
-        </span>
+      {/* Tablet and up: the day's list stays visible on the left — tapping
+          another job is a normal navigation to /driver/[id], not a
+          client-side selection, so it works exactly like the phone route
+          underneath, just laid out side-by-side. */}
+      <div className="hidden lg:grid lg:grid-cols-[380px_1fr] lg:items-start lg:gap-5">
+        <DriverListPane
+          dateLabel="Today's stops"
+          jobs={dayJobs}
+          nextJobId={nextJobId}
+          activeJobId={job.id}
+        />
+        <div className="border-2 border-line-strong bg-surface p-5">
+          <JobDetailContent
+            job={job}
+            stopNumber={stopNumber}
+            stopTotal={stopTotal}
+            yardPhone={yardPhone}
+            showBackHeader={false}
+          />
+        </div>
       </div>
-
-      <a
-        href={mapsHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="border-2 border-line-strong bg-surface p-4"
-      >
-        <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-          Address · tap for directions
-        </div>
-        <div className="mt-1 text-[18px] font-bold leading-tight">
-          {job.delivery_address}
-        </div>
-        <div className="mt-1 cl-nums text-[13px] text-ink-2">
-          {fmtDate(job.scheduled_date)}
-        </div>
-      </a>
-
-      <div className="border-2 border-line-strong bg-surface p-4">
-        <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-          Customer
-        </div>
-        <div className="mt-1 text-[16px] font-bold">
-          {job.customer_name}
-          {job.customer_company && (
-            <span className="text-ink-2"> · {job.customer_company}</span>
-          )}
-        </div>
-        {job.customer_phone && (
-          <a
-            href={`tel:${job.customer_phone}`}
-            className="mt-1 inline-block cl-nums text-[15px] font-bold text-teal-tint-ink underline"
-          >
-            {job.customer_phone}
-          </a>
-        )}
-      </div>
-
-      {job.debris_type && (
-        <div className="border-2 border-line-strong bg-surface p-4">
-          <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
-            Debris
-          </div>
-          <div className="mt-1 text-[14px] leading-snug">{job.debris_type}</div>
-        </div>
-      )}
-
-      {job.placement_notes && (
-        <div className="border-2 border-orange bg-orange-tint p-4">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-orange-tint-ink">
-            Driver notes
-          </div>
-          <div className="mt-1 text-[14px] leading-snug text-orange-tint-ink">
-            {job.placement_notes}
-          </div>
-        </div>
-      )}
-
-      {job.status === "completed" && job.has_photo && (
-        <p className="text-[12px] text-ink-3">📷 Placement photo on file.</p>
-      )}
-
-      {job.status === "assigned" ? (
-        <>
-          <CompleteButton jobId={job.id} jobType={job.type} />
-          {yardPhone && (
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={`tel:${yardPhone}`}
-                className="flex-1 border-2 border-ink px-3 py-3 text-center text-[13px] font-extrabold hover:bg-tint"
-              >
-                Can&apos;t complete
-              </a>
-              <a
-                href={`sms:${yardPhone}`}
-                className="flex-1 border-2 border-ink px-3 py-3 text-center text-[13px] font-extrabold hover:bg-tint"
-              >
-                Message the office
-              </a>
-            </div>
-          )}
-        </>
-      ) : (
-        <p className="border-2 border-line bg-surface-2 p-4 text-center text-[14px] text-ink-2">
-          {job.status === "completed"
-            ? "Completed."
-            : `This job is ${job.status}.`}
-        </p>
-      )}
-    </div>
+    </>
   );
 }
