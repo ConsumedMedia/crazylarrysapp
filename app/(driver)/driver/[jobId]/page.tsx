@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { myJob } from "@/lib/driver/queries";
+import { myJob, myJobs } from "@/lib/driver/queries";
 import { CompleteButton } from "../_components/CompleteButton";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +14,10 @@ function fmtDate(d: string) {
   });
 }
 
+function todayYmd() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default async function DriverJobPage({
   params,
 }: {
@@ -22,13 +26,40 @@ export default async function DriverJobPage({
   const job = await myJob(params.jobId);
   if (!job) notFound();
 
+  const { jobs: dayJobs } = await myJobs(job.scheduled_date);
+  const stopNumber = dayJobs.findIndex((j) => j.id === job.id) + 1;
+  const stopTotal = dayJobs.length;
+  const isToday = job.scheduled_date === todayYmd();
+
   const mapsHref = `https://maps.google.com/?q=${encodeURIComponent(job.delivery_address)}`;
+  const yardPhone = process.env.CL_YARD_PHONE || null;
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/driver" className="text-[13px] font-extrabold text-ink-2">
-        ← My day
-      </Link>
+      <div className="flex items-center gap-2.5">
+        <Link
+          href="/driver"
+          aria-label="Back to my day"
+          className="grid h-11 w-11 flex-none place-items-center border-2 border-ink text-ink"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </Link>
+        {stopNumber > 0 && (
+          <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ink-3">
+            Stop {stopNumber} of {stopTotal} · {isToday ? "today" : fmtDate(job.scheduled_date)}
+          </span>
+        )}
+      </div>
 
       <div className="flex items-center gap-2">
         <span
@@ -116,8 +147,30 @@ export default async function DriverJobPage({
         </div>
       )}
 
+      {job.status === "completed" && job.has_photo && (
+        <p className="text-[12px] text-ink-3">📷 Placement photo on file.</p>
+      )}
+
       {job.status === "assigned" ? (
-        <CompleteButton jobId={job.id} jobType={job.type} />
+        <>
+          <CompleteButton jobId={job.id} jobType={job.type} />
+          {yardPhone && (
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`tel:${yardPhone}`}
+                className="flex-1 border-2 border-ink px-3 py-3 text-center text-[13px] font-extrabold hover:bg-tint"
+              >
+                Can&apos;t complete
+              </a>
+              <a
+                href={`sms:${yardPhone}`}
+                className="flex-1 border-2 border-ink px-3 py-3 text-center text-[13px] font-extrabold hover:bg-tint"
+              >
+                Message the office
+              </a>
+            </div>
+          )}
+        </>
       ) : (
         <p className="border-2 border-line bg-surface-2 p-4 text-center text-[14px] text-ink-2">
           {job.status === "completed"

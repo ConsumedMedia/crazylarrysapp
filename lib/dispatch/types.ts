@@ -26,6 +26,8 @@ export interface DispatchJob {
   customer_name: string;
   customer_phone: string | null;
   customer_company: string | null;
+  // driver app only — omitted (undefined) from queries that don't select it
+  has_photo?: boolean;
 }
 
 export interface DriverRow {
