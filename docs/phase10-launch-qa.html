@@ -1,0 +1,555 @@
+<title>Crazy Larry's Launch QA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f6f3ee;
+    --surface: #fffefb;
+    --surface-2: #efeae2;
+    --ink: #1e1b17;
+    --ink-2: #4b453d;
+    --ink-3: #837a6d;
+    --line: #ddd5c8;
+    --line-strong: #c3b8a6;
+    --accent: #d81f6a;       /* Larry's pink — used sparingly */
+    --steel: #276582;         /* secondary / links */
+    --steel-tint: #e4eef2;
+    --amber: #b06c12;         /* external-verification flag */
+    --amber-tint: #f6ead2;
+    --green: #3c7a4b;
+    --green-tint: #e2efe1;
+    --shadow: 0 1px 0 rgba(30,27,23,.04), 0 6px 18px -12px rgba(30,27,23,.22);
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --display: "Archivo", var(--sans);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #17150f;
+      --surface: #201d17;
+      --surface-2: #2b271f;
+      --ink: #f0ebe0;
+      --ink-2: #c3bbaa;
+      --ink-3: #8f8676;
+      --line: #38332a;
+      --line-strong: #4c4638;
+      --accent: #ff4f8f;
+      --steel: #6fb2cf;
+      --steel-tint: #1e3844;
+      --amber: #d9962f;
+      --amber-tint: #3a2c12;
+      --green: #6fb47d;
+      --green-tint: #1f3524;
+      --shadow: 0 1px 0 rgba(0,0,0,.2), 0 8px 22px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #17150f;
+    --surface: #201d17;
+    --surface-2: #2b271f;
+    --ink: #f0ebe0;
+    --ink-2: #c3bbaa;
+    --ink-3: #8f8676;
+    --line: #38332a;
+    --line-strong: #4c4638;
+    --accent: #ff4f8f;
+    --steel: #6fb2cf;
+    --steel-tint: #1e3844;
+    --amber: #d9962f;
+    --amber-tint: #3a2c12;
+    --green: #6fb47d;
+    --green-tint: #1f3524;
+    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 8px 22px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 96px; }
+
+  header.masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 26px 0 18px;
+    margin-bottom: 22px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(28px, 4.6vw, 44px);
+    letter-spacing: -.02em;
+    line-height: 1.02;
+    margin: 6px 0 4px;
+    text-wrap: balance;
+  }
+  .sub { color: var(--ink-2); font-size: 14px; max-width: 62ch; }
+
+  .tabs { display: flex; gap: 4px; margin: 22px 0 8px; flex-wrap: wrap; }
+  .tab {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .02em;
+    padding: 9px 16px;
+    border: 2px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-2);
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+  .tab:focus-visible { outline: 3px solid var(--steel); outline-offset: 2px; }
+
+  .layout { display: grid; grid-template-columns: 232px 1fr; gap: 34px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav.rail { position: static; } }
+
+  nav.rail {
+    position: sticky; top: 16px;
+    border: 2px solid var(--line-strong);
+    background: var(--surface);
+    padding: 6px;
+  }
+  nav.rail a {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 7px 9px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+  }
+  nav.rail a:hover { background: var(--surface-2); color: var(--ink); }
+  nav.rail a .rc {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+    margin-left: auto; font-variant-numeric: tabular-nums;
+  }
+  nav.rail a.done { border-left-color: var(--green); }
+  nav.rail a.done .rc { color: var(--green); }
+
+  section.grp { margin-bottom: 34px; scroll-margin-top: 16px; }
+  .grp-head { display: flex; align-items: flex-end; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 4px; }
+  .grp-head h2 {
+    font-family: var(--display); font-weight: 800; font-size: 19px; letter-spacing: -.01em;
+    margin: 0; flex: 1; text-wrap: balance;
+  }
+  .grp-tag { font-family: var(--mono); font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .grp-note { font-size: 12.5px; color: var(--ink-2); margin: 8px 0 12px; }
+  .grp-note code, .row-body code, .setup code {
+    font-family: var(--mono); font-size: .88em;
+    background: var(--surface-2); padding: 1px 5px; border: 1px solid var(--line);
+  }
+
+  ul.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  li.row {
+    display: grid; grid-template-columns: 26px 1fr; gap: 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    padding: 11px 13px;
+    box-shadow: var(--shadow);
+  }
+  li.row.checked { background: var(--green-tint); border-color: color-mix(in srgb, var(--green) 40%, var(--line)); }
+  li.row.checked .row-title { color: var(--ink-2); }
+  li.row.ext { border-left: 3px solid var(--amber); }
+
+  .cbox {
+    appearance: none; -webkit-appearance: none;
+    width: 20px; height: 20px; margin: 2px 0 0;
+    border: 2px solid var(--line-strong); background: var(--surface);
+    cursor: pointer; display: grid; place-content: center; flex: none;
+  }
+  .cbox:checked { background: var(--green); border-color: var(--green); }
+  .cbox:checked::after { content: "✓"; color: #fff; font-size: 13px; font-weight: 700; line-height: 1; }
+  .cbox:focus-visible { outline: 3px solid var(--steel); outline-offset: 2px; }
+
+  .row-body { min-width: 0; }
+  .row-title { font-weight: 600; font-size: 13.5px; display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+  .row-id { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 500; }
+  .pill {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
+    padding: 1px 6px; border: 1px solid currentColor; white-space: nowrap;
+  }
+  .pill.ext { color: var(--amber); }
+  .pill.app { color: var(--steel); }
+  .row-expect { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+  .row-expect b { color: var(--ink); font-weight: 600; }
+
+  .setup {
+    border: 2px solid var(--amber); background: var(--amber-tint);
+    padding: 13px 15px; margin: 4px 0 20px; font-size: 12.5px;
+  }
+  .setup h3 { font-family: var(--display); font-size: 13px; margin: 0 0 6px; letter-spacing: .01em; text-transform: uppercase; }
+  .setup ol { margin: 0; padding-left: 20px; }
+  .setup li { margin: 3px 0; }
+
+  .summary {
+    display: flex; gap: 10px 22px; flex-wrap: wrap; align-items: center;
+    border: 2px solid var(--line-strong); background: var(--surface);
+    padding: 12px 16px; margin: 4px 0 22px;
+  }
+  .meter { flex: 1 1 220px; min-width: 180px; }
+  .meter-track { height: 9px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+  .meter-fill { height: 100%; background: var(--green); width: 0; transition: width .3s ease; }
+  .meter-label { font-family: var(--mono); font-size: 11px; color: var(--ink-2); margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .btn {
+    font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: .03em;
+    padding: 7px 13px; border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink-2); cursor: pointer;
+  }
+  .btn:hover { border-color: var(--ink); color: var(--ink); }
+  .btn:focus-visible { outline: 3px solid var(--steel); outline-offset: 2px; }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-2); margin-top: 10px; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+
+  .pane[hidden] { display: none; }
+  a.inline { color: var(--steel); text-decoration: underline; text-underline-offset: 2px; }
+
+  @media print {
+    nav.rail, .tabs, .btn, .theme-toggle { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    li.row { break-inside: avoid; box-shadow: none; }
+    .pane[hidden] { display: block !important; }
+  }
+  .theme-toggle {
+    position: fixed; right: 14px; bottom: 14px; z-index: 5;
+    font-family: var(--mono); font-size: 11px;
+    border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink-2);
+    padding: 6px 10px; cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">Phase 10 · QA / UAT · Launch prep</div>
+    <h1>Crazy Larry's Launch QA</h1>
+    <p class="sub">Two checklists over one demo-seeded database. The <strong>Technical QA</strong> tab is Nathan's
+      path-by-path verification; the <strong>Walkthrough Script</strong> is the plain-language run for Larry and his
+      team in the client meeting. Progress saves in this browser.</p>
+    <div class="legend">
+      <span><span class="pill app">in&nbsp;app</span> verifiable entirely in the browser</span>
+      <span><span class="pill ext">external</span> also needs QuickBooks sandbox, a real phone/inbox, or the Supabase dashboard</span>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-qa" aria-controls="pane-qa" aria-selected="true">Technical QA</button>
+    <button class="tab" role="tab" id="tab-uat" aria-controls="pane-uat" aria-selected="false">Walkthrough Script</button>
+  </div>
+
+  <div class="pane" id="pane-qa" role="tabpanel" aria-labelledby="tab-qa">
+    <div class="summary">
+      <div class="meter">
+        <div class="meter-track"><div class="meter-fill" id="qa-fill"></div></div>
+        <div class="meter-label" id="qa-label">0 / 0</div>
+      </div>
+      <button class="btn" data-reset="qa">Reset QA progress</button>
+      <button class="btn" onclick="window.print()">Print</button>
+    </div>
+    <div class="setup">
+      <h3>Notification test setup — do once, before the “external” notification items</h3>
+      <ol>
+        <li>In <code>.env.local</code> set <code>CL_NOTIFICATIONS_ENABLED=1</code>.</li>
+        <li>Set <code>CL_NOTIFICATIONS_TEST_TO</code> to <b>your</b> mobile number <b>or</b> your email — one channel at a time
+          (a number redirects SMS and skips email; an email redirects email and skips SMS).</li>
+        <li>Restart <code>next dev</code>.</li>
+        <li><b>Revert <code>CL_NOTIFICATIONS_ENABLED=0</code> when finished.</b></li>
+      </ol>
+    </div>
+    <div class="layout">
+      <nav class="rail" id="qa-rail" aria-label="QA sections"></nav>
+      <div id="qa-groups"></div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-uat" role="tabpanel" aria-labelledby="tab-uat" hidden>
+    <div class="summary">
+      <div class="meter">
+        <div class="meter-track"><div class="meter-fill" id="uat-fill"></div></div>
+        <div class="meter-label" id="uat-label">0 / 0</div>
+      </div>
+      <button class="btn" data-reset="uat">Reset walkthrough progress</button>
+      <button class="btn" onclick="window.print()">Print</button>
+    </div>
+    <p class="grp-note" style="max-width:64ch">
+      The demo site is loaded with a realistic snapshot — a few upcoming jobs, several dumpsters out on rent now, a
+      couple ready for pickup, one running late, and some finished rentals in the history. Take your time on each step.
+      Every step ends with a <b>Check:</b> — that question is what the meeting is for.
+    </p>
+    <div class="layout">
+      <nav class="rail" id="uat-rail" aria-label="Walkthrough sections"></nav>
+      <div id="uat-groups"></div>
+    </div>
+  </div>
+</div>
+
+<button class="theme-toggle" id="themeToggle">theme</button>
+
+<script>
+const QA = [
+  { id: "A", title: "Customer booking — happy path", tag: "in app + external", note: "Seed pricing: 10yd $274 / 15yd $324 / 20yd $374, tax 7.5% (Franklin County OH — still <code>tax_verified = false</code>).", items: [
+    { id: "A1", app: true, t: "Book a size / valid future date / address / contact / debris on <code>/book</code>", e: "Wizard advances; live quote = base + 7.5% tax, matching <code>cl_pricing</code>." },
+    { id: "A2", app: true, t: "Availability calendar", e: "Today and past are greyed; earliest selectable date is <b>tomorrow</b>." },
+    { id: "A3", app: true, t: "Sold-out size — force all 10yd units <code>out_of_service</code>, retry a tight 10yd date", e: "Size shows unavailable / “that date filled up”. <b>Restore statuses after.</b>" },
+    { id: "A4", app: true, t: "DocuSign step", e: "Modal opens <code>NEXT_PUBLIC_DOCUSIGN_URL</code>; booking stays <code>docusign_status = pending</code> until staff advance it (no live callback)." },
+    { id: "A5", app: true, t: "Review & Pay with the Intuit sandbox test card (Visa 4111 1111 1111 1111)", e: "Redirect to <code>/book/confirmed/[id]</code>; booking <code>confirmed</code>, <code>payment_status = paid</code>." },
+    { id: "A6", app: false, t: "Check the <code>invoices</code> row after A5", e: "<code>qb_charge_id</code> set, <code>status = paid</code>, <code>sync_status</code> → <code>synced</code> (or <code>pending</code>, then cleared by <code>/api/cron/quickbooks-sync</code>)." },
+    { id: "A7", app: false, t: "QuickBooks sandbox after A5", e: "Invoice created for the booking; <b>tax is a line item, not invoice-level tax</b>; amount matches." },
+    { id: "A8", app: false, t: "Confirmation notification after A5", e: "One <code>booking_confirmation</code> email <b>and</b> SMS attempt in <code>notifications_log</code> (<code>sent</code> when enabled + routed to your test address)." },
+  ]},
+  { id: "B", title: "Customer booking — failure paths", tag: "in app + external", items: [
+    { id: "B1", app: false, t: "Declined card — Intuit decline test card 4000 0000 0000 0002", e: "Stay on Review & Pay; “that payment didn't go through”; <b>no booking</b>; <code>payment_attempts</code> row <code>kind = declined</code>." },
+    { id: "B2", app: true, t: "Sold-out at checkout (race) — consume the last unit in another tab, then pay", e: "<code>code = compensated</code>; message says the card authorization was reversed; <code>payment_attempts</code> <code>kind = compensating_refund</code>; <b>no booking</b>." },
+    { id: "B3", app: false, t: "B2 refund side", e: "<code>refund_succeeded: true</code> in the attempt <code>context</code>; matching void/refund in QuickBooks sandbox." },
+    { id: "B4", app: true, t: "Expired / stale session — leave Review & Pay open past token life, then submit", e: "Graceful error, no charge, no partial booking." },
+    { id: "B5", app: true, t: "Pricing gate — set 15yd <code>is_active = false</code>, load <code>/book</code>", e: "15yd unselectable / “call the yard”. <b>Restore after.</b>" },
+    { id: "B6", app: true, t: "Invalid inputs — past date, empty address, bad email, rental days > 60", e: "Field validation blocks submit; server rejects if forced." },
+  ]},
+  { id: "C", title: "Availability calendar edge cases", tag: "in app", items: [
+    { id: "C1", app: true, t: "Size-specific <code>calendar_blocks</code> row over a date", e: "That size blocks on the delivery day <b>and</b> on delivery + rental − 1; middle days unaffected." },
+    { id: "C2", app: true, t: "Fleet-wide block (<code>size IS NULL</code>)", e: "All three sizes blocked that date." },
+    { id: "C3", app: true, t: "Open-ended booking (<code>pickup_date NULL</code>)", e: "Commits that size for every future window until closed out." },
+    { id: "C4", app: true, t: "Buffer day — unit booked [Jan 1–5], try same unit starting Jan 5", e: "Rejected (closed <code>[]</code> range — no same-day turnaround)." },
+    { id: "C5", app: true, t: "<code>returned</code> / <code>cancelled</code> bookings", e: "Excluded from the committed count — capacity frees up." },
+    { id: "C6", app: true, t: "<code>out_of_service</code> unit", e: "Removed from the bookable total for its size." },
+  ]},
+  { id: "D", title: "Admin lifecycle transitions", tag: "in app", note: "Use seed booking #10 (pickup_scheduled) and #2 (confirmed).", items: [
+    { id: "D1", app: true, t: "<code>confirmed → delivered → active</code> via booking-detail controls", e: "Each writes a <code>status_log</code> row; illegal skips aren't offered and are rejected if forced (<code>23514</code>)." },
+    { id: "D2", app: true, t: "<code>active → pickup_scheduled</code>", e: "Exactly one pickup job auto-created (<code>scheduled_date = pickup_date</code>); idempotent on re-entry." },
+    { id: "D3", app: true, t: "<code>→ overdue</code>, then back to <code>pickup_scheduled</code> / <code>returned</code>", e: "Allowed per the state machine; unit status tracks correctly." },
+    { id: "D4", app: true, t: "Cancel a booking that has an assigned unit + open jobs", e: "Non-completed jobs → <code>cancelled</code>; unit freed to <code>available</code>; all logged." },
+    { id: "D5", app: true, t: "<code>mark_overdue_bookings</code> via <code>/api/cron/overdue</code>", e: "Only <code>active</code>/<code>pickup_scheduled</code> with <code>pickup_date &lt; today</code> flip; returns the ids." },
+    { id: "D6", app: true, t: "Manual DocuSign advance <code>not_sent → pending → signed</code>", e: "<code>set_booking_docusign_status</code> updates; staff only." },
+  ]},
+  { id: "E", title: "Dispatch / truck-restriction enforcement", tag: "in app", note: "Seed wires <b>Marcus → Pepperoni</b> (no roofing / heavy-construction tags, no stone/concrete debris, no Shaffer / Bluefield / NoCo Exteriors), <b>Danielle → Kenny Powers</b> (15/20yd only), <b>Ray → no truck</b>.", items: [
+    { id: "E1", app: true, t: "Blocked assignment — “Shaffer Construction” + “construction debris” job → assign to Marcus", e: "<b>Blocked</b>; blocker lists the customer rule + the <code>heavy_construction</code> tag rule; RPC <code>hint = assignment_blocked</code>." },
+    { id: "E2", app: true, t: "Same job → assign to Danielle", e: "Succeeds (Kenny Powers, 20yd allowed, no restriction)." },
+    { id: "E3", app: true, t: "Warn + override — booking #8 (Cardinal Remodeling, brick/masonry, tags unconfirmed) → assign to Marcus", e: "Warning <code>untagged_review</code>, not a blocker; <code>requires_override</code>; without override → <code>hint = override_required</code>; with override → succeeds, <code>status_log</code> note reads “(override)”." },
+    { id: "E4", app: true, t: "Capacity — assign a 10yd job to Danielle", e: "Blocked <code>size_not_allowed</code>." },
+    { id: "E5", app: true, t: "Assign any job to Ray (no truck)", e: "Blocked <code>no_truck</code>." },
+    { id: "E6", app: true, t: "Assign to an inactive driver (toggle Ray inactive)", e: "Blocked <code>driver_inactive</code>." },
+    { id: "E7", app: true, t: "Confirm job tags on #8, re-check Marcus", e: "<code>untagged_review</code> gone; assignment now clean." },
+    { id: "E8", app: true, t: "Route ordering for a driver's day", e: "<code>set_route_order</code> persists; driver app and dispatch show the same sequence." },
+    { id: "E9", app: true, t: "Assign a wrong-size / non-available unit", e: "Rejected (<code>23514</code>)." },
+  ]},
+  { id: "F", title: "Driver job completion", tag: "in app + external", note: "Log in as Marcus at <code>/driver</code>.", items: [
+    { id: "F1", app: true, t: "Open an assigned delivery job", e: "“Mark delivered” is <b>disabled</b> until a placement photo is attached." },
+    { id: "F2", app: true, t: "Attach photo → mark delivered", e: "Job <code>completed</code>; <code>job_photos</code> row written; booking <code>confirmed→delivered→active</code>; unit <code>reserved→deployed</code>." },
+    { id: "F3", app: false, t: "Completion SMS", e: "<code>delivery_complete</code> SMS logged (to your test number if enabled)." },
+    { id: "F4", app: true, t: "Pickup job → mark picked up <b>without</b> a photo", e: "Allowed (optional on pickups); booking → <code>returned</code>; unit → <code>available</code>." },
+    { id: "F5", app: true, t: "Photo upload fails (throttle / kill the request)", e: "Completion still succeeds; <code>photoWarning</code> shown; job is <b>not</b> blocked." },
+    { id: "F6", app: true, t: "Complete a job not assigned to you (edit the URL id)", e: "<code>42501</code> “isn't assigned to you.”" },
+    { id: "F7", app: true, t: "Driver map <code>/driver/map</code>", e: "Route renders; blank Embed key → placeholder, no crash." },
+    { id: "F8", app: true, t: "Bottom tabs + <code>/driver/me</code> + <code>/driver/done</code>", e: "All four tabs work; completed jobs move to Done." },
+  ]},
+  { id: "G", title: "Notifications", tag: "external", note: "<code>CL_NOTIFICATIONS_ENABLED=1</code>, <code>CL_NOTIFICATIONS_TEST_TO</code> = your address.", items: [
+    { id: "G1", app: false, t: "Trigger every type: booking_confirmation, job_assigned, delivery/pickup_complete, overdue_notice, delivery/pickup_reminder", e: "Each writes a <code>notifications_log</code> row; status <code>sent</code> / <code>skipped</code> / <code>failed</code> (+ <code>failure_category</code>)." },
+    { id: "G2", app: false, t: "Reminder cron idempotency — hit <code>/api/cron/reminders</code> twice", e: "Second run reports <code>skipped</code> for the same bookings (48h guard)." },
+    { id: "G3", app: false, t: "<code>notification_health()</code> banner on <code>/dashboard</code>", e: "<code>ok</code> after a real 24h send; <code>blocked</code> only on <code>account_blocked</code>/<code>not_configured</code> with zero sends; silent otherwise." },
+    { id: "G4", app: true, t: "Disabled path — <code>CL_NOTIFICATIONS_ENABLED=0</code>, trigger a booking", e: "Row logged <code>skipped</code> / <code>disabled</code>; <b>no send</b>; booking still completes." },
+    { id: "G5", app: false, t: "Never-throws — set a bogus <code>QUO_API_KEY</code>, trigger", e: "Operation completes; failure logged with a category; no exception reaches the user." },
+  ]},
+  { id: "H", title: "Customer portal + request-change flow", tag: "in app", note: "Log in at <code>/account/login</code> as <code>rebecca.lund@example.com</code> (password printed by the seed).", items: [
+    { id: "H1", app: true, t: "Account home", e: "Shows bookings #1 (confirmed), #5 (active), #12 (returned) — guest bookings linked by verified email." },
+    { id: "H2", app: true, t: "New signup whose email matches an existing guest <code>customers</code> row", e: "<code>claim_guest_bookings()</code> links on first load; a signup with no matching bookings is a valid empty state, not an error." },
+    { id: "H3", app: true, t: "Request a change on #1 (new delivery date)", e: "Shows live availability + cost impact; submits a <code>booking_change_requests</code> row <code>pending</code>; <b>booking itself unchanged</b>." },
+    { id: "H4", app: true, t: "Admin <code>/requests</code>", e: "Pending badge count correct; request visible on the booking-detail page." },
+    { id: "H5", app: true, t: "Staff approves the request", e: "Request → <code>approved</code>; <b>booking still not auto-changed</b> — staff makes the edit via lifecycle controls." },
+    { id: "H6", app: true, t: "Customer withdraws a still-pending request", e: "→ <code>cancelled</code>; cannot self-approve (RLS pins the check to <code>cancelled</code>)." },
+    { id: "H7", app: true, t: "Customer reads another customer's booking (edit the URL id)", e: "RLS blocks — not found." },
+  ]},
+  { id: "I", title: "Payments / refunds", tag: "external", items: [
+    { id: "I1", app: false, t: "Admin refund on a paid booking (partial + full)", e: "<code>record_refund</code>; invoice <code>refunded</code>, <code>refund_kind</code> void/refund, <code>refunded_amount</code> set; booking <code>payment_status = refunded</code>." },
+    { id: "I2", app: false, t: "Refund in QuickBooks sandbox", e: "Matching refund/void object; amount reconciles." },
+    { id: "I3", app: false, t: "<code>cancel_and_refund</code>", e: "Refund bookkeeping <b>and</b> cancellation in one transaction; a terminal booking rolls the whole thing back." },
+    { id: "I4", app: false, t: "QBO token refresh — <code>/api/cron/quickbooks-refresh</code> (or force-expire + any QBO call)", e: "Refreshes once under the <code>FOR UPDATE</code> lock; <code>refresh_count</code> increments; concurrent callers don't double-refresh." },
+    { id: "I5", app: false, t: "Invoice sync retry — set an invoice <code>sync_status = error</code>, run <code>/api/cron/quickbooks-sync</code>", e: "Re-attempted; → <code>synced</code> on success. (Seed booking #7 starts in <code>error</code>.)" },
+    { id: "I6", app: true, t: "<code>/settings</code> QuickBooks panel", e: "Shows <code>connected</code>, realm id, last refresh — never a token." },
+  ]},
+  { id: "J", title: "Deployed-units map", tag: "in app + external", items: [
+    { id: "J1", app: true, t: "<code>/dashboard</code> map", e: "Pins for every <b>deployed</b> unit with a geocodable address — seed gives <b>7</b> (#4, 5, 6, 7, 11 active + #9, 10 pickup-scheduled — units still on-site); in-yard units are <b>not</b> pinned." },
+    { id: "J2", app: false, t: "First-load geocoding", e: "Bookings missing <code>delivery_lat/lng</code> get one Geocoding API call, cached to the row; second load makes no new calls." },
+    { id: "J3", app: true, t: "<code>GOOGLE_GEOCODING_API_KEY</code> blank", e: "Units still listed (on-site list), just no pins — no crash." },
+    { id: "J4", app: true, t: "<code>NEXT_PUBLIC_GOOGLE_MAPS_JS_API_KEY</code> blank", e: "Map area shows a placeholder." },
+    { id: "J5", app: true, t: "The <code>overdue</code> booking (#11)", e: "Appears on the map and in the dashboard overdue count / needs-action." },
+  ]},
+  { id: "K", title: "Light / dark mode + tablet layout", tag: "in app", items: [
+    { id: "K1", app: true, t: "Theme toggle on all shells (admin, driver, customer, portal)", e: "Switches instantly; persists across reloads; respects system default when unset." },
+    { id: "K2", app: true, t: "Dark mode on every surface", e: "No unreadable text, no white flashes; charts / donut / map controls legible." },
+    { id: "K3", app: true, t: "Driver app at tablet width (768–1024)", e: "Tablet layout engages; tap targets adequate; bottom nav intact." },
+    { id: "K4", app: true, t: "Motion — optimistic UI, skeletons, button-press", e: "Skeletons on slow loads; optimistic updates reconcile; no jank; timing consistent." },
+    { id: "K5", app: true, t: "Admin dashboard / dispatch at narrow width", e: "Responsive; no horizontal body scroll." },
+  ]},
+  { id: "L", title: "Auth / RLS boundaries", tag: "in app", items: [
+    { id: "L1", app: true, t: "Driver hits an admin route", e: "Redirected / 403." },
+    { id: "L2", app: true, t: "Customer hits <code>/dashboard</code> or <code>/dispatch</code>", e: "Blocked." },
+    { id: "L3", app: true, t: "Logged-out hits any protected route", e: "Redirect to login." },
+    { id: "L4", app: true, t: "Owner-only bits (revenue-today card, pricing edit)", e: "Hidden / read-only for non-owner staff." },
+    { id: "L5", app: false, t: "PostgREST poke as an authenticated customer against <code>bookings</code> / <code>jobs</code> / <code>drivers</code>", e: "Only own rows (customer) / assigned rows (driver) visible." },
+  ]},
+  { id: "M", title: "Regression sweep before launch", tag: "gate", items: [
+    { id: "M1", app: true, t: "<code>npm test</code> green" , e: "" },
+    { id: "M2", app: true, t: "<code>npm run build</code> clean", e: "" },
+    { id: "M3", app: true, t: "<code>CL_NOTIFICATIONS_ENABLED</code> back to <code>0</code> (or launch value); <code>CL_NOTIFICATIONS_TEST_TO</code> cleared", e: "" },
+    { id: "M4", app: false, t: "<code>CRON_SECRET</code> / <code>CL_CRON_SECRET</code> set in Vercel", e: "" },
+    { id: "M5", app: false, t: "<code>tax_verified</code> resolved for Franklin County OH", e: "" },
+    { id: "M6", app: false, t: "Seed-admin owner account confirmed deleted from Supabase Auth", e: "" },
+    { id: "M7", app: false, t: "Google Maps keys restricted to their APIs + referrers", e: "" },
+  ]},
+];
+
+const UAT = [
+  { id: "L", title: "Part 1 — Things for Larry to try", tag: "10 steps", items: [
+    { id: "L1", t: "See the whole business at a glance", e: "Open <b>Overview</b>: today's deliveries and pickups, dumpsters out on rent, overdue count, and a map of every dumpster on a customer's property right now. <b>Check:</b> do the numbers match a normal day? Are the map pins in the right parts of town?" },
+    { id: "L2", t: "Look at a customer's rental", e: "<b>Bookings</b> → open an “active” one: address, dates, price, agreement status, the assigned dumpster, full history. <b>Check:</b> is this everything you'd want when a customer calls about their bin?" },
+    { id: "L3", t: "Handle a dumpster that's running late", e: "Find the booking marked <b>overdue</b>. See how it stands out on Overview and the map. <b>Check:</b> is “overdue” obvious enough that your team would notice it?" },
+    { id: "L4", t: "Schedule a pickup", e: "Open an “active” booking and move it to <b>pickup scheduled</b>. The system creates the pickup job for your drivers automatically. <b>Check:</b> does the pickup date it chose match how you actually schedule pickups?" },
+    { id: "L5", t: "Assign a job to the right truck", e: "In <b>Dispatch</b>, try to assign the <b>Shaffer Construction</b> job to <b>Marcus / Pepperoni</b> — it should stop you. Assign it to <b>Danielle / Kenny Powers</b> instead. <b>Check:</b> are the truck rules it enforces actually your rules? Anything missing?" },
+    { id: "L6", t: "Override a soft warning", e: "Try assigning the <b>Cardinal Remodeling</b> job to <b>Marcus / Pepperoni</b> — this time you get a warning, not a hard stop, and can continue if you know it's fine. <b>Check:</b> is the difference between “blocked” and “just warning me” clear?" },
+    { id: "L7", t: "Set the price list", e: "<b>Settings</b> (owner only): confirm the 10 / 15 / 20-yard prices and the sales-tax rate. Online booking stays closed for any size without a price. <b>Check:</b> are these your actual current rates?" },
+    { id: "L8", t: "See the money side", e: "On a paid booking, look at the invoice status and whether it synced to QuickBooks. Try issuing a <b>refund</b>. <b>Check:</b> does this match how you handle refunds today?" },
+    { id: "L9", t: "Read the customer's view", e: "Log in to the <b>customer account</b> (demo login provided): rental history and a <b>request a change</b> button. <b>Check:</b> is this the right amount of self-service — not too much, not too little?" },
+    { id: "L10", t: "Switch to dark mode", e: "Use the light/dark toggle. <b>Check:</b> does the darker version look good? Some of your team may prefer it — especially drivers on phones outdoors." },
+  ]},
+  { id: "S", title: "Part 2 — Things for the office staff to try", tag: "7 steps", items: [
+    { id: "S1", t: "Take a booking over the phone", e: "Go to the <b>booking page</b> as a customer. Book a 20-yard for a made-up address a few days out, using the test card. Flow: size → date (can't pick today/past) → address → sign → pay. <b>Check:</b> could you talk a customer through this on the phone? Too many steps? Confusing anywhere?" },
+    { id: "S2", t: "Try to book something that's not available", e: "Try to pick <b>today</b> or a <b>past date</b> — the calendar won't allow it. <b>Check:</b> does it explain <i>why</i> clearly enough?" },
+    { id: "S3", t: "Move a rental through its life", e: "Take a “confirmed” booking forward: <b>delivered → active → pickup scheduled → returned</b>. You can only move to the next sensible step. <b>Check:</b> do these steps match the words your team actually uses?" },
+    { id: "S4", t: "Assign the day's work to drivers", e: "In <b>Dispatch</b>, assign the unassigned jobs to Marcus, Danielle, or Ray, in drive order. Ray has no truck, so he can't take jobs yet. <b>Check:</b> is assigning a day's routes fast enough? What would slow you down on a busy morning?" },
+    { id: "S5", t: "Handle a change request", e: "A customer has asked to move their pickup date. Under <b>Requests</b>, review the new date and cost, then approve or decline. If you approve, you still make the actual change yourself. <b>Check:</b> is “approve, then make the change” right, or should approving change the booking automatically?" },
+    { id: "S6", t: "Look up a customer", e: "<b>Customers</b> → open one → all past and current rentals in one place. <b>Check:</b> when a repeat customer calls, is this what you'd want in front of you?" },
+    { id: "S7", t: "Check for problems", e: "On <b>Overview</b>, look at the “needs action” area — overdue rentals, unassigned jobs, anything stuck. <b>Check:</b> is this a good morning checklist? Anything you'd add?" },
+  ]},
+  { id: "D", title: "Part 3 — Things for the drivers to try (phone or tablet)", tag: "5 steps", items: [
+    { id: "D1", t: "See today's route", e: "Open the <b>driver app</b>, log in as Marcus or Danielle: today's jobs, in order, with address, size, and placement notes. <b>Check:</b> is this clear at a glance from a truck?" },
+    { id: "D2", t: "Complete a delivery", e: "Open a delivery job. <b>Take a photo</b> of where you put the dumpster — you can't mark it done without one. Mark delivered. <b>Check:</b> is requiring the photo on drops reasonable? Does the camera step work smoothly?" },
+    { id: "D3", t: "Complete a pickup", e: "Open a pickup job. Mark it picked up — no photo needed this time. <b>Check:</b> right call to make the photo optional on pickups?" },
+    { id: "D4", t: "Use the map", e: "Open the <b>map</b> tab for the route. <b>Check:</b> good enough for getting around, or do you still just use your own phone maps?" },
+    { id: "D5", t: "Check what's done", e: "Open the <b>Done</b> tab for today's completed stops. <b>Check:</b> helpful for end-of-day, or unnecessary?" },
+  ]},
+  { id: "AFTER", title: "After the meeting", tag: "punch list", items: [
+    { id: "AF1", t: "Collect every “Check:” answer", e: "Anything wrong, missing, or confusing goes on the punch list before go-live." },
+    { id: "AF2", t: "Priority 1 — truck assignment rules", e: "Must be exactly right." },
+    { id: "AF3", t: "Priority 2 — the words for each rental stage", e: "Must match how the team talks." },
+    { id: "AF4", t: "Priority 3 — pricing and tax", e: "Must be correct." },
+    { id: "AF5", t: "Priority 4 — anything that slows the office on a busy morning", e: "" },
+  ]},
+];
+
+const KEY = "cl-launch-qa-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { state = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+function build(groups, railEl, groupsEl, prefix) {
+  railEl.innerHTML = "";
+  groupsEl.innerHTML = "";
+  groups.forEach((g) => {
+    const a = document.createElement("a");
+    a.href = "#" + prefix + "-" + g.id;
+    a.id = "nav-" + prefix + "-" + g.id;
+    a.innerHTML = '<span>' + g.title.replace(/^Part \d+ — /, "") + '</span><span class="rc" data-rc="' + g.id + '"></span>';
+    railEl.appendChild(a);
+
+    const sec = document.createElement("section");
+    sec.className = "grp";
+    sec.id = prefix + "-" + g.id;
+    const head = '<div class="grp-head"><h2>' + (prefix === "qa" ? g.id + ". " : "") + g.title + '</h2>' +
+      '<span class="grp-tag">' + g.tag + '</span></div>' +
+      (g.note ? '<p class="grp-note">' + g.note + '</p>' : '');
+    const ul = document.createElement("ul");
+    ul.className = "rows";
+    sec.innerHTML = head;
+    g.items.forEach((it) => {
+      const k = prefix + ":" + it.id;
+      const on = !!state[k];
+      const li = document.createElement("li");
+      li.className = "row" + (on ? " checked" : "") + (it.app === false ? " ext" : "");
+      const pill = it.app === true ? '<span class="pill app">in app</span>'
+        : it.app === false ? '<span class="pill ext">external</span>' : '';
+      li.innerHTML =
+        '<input type="checkbox" class="cbox" ' + (on ? "checked" : "") + ' aria-label="' + it.id + '">' +
+        '<div class="row-body"><div class="row-title"><span class="row-id">' + it.id + '</span>' +
+        '<span>' + it.t + '</span>' + pill + '</div>' +
+        (it.e ? '<div class="row-expect">' + it.e + '</div>' : '') + '</div>';
+      const cb = li.querySelector(".cbox");
+      cb.addEventListener("change", () => {
+        state[k] = cb.checked;
+        li.classList.toggle("checked", cb.checked);
+        save();
+        refresh(groups, prefix);
+      });
+      ul.appendChild(li);
+    });
+    sec.appendChild(ul);
+    groupsEl.appendChild(sec);
+  });
+  refresh(groups, prefix);
+}
+
+function refresh(groups, prefix) {
+  let total = 0, done = 0;
+  groups.forEach((g) => {
+    let gt = 0, gd = 0;
+    g.items.forEach((it) => { gt++; if (state[prefix + ":" + it.id]) gd++; });
+    total += gt; done += gd;
+    const rc = document.querySelector('[data-rc="' + g.id + '"]');
+    if (rc) rc.textContent = gd + "/" + gt;
+    const nav = document.getElementById("nav-" + prefix + "-" + g.id);
+    if (nav) nav.classList.toggle("done", gd === gt && gt > 0);
+  });
+  const fill = document.getElementById(prefix + "-fill");
+  const label = document.getElementById(prefix + "-label");
+  if (fill) fill.style.width = total ? (done / total * 100) + "%" : "0%";
+  if (label) label.textContent = done + " / " + total + " checked";
+}
+
+build(QA, document.getElementById("qa-rail"), document.getElementById("qa-groups"), "qa");
+build(UAT, document.getElementById("uat-rail"), document.getElementById("uat-groups"), "uat");
+
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", t === tab));
+    document.getElementById("pane-qa").hidden = tab.id !== "tab-qa";
+    document.getElementById("pane-uat").hidden = tab.id !== "tab-uat";
+  });
+});
+
+document.querySelectorAll("[data-reset]").forEach((b) => {
+  b.addEventListener("click", () => {
+    const p = b.dataset.reset;
+    if (!confirm("Clear all " + (p === "qa" ? "Technical QA" : "walkthrough") + " checkmarks in this browser?")) return;
+    Object.keys(state).forEach((k) => { if (k.startsWith(p + ":")) delete state[k]; });
+    save();
+    build(p === "qa" ? QA : UAT, document.getElementById(p + "-rail"), document.getElementById(p + "-groups"), p);
+  });
+});
+
+const tt = document.getElementById("themeToggle");
+const THKEY = "cl-launch-qa-theme";
+try { const s = localStorage.getItem(THKEY); if (s) document.documentElement.setAttribute("data-theme", s); } catch (e) {}
+function label() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  tt.textContent = cur === "dark" ? "☀ light" : cur === "light" ? "☾ dark" : "☾ / ☀";
+}
+label();
+tt.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem(THKEY, next); } catch (e) {}
+  label();
+});
+</script>
