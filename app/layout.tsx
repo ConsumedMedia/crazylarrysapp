@@ -10,7 +10,14 @@ const archivo = Archivo({
   display: "swap",
 });
 
+// Absolute base for OpenGraph / canonical URLs. NEXT_PUBLIC_SITE_URL is set per
+// environment (production = https://app.crazylarrysdumpsters.com); the fallback
+// keeps builds and local dev working without it.
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://app.crazylarrysdumpsters.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Crazy Larry's Dumpsters — Operations",
   description: "Dumpster rental booking and operations platform.",
 };
