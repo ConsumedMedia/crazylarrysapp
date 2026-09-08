@@ -379,7 +379,7 @@ const QA = [
     { id: "I6", app: true, t: "<code>/settings</code> QuickBooks panel", e: "Shows <code>connected</code>, realm id, last refresh — never a token." },
   ]},
   { id: "J", title: "Deployed-units map", tag: "in app + external", items: [
-    { id: "J1", app: true, t: "<code>/dashboard</code> map", e: "Pins for every <b>deployed</b> unit with a geocodable address — seed gives ~6 (#4, 5, 6, 7, 8, 11); in-yard units are <b>not</b> pinned." },
+    { id: "J1", app: true, t: "<code>/dashboard</code> map", e: "Pins for every <b>deployed</b> unit with a geocodable address — seed gives 5 (#4, 5, 6, 7, 11); in-yard units are <b>not</b> pinned." },
     { id: "J2", app: false, t: "First-load geocoding", e: "Bookings missing <code>delivery_lat/lng</code> get one Geocoding API call, cached to the row; second load makes no new calls." },
     { id: "J3", app: true, t: "<code>GOOGLE_GEOCODING_API_KEY</code> blank", e: "Units still listed (on-site list), just no pins — no crash." },
     { id: "J4", app: true, t: "<code>NEXT_PUBLIC_GOOGLE_MAPS_JS_API_KEY</code> blank", e: "Map area shows a placeholder." },

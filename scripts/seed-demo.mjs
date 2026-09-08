@@ -140,7 +140,9 @@ const BOOKINGS = [
     street: "2965 N High St", city: "Columbus", state: "OH", zip: "43202",
     name: "Greg Marsh", company: "Clintonville Community Market", email: "gmarsh@ccmarket.example.com", phone: "614-555-0171",
     debris: "Roofing shingles and underlayment tear-off", notes: "Rear lot by the compactor." },
-  { ref: 8, lifecycle: "active_override", size: "20yd", deliveryOffset: -1, rentalDays: 6, driver: "marcus", override: true,
+  // #8 stays unassigned on purpose: it is the warn + override demo case for the
+  // QA checklist (assign to Marcus/Pepperoni -> untagged_review -> override).
+  { ref: 8, lifecycle: "confirmed", size: "20yd", deliveryOffset: 3, rentalDays: 6,
     street: "4900 Reed Rd", city: "Upper Arlington", state: "OH", zip: "43220",
     name: "Erin Vance", company: "Cardinal Remodeling LLC", email: "erin@cardinalremodeling.example.com", phone: "614-555-0179",
     debris: "Brick and masonry rubble from a chimney removal", notes: "Side yard, plywood down for the truck." },
@@ -375,10 +377,10 @@ async function main() {
     if (b.lifecycle === "confirmed") {
       // leave as confirmed
     } else if (b.lifecycle === "confirmed_routed") {
-      await srpc("assign_job", { p_job_id: deliveryJob.id, p_driver_id: driverId, p_dumpster_id: unit.id, p_override: !!b.override });
+      await srpc("assign_job", { p_job_id: deliveryJob.id, p_driver_id: driverId, p_dumpster_id: unit.id, p_override: true });
       await srpc("set_route_order", { p_driver_id: driverId, p_date: deliveryDate, p_job_ids: [deliveryJob.id] });
     } else if (b.lifecycle === "active" || b.lifecycle === "active_override") {
-      await srpc("assign_job", { p_job_id: deliveryJob.id, p_driver_id: driverId, p_dumpster_id: unit.id, p_override: !!b.override });
+      await srpc("assign_job", { p_job_id: deliveryJob.id, p_driver_id: driverId, p_dumpster_id: unit.id, p_override: true });
       await srpc("complete_job", { p_job_id: deliveryJob.id });
       await srpc("set_booking_docusign_status", { p_booking_id: bookingId, p_to: "signed" });
     } else if (b.lifecycle === "pickup_routed" || b.lifecycle === "pickup_unrouted") {
