@@ -135,7 +135,7 @@ Log in at `/account/login` as **rebecca.lund@example.com** (password printed by 
 
 | # | Step | Expect |
 |---|---|---|
-| J1 | `/dashboard` map | Pins for every **deployed** unit with a geocodable address — seed gives 5 (#4, 5, 6, 7, 11); available/in-yard units are **not** pinned |
+| J1 | `/dashboard` map | Pins for every **deployed** unit with a geocodable address — seed gives **7** (#4, 5, 6, 7, 11 active + #9, 10 pickup-scheduled, whose units are still on-site); available/in-yard units are **not** pinned |
 | J2 🟠 | First load geocoding | Bookings missing `delivery_lat/lng` get one Geocoding API call, cached back to the row; second load makes no new calls |
 | J3 | `GOOGLE_GEOCODING_API_KEY` blank | Units still listed (on-site list), just no pins — no crash |
 | J4 | `NEXT_PUBLIC_GOOGLE_MAPS_JS_API_KEY` blank | Map area shows a placeholder |
