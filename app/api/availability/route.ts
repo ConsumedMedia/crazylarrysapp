@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
   let rentalDays = DEFAULT_RENTAL_DAYS;
   if (rentalDaysRaw) {
     const n = Number(rentalDaysRaw);
-    if (!Number.isInteger(n) || n < 1 || n > 60) {
+    if (!Number.isInteger(n) || n < 0 || n > 60) {
       return NextResponse.json(
-        { error: "rentalDays must be an integer 1-60" },
+        { error: "rentalDays must be an integer 0-60" },
         { status: 400 },
       );
     }

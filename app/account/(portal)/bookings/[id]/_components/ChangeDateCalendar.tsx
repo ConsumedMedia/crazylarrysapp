@@ -20,10 +20,11 @@ export interface ChangeDateCalendarProps {
 /**
  * Day-by-day availability for one date field on a change request. Uses the
  * same /api/availability + size_availability RPC as the booking calendar,
- * but with rentalDays=1 — that turns the RPC's "room for a new N-day rental
- * starting here" check into plain single-day occupancy, which is the right
- * question for "is this size free on this one day" rather than "could a
- * fresh booking start here."
+ * but with rentalDays=0 — that turns the RPC's "room for a new N-day rental
+ * starting here" check (window = [day, day+rentalDays]) into plain
+ * single-day occupancy (window = [day, day]), which is the right question
+ * for "is this size free on this one day" rather than "could a fresh
+ * booking start here."
  *
  * Unlike the booking calendar, every non-past day stays clickable — a
  * change request goes to staff either way, so a tight day is a warning, not
@@ -46,7 +47,7 @@ export function ChangeDateCalendar({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    const url = `/api/availability?size=${size}&from=${grid.from}&to=${grid.to}&rentalDays=1`;
+    const url = `/api/availability?size=${size}&from=${grid.from}&to=${grid.to}&rentalDays=0`;
     fetch(url, { cache: "no-store" })
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json()).error ?? r.statusText);

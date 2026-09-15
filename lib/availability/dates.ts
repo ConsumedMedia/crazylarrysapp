@@ -67,9 +67,10 @@ export function monthGrid(anchor: Date): {
   };
 }
 
-/** The days a rental occupies: [delivery, delivery+rentalDays-1]. */
+/** The days a rental occupies: [delivery, delivery+rentalDays] — pickup day
+ *  inclusive, delivery day not counted as one of the rentalDays. */
 export function rentalWindow(delivery: string, rentalDays: number): string[] {
-  return Array.from({ length: rentalDays }, (_, i) => addDays(delivery, i));
+  return Array.from({ length: rentalDays + 1 }, (_, i) => addDays(delivery, i));
 }
 
 /** Tomorrow (UTC), the earliest selectable delivery date. */
