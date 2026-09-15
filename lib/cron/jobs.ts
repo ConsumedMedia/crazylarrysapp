@@ -8,7 +8,7 @@ import {
 } from "@/lib/notifications/notify";
 import { getValidAccessToken } from "@/lib/quickbooks/tokens";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
-import { quickBooksConfigured } from "@/lib/quickbooks/config";
+import { quickBooksConfigured, missingQuickBooksEnv } from "@/lib/quickbooks/config";
 
 /**
  * The actual work behind each /api/cron/* route, pulled into plain functions
@@ -127,7 +127,7 @@ export async function runQuickbooksRefresh(): Promise<{
         return {
           ok: false,
           error:
-            "quickbooks_connection.status is 'connected' but QuickBooks env vars are missing/empty — a live connection can't be kept alive. Check Vercel Production env vars.",
+            `quickbooks_connection.status is 'connected' but these env vars are missing/empty: ${missingQuickBooksEnv().join(", ")}. A live connection can't be kept alive — check Vercel Production env vars.`,
         };
       }
     } catch {
