@@ -108,7 +108,33 @@ export async function runQuickbooksRefresh(): Promise<{
   skipped?: string;
   error?: string;
 }> {
-  if (!quickBooksConfigured()) return { ok: true, skipped: "not_configured" };
+  if (!quickBooksConfigured()) {
+    // Silently skipping "not configured" is correct when QuickBooks was never
+    // set up — but if the connection row says a real connection already
+    // exists, "env vars vanished out from under a live connection" is a
+    // genuine regression, not a no-op. This is exactly the failure mode that
+    // let production sit unrefreshed for 4 days (2026-09-15) with every daily
+    // cron run reporting ok:true the whole time — surface it as a real
+    // failure instead.
+    try {
+      const service = createServiceClient();
+      const { data } = await service
+        .from("quickbooks_connection")
+        .select("status")
+        .eq("id", true)
+        .maybeSingle();
+      if (data?.status === "connected") {
+        return {
+          ok: false,
+          error:
+            "quickbooks_connection.status is 'connected' but QuickBooks env vars are missing/empty — a live connection can't be kept alive. Check Vercel Production env vars.",
+        };
+      }
+    } catch {
+      /* fall through to the normal skip below if even this check fails */
+    }
+    return { ok: true, skipped: "not_configured" };
+  }
 
   try {
     const { refreshed } = await getValidAccessToken(24 * 60 * 60);

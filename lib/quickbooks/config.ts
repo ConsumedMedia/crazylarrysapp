@@ -79,11 +79,17 @@ export function getQuickBooksConfig(): QuickBooksConfig {
   return cached;
 }
 
+// QUICKBOOKS_ENVIRONMENT is deliberately NOT in this list: getQuickBooksConfig()
+// above already defaults it to "sandbox" when unset, so requiring it here would
+// only be stricter than the code that actually uses it — exactly the kind of
+// mismatch that let production silently sit unconfigured for days (2026-09-15
+// incident: the var was never explicitly set in Vercel because the default was
+// assumed to apply, but this check didn't know about that default and reported
+// "not configured" anyway).
 const REQUIRED_ENV = [
   "QUICKBOOKS_CLIENT_ID",
   "QUICKBOOKS_CLIENT_SECRET",
   "QUICKBOOKS_REDIRECT_URI",
-  "QUICKBOOKS_ENVIRONMENT",
   "QUICKBOOKS_TOKEN_ENC_KEY",
   "DATABASE_URL",
 ] as const;
