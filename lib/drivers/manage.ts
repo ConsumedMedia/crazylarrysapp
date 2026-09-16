@@ -88,9 +88,13 @@ export async function createDriver(input: {
   const phone = input.phone?.trim() || null;
 
   // profiles is the source of truth for name/phone; drivers.* is a synced
-  // mirror for query convenience. Promote role to 'driver' if needed (the
-  // enforce_profile_role_change trigger requires a staff session — assertStaff
-  // guarantees one). full_name/phone updates don't trip that trigger.
+  // mirror for query convenience. Promote role to 'driver' ONLY when the
+  // profile is still the fresh-signup 'customer' default — never touch an
+  // existing 'staff'/'owner' role (that would silently demote an admin who's
+  // also becoming a driver) and 'driver' is already correct as-is. The
+  // enforce_profile_role_change trigger requires a staff session for any
+  // change that does happen — assertStaff guarantees one; full_name/phone
+  // updates don't trip that trigger.
   const { data: prof } = await supabase
     .from("profiles")
     .select("role")
@@ -99,7 +103,7 @@ export async function createDriver(input: {
   if (!prof) throw new DriverManageError("Profile not found.");
 
   const profilePatch: Record<string, unknown> = { full_name: fullName, phone };
-  if ((prof.role as string) !== "driver") profilePatch.role = "driver";
+  if ((prof.role as string) === "customer") profilePatch.role = "driver";
   const { error: profErr } = await supabase
     .from("profiles")
     .update(profilePatch)

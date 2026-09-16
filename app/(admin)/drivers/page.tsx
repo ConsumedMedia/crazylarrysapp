@@ -45,9 +45,14 @@ export default async function DriversPage() {
       )}
 
       <p className="text-[12px] text-ink-3">
-        A driver needs a login (Supabase Auth). Invite them there first; unlinked
-        profiles show in &quot;Add a driver.&quot; Adding a driver promotes their
-        account to the <code>driver</code> role.
+        A driver needs a login first —{" "}
+        <Link href="/users/new" className="underline">
+          invite them from New user
+        </Link>{" "}
+        (owner only), or have them sign up, then they&apos;ll show up here as
+        an unlinked profile. Adding a driver here never changes an existing
+        staff or owner account&apos;s role — it only sets the{" "}
+        <code>driver</code> role when promoting a fresh account.
       </p>
     </div>
   );

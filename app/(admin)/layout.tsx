@@ -8,7 +8,7 @@ import { SidebarNav, BottomNav, type NavItem } from "./_components/AdminNav";
 
 export const dynamic = "force-dynamic";
 
-function buildNav(pendingRequests: number): NavItem[] {
+function buildNav(pendingRequests: number, role: "staff" | "owner"): NavItem[] {
   return [
     { key: "overview", label: "Overview", href: "/dashboard" },
     { key: "fleet", label: "Fleet", href: "/fleet" },
@@ -25,6 +25,10 @@ function buildNav(pendingRequests: number): NavItem[] {
     { key: "customers", label: "Customers", href: "/customers" },
     { key: "call-log", label: "Call log", href: "/call-log" },
     { key: "settings", label: "Settings", href: "/settings" },
+    // Owner-only: this is the one screen that can grant staff/owner access.
+    ...(role === "owner"
+      ? [{ key: "users-new", label: "New user", href: "/users/new" } as NavItem]
+      : []),
   ];
 }
 
@@ -41,7 +45,7 @@ export default async function AdminLayout({
 }) {
   const staff = await requireStaff();
   const pendingRequests = await countPendingChangeRequests();
-  const NAV = buildNav(pendingRequests);
+  const NAV = buildNav(pendingRequests, staff.role);
   const theme = getThemeChoice();
 
   return (
