@@ -354,10 +354,13 @@ async function main() {
       });
 
     const deliveryDate = ymd(b.deliveryOffset);
+    // pickup = delivery + rentalDays (not rentalDays - 1): the delivery day
+    // itself doesn't count as one of the "N days" quoted to the customer —
+    // matches create_booking's formula as of migration 20260915000000.
     const pickupDate =
       b.pickupOffset !== undefined
         ? ymd(b.pickupOffset)
-        : ymd(b.deliveryOffset + (b.rentalDays ?? 5) - 1);
+        : ymd(b.deliveryOffset + (b.rentalDays ?? 5));
 
     // backdate to the real window BEFORE any unit is attached (no exclusion concern)
     await svc.from("bookings").update({ delivery_date: deliveryDate, pickup_date: pickupDate }).eq("id", bookingId);
