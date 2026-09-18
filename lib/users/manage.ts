@@ -97,9 +97,10 @@ export async function createUserWithAccess(
 
   if (input.mode === "invite") {
     const service = createServiceClient();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://app.crazylarrysdumpsters.com";
     const { data, error } = await service.auth.admin.inviteUserByEmail(
       input.email!.trim(),
-      { data: { full_name: input.fullName.trim() } },
+      { data: { full_name: input.fullName.trim() }, redirectTo: `${siteUrl}/accept-invite` },
     );
     if (error) throw new CreateUserError(`Invite failed: ${error.message}`);
     if (!data.user) throw new CreateUserError("Invite failed: no user returned.");
