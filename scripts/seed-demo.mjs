@@ -5,19 +5,24 @@
  *   node scripts/seed-demo.mjs --confirm # WIPES transactional data, then seeds
  *
  * What it does (only with --confirm):
+ *   0. Signs in as the persistent SEED_OWNER_EMAIL/PASSWORD account — a real
+ *      owner session used for every role grant and lifecycle RPC below, so
+ *      the profiles_enforce_role_change trigger (20260917000000) is satisfied
+ *      the same way it is for real app traffic. That account is never
+ *      created, modified, or deleted by this script — set it up once via
+ *      /users/new (grant owner access) and put its credentials in .env.local.
  *   1. Removes all objects from the job-photos Storage bucket.
  *   2. Deletes every row from the transactional tables (see WIPE below), in FK
  *      order, in one transaction via a direct pg connection.
  *   3. Resets all 28 dumpsters to 'available' and writes one fresh opening
  *      status_log row per unit.
  *   4. Recreates 3 drivers (Marcus Webb / Danielle Cortez / Ray Sczepanski),
- *      reusing the retired "Driver Test" auth user for Marcus.
- *   5. Creates a throwaway owner ("seed-admin") to drive the lifecycle RPCs,
- *      then DELETES it at the end.
- *   6. Seeds 14 bookings across every lifecycle state through the real RPCs
+ *      reusing the retired "Driver Test" auth user for Marcus. Role grants go
+ *      through the seed-owner session, not a raw pg connection.
+ *   5. Seeds 14 bookings across every lifecycle state through the real RPCs
  *      (create_booking / assign_job / complete_job / set_booking_status /
  *      mark_overdue_bookings / record_payment / ...), backdating past bookings.
- *   7. Prints verification: deployed map pins, today's driver routes, counts.
+ *   6. Prints verification: deployed map pins, today's driver routes, counts.
  *
  * NOTE: the seed does NOT hit Intuit or charge cards. Invoices are recorded via
  * record_payment with synthetic ids so the admin dashboards have realistic
@@ -47,9 +52,23 @@ const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 const DATABASE_URL = env.DATABASE_URL;
+const SEED_OWNER_EMAIL = env.SEED_OWNER_EMAIL;
+const SEED_OWNER_PASSWORD = env.SEED_OWNER_PASSWORD;
 
 if (!SUPABASE_URL || !ANON_KEY || !SERVICE_KEY || !DATABASE_URL) {
   console.error("Missing one of NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY / SERVICE_ROLE_KEY / DATABASE_URL in .env.local");
+  process.exit(1);
+}
+
+if (!SEED_OWNER_EMAIL || !SEED_OWNER_PASSWORD) {
+  console.error(
+    "\n  Missing SEED_OWNER_EMAIL / SEED_OWNER_PASSWORD in .env.local.\n" +
+      "  This script signs in as a real, persistent owner account to make role\n" +
+      "  changes and drive booking RPCs (the profiles_enforce_role_change trigger\n" +
+      "  requires a real owner session — see 20260917000000_recreate_profile_role_change_trigger.sql).\n" +
+      "  Create that account once via /users/new (grant owner access), then add its\n" +
+      "  credentials here. It is never modified or deleted by this script.\n",
+  );
   process.exit(1);
 }
 
@@ -203,19 +222,32 @@ if (!CONFIRM) {
 // EXECUTE
 // ===========================================================================
 const log = (...a) => console.log(...a);
-const SEED_ADMIN_EMAIL = `seed-admin+${Date.now()}@crazylarrys.test`;
-const SEED_ADMIN_PW = crypto.randomBytes(18).toString("base64url");
-let seedAdminId = null;
 
 async function main() {
   const pool = new pg.Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
+  // ---- sign in as the persistent seed-owner ------------------------------
+  // Real Supabase Auth session (real JWT, auth.uid() set) so the
+  // profiles_enforce_role_change trigger's is_owner() check passes
+  // legitimately — same mechanism the real app uses, no bypass.
+  log("[0/6] Signing in as seed-owner…");
+  const staff = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  {
+    const { error } = await staff.auth.signInWithPassword({ email: SEED_OWNER_EMAIL, password: SEED_OWNER_PASSWORD });
+    if (error) throw new Error(`seed-owner sign-in: ${error.message}`);
+  }
+  const srpc = async (fn, args) => {
+    const { data, error } = await staff.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message} ${error.details ?? ""} ${error.hint ?? ""}`);
+    return data;
+  };
+
   // ---- 1. storage cleanup -------------------------------------------------
-  log("\n[1/7] Clearing job-photos storage bucket…");
+  log("\n[1/6] Clearing job-photos storage bucket…");
   await clearBucket("job-photos");
 
   // ---- 2. wipe + 3. dumpster reset (one tx) -----------------------------
-  log("[2/7] Wiping transactional tables…");
+  log("[2/6] Wiping transactional tables…");
   const client = await pool.connect();
   try {
     await client.query("begin");
@@ -223,7 +255,7 @@ async function main() {
       const r = await client.query(`delete from public.${t}`);
       log(`        ${t.padEnd(24)} ${r.rowCount} rows`);
     }
-    log("[3/7] Resetting 28 dumpsters to 'available' + opening status_log rows…");
+    log("[3/6] Resetting 28 dumpsters to 'available' + opening status_log rows…");
     await client.query(`update public.dumpsters set status = 'available' where status <> 'available'`);
     await client.query(`
       insert into public.status_log (entity_type, entity_id, old_status, new_status, changed_by)
@@ -238,7 +270,7 @@ async function main() {
   }
 
   // ---- 4. drivers ------------------------------------------------------
-  log("[4/7] Recreating drivers…");
+  log("[4/6] Recreating drivers…");
   const driverIds = {};
   const { data: trucks } = await svc.from("trucks").select("id, nickname");
   const truckByName = Object.fromEntries((trucks ?? []).map((t) => [t.nickname, t.id]));
@@ -272,11 +304,12 @@ async function main() {
         profileId = created.user.id;
       }
     }
-    await pool.query(`update public.profiles set role = 'driver', full_name = $2, phone = $3 where id = $1`, [
-      profileId,
-      d.name,
-      d.phone,
-    ]);
+    // real owner session, not raw pg — profiles_enforce_role_change requires it
+    const { error: roleErr } = await staff
+      .from("profiles")
+      .update({ role: "driver", full_name: d.name, phone: d.phone })
+      .eq("id", profileId);
+    if (roleErr) throw new Error(`set driver role for ${d.name}: ${roleErr.message}`);
     const { data: drv, error: drvErr } = await svc
       .from("drivers")
       .insert({ profile_id: profileId, full_name: d.name, phone: d.phone, vehicle_info: d.vehicle, active: true })
@@ -290,34 +323,8 @@ async function main() {
     log(`        ${d.name}  ->  ${d.truck ?? "(no truck)"}  [driver ${drv.id.slice(0, 8)}]`);
   }
 
-  // ---- 5. throwaway owner ------------------------------------------
-  log("[5/7] Creating throwaway seed-admin owner…");
-  {
-    const { data, error } = await svc.auth.admin.createUser({
-      email: SEED_ADMIN_EMAIL,
-      password: SEED_ADMIN_PW,
-      email_confirm: true,
-      user_metadata: { full_name: "Seed Admin (temporary)" },
-    });
-    if (error) throw new Error(`create seed-admin: ${error.message}`);
-    seedAdminId = data.user.id;
-    await pool.query(`update public.profiles set role = 'owner', full_name = 'Seed Admin (temporary)' where id = $1`, [
-      seedAdminId,
-    ]);
-  }
-  const staff = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-  {
-    const { error } = await staff.auth.signInWithPassword({ email: SEED_ADMIN_EMAIL, password: SEED_ADMIN_PW });
-    if (error) throw new Error(`seed-admin sign-in: ${error.message}`);
-  }
-  const srpc = async (fn, args) => {
-    const { data, error } = await staff.rpc(fn, args);
-    if (error) throw new Error(`${fn}: ${error.message} ${error.details ?? ""} ${error.hint ?? ""}`);
-    return data;
-  };
-
-  // ---- 6. seed bookings ---------------------------------------------
-  log("[6/7] Seeding 14 bookings through the real RPCs…");
+  // ---- 5. seed bookings ---------------------------------------------
+  log("[5/6] Seeding 14 bookings through the real RPCs…");
   const usedUnits = new Set();
   const pickUnit = async (size) => {
     const { data } = await svc
@@ -464,7 +471,7 @@ async function main() {
   await svc.from("customers").update({ profile_id: portalId }).eq("email", PORTAL_EMAIL);
 
   // ---- 7. verify -----------------------------------------------------
-  log("\n[7/7] Verification");
+  log("\n[6/6] Verification");
   const { data: deployed } = await svc
     .from("bookings")
     .select("delivery_address, delivery_lat, delivery_lng, dumpsters!inner(unit_number,status), status")
@@ -495,17 +502,6 @@ async function main() {
   for (const r of byStatus ?? []) tally[r.status] = (tally[r.status] ?? 0) + 1;
   log(`  bookings by status: ${JSON.stringify(tally)}`);
 
-  // ---- delete the throwaway owner ----------------------------------
-  log("\nDeleting throwaway seed-admin owner…");
-  const { error: delErr } = await svc.auth.admin.deleteUser(seedAdminId);
-  if (delErr) {
-    log(`  ⚠️  FAILED to delete seed-admin (${seedAdminId}): ${delErr.message}`);
-    log(`  Delete it manually in the Supabase dashboard → Authentication.`);
-  } else {
-    const gone = !(await svc.auth.admin.listUsers()).data.users.some((u) => u.id === seedAdminId);
-    log(gone ? `  ✓ seed-admin deleted and confirmed gone (${SEED_ADMIN_EMAIL})` : `  ⚠️ delete reported ok but user still listed`);
-  }
-
   await pool.end();
   log(`\n  Portal demo login:  ${PORTAL_EMAIL}  /  ${portalPw}`);
   log("\nDone.");
@@ -535,13 +531,7 @@ async function clearBucket(bucket) {
   log(`        removed ${removed} object(s)`);
 }
 
-main().catch(async (e) => {
+main().catch((e) => {
   console.error("\n❌ SEED FAILED:", e.message);
-  if (seedAdminId) {
-    console.error(`\n⚠️  seed-admin owner (${SEED_ADMIN_EMAIL}, id ${seedAdminId}) may still exist.`);
-    console.error("   Attempting cleanup…");
-    const { error } = await svc.auth.admin.deleteUser(seedAdminId).catch((x) => ({ error: x }));
-    console.error(error ? `   cleanup failed: ${error.message} — delete it manually.` : "   cleanup ok.");
-  }
   process.exit(1);
 });
