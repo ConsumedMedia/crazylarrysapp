@@ -37,7 +37,7 @@ export default async function BookingDetailPage({
   await requireStaff();
   const detail = await getBookingDetail(params.id);
   if (!detail) notFound();
-  const { booking, customer, invoice, jobs, history } = detail;
+  const { booking, dumpsterUnitNumber, customer, invoice, jobs, history } = detail;
   const changeRequests = await listChangeRequestsForBooking(booking.id);
 
   const paymentValue =
@@ -92,7 +92,7 @@ export default async function BookingDetailPage({
               <Item label="Size" value={booking.size_requested.replace("yd", " yard")} />
               <Item
                 label="Unit assigned"
-                value={booking.dumpster_id ? booking.dumpster_id : "Not yet (assigned at dispatch)"}
+                value={dumpsterUnitNumber ?? "Not yet (assigned at dispatch)"}
               />
               <Item label="Delivery" value={fmt(booking.delivery_date)} />
               <Item label="Pickup" value={fmt(booking.pickup_date)} />

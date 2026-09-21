@@ -53,12 +53,15 @@ export async function getBookingDetail(
 
   const { data: booking, error } = await supabase
     .from("bookings")
-    .select(BOOKING_COLS)
+    .select(`${BOOKING_COLS}, dumpsters(unit_number)`)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`getBookingDetail: ${error.message}`);
   if (!booking) return null;
-  const b = booking as BookingRow;
+  const { dumpsters, ...bookingRest } = booking as Record<string, unknown>;
+  const b = bookingRest as unknown as BookingRow;
+  const dumpsterUnitNumber =
+    (dumpsters as { unit_number?: string } | null)?.unit_number ?? null;
 
   const [{ data: customer }, { data: invoice }, { data: jobs }, { data: history }] =
     await Promise.all([
@@ -89,6 +92,7 @@ export async function getBookingDetail(
 
   return {
     booking: b,
+    dumpsterUnitNumber,
     customer: (customer ?? {
       id: b.customer_id,
       profile_id: null,

@@ -113,7 +113,7 @@ export function AvailabilityCalendar({
         </div>
       )}
 
-      <div className="self-start border-2 border-line-strong bg-surface">
+      <div className="w-full border-2 border-line-strong bg-surface">
         <div className="flex items-center justify-between gap-2.5 border-b-2 border-line-strong px-4 py-3">
           <div className="text-[17px] font-extrabold">
             {MONTH_NAMES[grid.month]} {grid.year}

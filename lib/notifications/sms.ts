@@ -26,7 +26,8 @@ export type FailureCategory =
   | "provider_rejected"
   | "rate_limited"
   | "transient"
-  | "recipient_missing";
+  | "recipient_missing"
+  | "no_consent";
 
 export interface SendResult {
   ok: boolean;

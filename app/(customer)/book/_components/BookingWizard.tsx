@@ -79,6 +79,7 @@ export function BookingWizard({
   const [contactEmail, setContactEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [debris, setDebris] = useState<string>("");
+  const [smsConsent, setSmsConsent] = useState(false);
 
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [agreementAck, setAgreementAck] = useState(false);
@@ -122,6 +123,7 @@ export function BookingWizard({
       contactPhone: contactPhone || undefined,
       companyName: companyName || undefined,
       agreementAcknowledged: agreementAck,
+      smsConsent,
     };
   }
 
@@ -363,6 +365,9 @@ export function BookingWizard({
                 </Card>
 
                 <Card title="Where to set it">
+                  <p className="text-[12px] text-ink-2">
+                    All options are facing the house.
+                  </p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {PLACEMENTS.map((p) => (
                       <button
@@ -419,6 +424,18 @@ export function BookingWizard({
                       />
                     </Field>
                   </div>
+                  <label className="flex items-start gap-2.5 text-[13px] text-ink-2">
+                    <input
+                      type="checkbox"
+                      checked={smsConsent}
+                      onChange={(e) => setSmsConsent(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 flex-none accent-teal"
+                    />
+                    <span>
+                      Text me automated updates about this delivery
+                      (confirmation, arrival, pickup).
+                    </span>
+                  </label>
                 </Card>
 
                 <Card title="What's going in it">

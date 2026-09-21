@@ -70,29 +70,43 @@ async function dispatch(opts: {
   rendered: T.Rendered;
   email: string | null;
   phone: string | null;
+  smsConsent: boolean;
   channels: Channel[];
 }): Promise<void> {
   const base = { type: opts.type, bookingId: opts.bookingId, driverId: opts.driverId };
   const jobs: Promise<void>[] = [];
 
   if (opts.channels.includes("sms")) {
-    const e164 = toE164US(opts.phone);
-    if (!e164) {
+    if (!opts.smsConsent) {
       jobs.push(
         writeLog(
           logRowFrom(base, "sms", opts.phone ?? "(none)", opts.rendered.sms, {
             ok: false,
-            category: "recipient_missing",
-            error: opts.phone ? `unparseable phone: ${opts.phone}` : "no phone on file",
+            skipped: true,
+            category: "no_consent",
+            error: "customer has not consented to SMS",
           }),
         ),
       );
     } else {
-      jobs.push(
-        sendSms(e164, opts.rendered.sms).then((r) =>
-          writeLog(logRowFrom(base, "sms", e164, opts.rendered.sms, r)),
-        ),
-      );
+      const e164 = toE164US(opts.phone);
+      if (!e164) {
+        jobs.push(
+          writeLog(
+            logRowFrom(base, "sms", opts.phone ?? "(none)", opts.rendered.sms, {
+              ok: false,
+              category: "recipient_missing",
+              error: opts.phone ? `unparseable phone: ${opts.phone}` : "no phone on file",
+            }),
+          ),
+        );
+      } else {
+        jobs.push(
+          sendSms(e164, opts.rendered.sms).then((r) =>
+            writeLog(logRowFrom(base, "sms", e164, opts.rendered.sms, r)),
+          ),
+        );
+      }
     }
   }
 
@@ -134,7 +148,12 @@ interface BookingBundle {
   delivery_address: string;
   placement_notes: string | null;
   total: number;
-  customer: { full_name: string; email: string | null; phone: string | null } | null;
+  customer: {
+    full_name: string;
+    email: string | null;
+    phone: string | null;
+    sms_consent: boolean;
+  } | null;
 }
 
 async function loadBooking(bookingId: string): Promise<BookingBundle | null> {
@@ -142,14 +161,14 @@ async function loadBooking(bookingId: string): Promise<BookingBundle | null> {
   const { data } = await service
     .from("bookings")
     .select(
-      "id, size_requested, delivery_date, pickup_date, delivery_address, placement_notes, total, customers(full_name, email, phone)",
+      "id, size_requested, delivery_date, pickup_date, delivery_address, placement_notes, total, customers(full_name, email, phone, sms_consent)",
     )
     .eq("id", bookingId)
     .maybeSingle();
   if (!data) return null;
   const d = data as Record<string, unknown>;
   const c = d.customers as
-    | { full_name: string; email: string | null; phone: string | null }
+    | { full_name: string; email: string | null; phone: string | null; sms_consent: boolean }
     | null;
   return {
     id: d.id as string,
@@ -187,6 +206,7 @@ export async function notifyBookingConfirmation(bookingId: string): Promise<void
       rendered: T.bookingConfirmation(bookingCtx(b)),
       email: b.customer?.email ?? null,
       phone: b.customer?.phone ?? null,
+      smsConsent: b.customer?.sms_consent ?? false,
       channels: ["email", "sms"],
     });
   } catch (e) {
@@ -205,6 +225,7 @@ export async function notifyDeliveryReminder(bookingId: string): Promise<void> {
       rendered: T.deliveryReminder(bookingCtx(b)),
       email: b.customer?.email ?? null,
       phone: b.customer?.phone ?? null,
+      smsConsent: b.customer?.sms_consent ?? false,
       channels: ["email", "sms"],
     });
   } catch (e) {
@@ -223,6 +244,7 @@ export async function notifyPickupReminder(bookingId: string): Promise<void> {
       rendered: T.pickupReminder(bookingCtx(b)),
       email: b.customer?.email ?? null,
       phone: b.customer?.phone ?? null,
+      smsConsent: b.customer?.sms_consent ?? false,
       channels: ["email", "sms"],
     });
   } catch (e) {
@@ -241,6 +263,7 @@ export async function notifyOverdue(bookingId: string): Promise<void> {
       rendered: T.overdueNotice(bookingCtx(b)),
       email: b.customer?.email ?? null,
       phone: b.customer?.phone ?? null,
+      smsConsent: b.customer?.sms_consent ?? false,
       channels: ["email", "sms"],
     });
   } catch (e) {
@@ -277,6 +300,7 @@ export async function notifyJobComplete(job: {
       rendered,
       email: b.customer?.email ?? null,
       phone: b.customer?.phone ?? null,
+      smsConsent: b.customer?.sms_consent ?? false,
       channels: ["sms"],
     });
   } catch (e) {
@@ -321,6 +345,8 @@ export async function notifyJobAssigned(
       }),
       email: null,
       phone: (driver as { phone?: string | null } | null)?.phone ?? null,
+      // Driver notification, not a customer one — customer sms_consent doesn't apply.
+      smsConsent: true,
       channels: ["sms"],
     });
   } catch (e) {

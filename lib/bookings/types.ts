@@ -61,6 +61,7 @@ export interface JobRow {
 
 export interface BookingDetail {
   booking: BookingRow;
+  dumpsterUnitNumber: string | null;
   customer: CustomerRow;
   invoice: InvoiceRow | null;
   jobs: JobRow[];
@@ -87,4 +88,5 @@ export interface CreateBookingInput {
   contactEmail?: string;
   contactPhone?: string;
   companyName?: string;
+  smsConsent?: boolean;
 }

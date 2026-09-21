@@ -103,6 +103,7 @@ export async function createBooking(
     p_contact_phone: phone,
     p_company_name: clean(input.companyName),
     p_profile_id: profileId,
+    p_sms_consent: input.smsConsent === true,
   });
 
   if (error) {
