@@ -115,7 +115,39 @@ export function GlobalSettingsForm({
             className={`${input} w-28 cl-nums`}
           />
         </label>
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Credit card fee (%)
+          <input
+            name="credit_card_fee_pct"
+            defaultValue={
+              s.credit_card_fee_rate > 0
+                ? (s.credit_card_fee_rate * 100).toFixed(3)
+                : ""
+            }
+            placeholder="2.900"
+            disabled={!canEdit}
+            className={`${input} w-28 cl-nums`}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Driveway protection fee ($)
+          <input
+            name="driveway_fee_rate"
+            defaultValue={
+              s.driveway_fee_rate > 0 ? s.driveway_fee_rate.toFixed(2) : ""
+            }
+            placeholder="20.00"
+            disabled={!canEdit}
+            className={`${input} w-28 cl-nums`}
+          />
+        </label>
       </div>
+      <p className="text-[11px] text-ink-3">
+        Credit card fee is for Larry&apos;s own accounting — it is never added
+        to a customer&apos;s total at checkout. Driveway protection fee is
+        never charged automatically — staff apply it per booking from that
+        booking&apos;s page.
+      </p>
 
       <div className="border-2 border-orange bg-orange-tint p-3">
         <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-orange-tint-ink">

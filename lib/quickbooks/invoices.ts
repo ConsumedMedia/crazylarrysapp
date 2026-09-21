@@ -31,7 +31,7 @@ function esc(v: string): string {
 }
 
 /** Find a QBO customer by email (falls back to display name), else create one. */
-async function findOrCreateCustomer(opts: {
+export async function findOrCreateCustomer(opts: {
   name: string;
   email: string | null;
   phone: string | null;
@@ -70,7 +70,7 @@ async function findOrCreateCustomer(opts: {
 const ITEM_RENTAL = "Dumpster Rental";
 const ITEM_TAX = "Sales Tax Collected";
 
-async function resolveItem(name: string): Promise<string> {
+export async function resolveItem(name: string): Promise<string> {
   const existing = await qboQuery<{ Id: string }>(
     "Item",
     `where Name = '${esc(name)}'`,

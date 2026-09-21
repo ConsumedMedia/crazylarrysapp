@@ -52,9 +52,14 @@ export async function saveGlobalSettingsAction(
 ): Promise<SettingsState> {
   const extraDay = money(formData.get("extra_day_rate"));
   const overageTon = money(formData.get("overage_ton_rate"));
+  const drivewayFee = money(formData.get("driveway_fee_rate"));
+  const ccFeePct = Number(String(formData.get("credit_card_fee_pct") ?? ""));
   const taxPct = Number(String(formData.get("tax_rate_pct") ?? ""));
-  if (Number.isNaN(extraDay) || Number.isNaN(overageTon)) {
+  if (Number.isNaN(extraDay) || Number.isNaN(overageTon) || Number.isNaN(drivewayFee)) {
     return { ok: false, error: "Enter valid dollar amounts." };
+  }
+  if (!Number.isFinite(ccFeePct) || ccFeePct < 0 || ccFeePct >= 100) {
+    return { ok: false, error: "Credit card fee must be a percentage between 0 and 100." };
   }
   if (!Number.isFinite(taxPct) || taxPct < 0 || taxPct >= 100) {
     return { ok: false, error: "Tax rate must be a percentage between 0 and 100." };
@@ -63,6 +68,8 @@ export async function saveGlobalSettingsAction(
     await updatePricingSettings({
       extra_day_rate: extraDay,
       overage_ton_rate: overageTon,
+      driveway_fee_rate: drivewayFee,
+      credit_card_fee_rate: Math.round((ccFeePct / 100) * 10000) / 10000,
       tax_rate: Math.round((taxPct / 100) * 10000) / 10000,
       tax_jurisdiction: String(formData.get("tax_jurisdiction") ?? "").trim() || null,
       tax_verified: formData.get("tax_verified") === "on",

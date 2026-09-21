@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { getBookingDetail } from "@/lib/bookings/queries";
 import { listChangeRequestsForBooking } from "@/lib/bookings/change-requests";
+import { getPricingConfig } from "@/lib/bookings/pricing";
 import { BOOKING_STATUS_META, DOCUSIGN_META } from "@/lib/bookings/state-machine";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
 import { BookingControls } from "./_components/BookingControls";
@@ -37,8 +38,10 @@ export default async function BookingDetailPage({
   await requireStaff();
   const detail = await getBookingDetail(params.id);
   if (!detail) notFound();
-  const { booking, dumpsterUnitNumber, customer, invoice, jobs, history } = detail;
+  const { booking, dumpsterUnitNumber, drivewayFeeStaffName, customer, invoice, jobs, history } =
+    detail;
   const changeRequests = await listChangeRequestsForBooking(booking.id);
+  const pricing = await getPricingConfig();
 
   const paymentValue =
     booking.payment_status === "paid"
@@ -108,6 +111,14 @@ export default async function BookingDetailPage({
                 value={`$${booking.total.toFixed(2)}  (sub $${booking.subtotal.toFixed(2)} + tax $${booking.tax.toFixed(2)})`}
               />
               <Item label="Payment" value={paymentValue} />
+              <Item
+                label="Driveway protection fee"
+                value={
+                  booking.driveway_fee_applied
+                    ? `$${Number(booking.driveway_fee_amount).toFixed(2)} — applied by ${drivewayFeeStaffName ?? "staff"}, not charged via card (billed separately${booking.driveway_fee_qb_invoice_id ? ` · QBO inv ${booking.driveway_fee_qb_invoice_id}` : ""})${booking.driveway_fee_note ? ` — "${booking.driveway_fee_note}"` : ""}`
+                    : "Not applied"
+                }
+              />
             </dl>
           </section>
 
@@ -221,6 +232,8 @@ export default async function BookingDetailPage({
             paymentStatus={booking.payment_status}
             refundKind={invoice?.refund_kind ?? null}
             hasCharge={!!invoice?.qb_charge_id}
+            drivewayFeeApplied={booking.driveway_fee_applied}
+            drivewayFeeRate={pricing.settings.driveway_fee_rate}
           />
         </div>
       </div>

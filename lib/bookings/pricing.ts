@@ -15,6 +15,10 @@ export interface SizePricing {
 export interface PricingSettings {
   extra_day_rate: number;
   overage_ton_rate: number;
+  /** Accounting reference only — never applied to a customer's total. */
+  credit_card_fee_rate: number;
+  /** Staff-applied per booking (lib/bookings/mutations.ts) — never automatic. */
+  driveway_fee_rate: number;
   tax_rate: number;
   tax_jurisdiction: string | null;
   tax_verified: boolean;
@@ -57,6 +61,8 @@ export async function getPricingConfig(): Promise<PricingConfig> {
   const settings: PricingSettings = {
     extra_day_rate: num(s.extra_day_rate),
     overage_ton_rate: num(s.overage_ton_rate),
+    credit_card_fee_rate: num(s.credit_card_fee_rate),
+    driveway_fee_rate: num(s.driveway_fee_rate),
     tax_rate: num(s.tax_rate),
     tax_jurisdiction: (s.tax_jurisdiction as string | null) ?? null,
     tax_verified: Boolean(s.tax_verified),

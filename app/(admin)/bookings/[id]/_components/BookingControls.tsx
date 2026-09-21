@@ -13,6 +13,8 @@ import {
   changeStatusAction,
   setAgreementAction,
   refundAction,
+  applyDrivewayFeeAction,
+  removeDrivewayFeeAction,
   type BookingActionState,
 } from "../../actions";
 
@@ -53,6 +55,8 @@ export function BookingControls({
   paymentStatus,
   refundKind,
   hasCharge,
+  drivewayFeeApplied,
+  drivewayFeeRate,
 }: {
   id: string;
   status: BookingStatus;
@@ -60,10 +64,14 @@ export function BookingControls({
   paymentStatus: "unpaid" | "paid" | "failed" | "refunded";
   refundKind: "void" | "refund" | null;
   hasCharge: boolean;
+  drivewayFeeApplied: boolean;
+  drivewayFeeRate: number;
 }) {
   const [statusState, statusAction] = useFormState(changeStatusAction, init);
   const [agrState, agrAction] = useFormState(setAgreementAction, init);
   const [refundState, refundFormAction] = useFormState(refundAction, init);
+  const [applyFeeState, applyFeeAction] = useFormState(applyDrivewayFeeAction, init);
+  const [removeFeeState, removeFeeAction] = useFormState(removeDrivewayFeeAction, init);
 
   const nexts = nextBookingStatuses(status);
   const canRefund = paymentStatus === "paid" && hasCharge;
@@ -202,6 +210,68 @@ export function BookingControls({
 
         <div className="mt-1.5">
           <Feedback state={refundState} />
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+          Driveway protection fee
+        </div>
+        {drivewayFeeApplied ? (
+          <form
+            action={removeFeeAction}
+            onSubmit={(e) => {
+              if (
+                !confirm(
+                  "Remove the driveway fee? This voids the separate QuickBooks invoice for it.",
+                )
+              )
+                e.preventDefault();
+            }}
+          >
+            <input type="hidden" name="id" value={id} />
+            <Pending>
+              {(p) => (
+                <button
+                  disabled={p}
+                  className="border-2 border-ink px-3 py-2 text-[12px] font-extrabold hover:bg-tint disabled:opacity-60"
+                >
+                  Remove &amp; void QuickBooks invoice
+                </button>
+              )}
+            </Pending>
+          </form>
+        ) : drivewayFeeRate > 0 ? (
+          <form action={applyFeeAction} className="flex flex-col gap-2">
+            <input type="hidden" name="id" value={id} />
+            <input
+              name="note"
+              placeholder="Why (optional) — e.g. steep gravel drive"
+              className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+            />
+            <Pending>
+              {(p) => (
+                <button
+                  disabled={p}
+                  className="self-start border-2 border-ink px-3 py-2 text-[12px] font-extrabold hover:bg-tint disabled:opacity-60"
+                >
+                  Apply ${drivewayFeeRate.toFixed(2)} fee
+                </button>
+              )}
+            </Pending>
+          </form>
+        ) : (
+          <p className="text-[12px] text-ink-2">
+            Set a driveway protection fee rate in Settings first.
+          </p>
+        )}
+        <p className="mt-1.5 text-[11px] text-ink-3">
+          Not charged via card — billed as a separate QuickBooks invoice for
+          the office to collect.
+        </p>
+        <div className="mt-1.5">
+          <Feedback state={applyFeeState} />
+          <Feedback state={removeFeeState} />
         </div>
       </div>
     </div>

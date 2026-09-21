@@ -20,6 +20,12 @@ export interface BookingRow {
   quickbooks_invoice_id: string | null;
   payment_status: "unpaid" | "paid" | "failed" | "refunded";
   docusign_status: DocusignStatus;
+  driveway_fee_applied: boolean;
+  driveway_fee_amount: number | null;
+  driveway_fee_applied_by: string | null;
+  driveway_fee_applied_at: string | null;
+  driveway_fee_note: string | null;
+  driveway_fee_qb_invoice_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -62,6 +68,7 @@ export interface JobRow {
 export interface BookingDetail {
   booking: BookingRow;
   dumpsterUnitNumber: string | null;
+  drivewayFeeStaffName: string | null;
   customer: CustomerRow;
   invoice: InvoiceRow | null;
   jobs: JobRow[];

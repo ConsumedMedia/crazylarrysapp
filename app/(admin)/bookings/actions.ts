@@ -5,6 +5,8 @@ import {
   changeBookingStatus,
   setDocusignStatus,
   refundBooking,
+  applyDrivewayFee,
+  removeDrivewayFee,
   BookingMutationError,
 } from "@/lib/bookings/mutations";
 import { NotAuthorizedError } from "@/lib/auth/requireStaff";
@@ -71,6 +73,38 @@ export async function refundAction(
         ? `Payment ${did} and booking cancelled.`
         : `Payment ${did}.`,
     };
+  } catch (e) {
+    return toState(e);
+  }
+}
+
+export async function applyDrivewayFeeAction(
+  _prev: BookingActionState,
+  formData: FormData,
+): Promise<BookingActionState> {
+  const id = String(formData.get("id") ?? "");
+  const note = String(formData.get("note") ?? "").trim() || null;
+  try {
+    const booking = await applyDrivewayFee(id, note);
+    revalidatePath(`/bookings/${id}`);
+    return {
+      ok: true,
+      message: `Driveway fee applied ($${Number(booking.driveway_fee_amount).toFixed(2)}).`,
+    };
+  } catch (e) {
+    return toState(e);
+  }
+}
+
+export async function removeDrivewayFeeAction(
+  _prev: BookingActionState,
+  formData: FormData,
+): Promise<BookingActionState> {
+  const id = String(formData.get("id") ?? "");
+  try {
+    await removeDrivewayFee(id);
+    revalidatePath(`/bookings/${id}`);
+    return { ok: true, message: "Driveway fee removed." };
   } catch (e) {
     return toState(e);
   }
