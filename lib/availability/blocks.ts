@@ -74,11 +74,13 @@ export async function createBlock(input: {
   if ((startTime === null) !== (endTime === null)) {
     throw new BlockError("Set both a start and end time, or leave both blank.");
   }
-  if (startTime !== null) {
-    if (!HH_MM.test(startTime) || !HH_MM.test(endTime as string)) {
+  // Both-or-neither is enforced above, but TS can't correlate the two
+  // variables, so check both here to narrow each to string.
+  if (startTime !== null && endTime !== null) {
+    if (!HH_MM.test(startTime) || !HH_MM.test(endTime)) {
       throw new BlockError("Times must be hh:mm.");
     }
-    if (endTime as string <= startTime) {
+    if (endTime <= startTime) {
       throw new BlockError("End time must be after the start time.");
     }
   }
