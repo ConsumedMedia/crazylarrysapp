@@ -8,6 +8,9 @@ export interface CalendarBlock {
   size: DumpsterSize | null; // null = fleet-wide
   start_date: string;
   end_date: string;
+  /** hh:mm:ss, or null for a full-day block. Both null or both set. */
+  start_time: string | null;
+  end_time: string | null;
   reason: string | null;
   created_by: string | null;
   created_at: string;
@@ -21,6 +24,7 @@ export class BlockError extends Error {
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const HH_MM = /^\d{2}:\d{2}$/;
 
 export async function listBlocks(
   from?: string,
@@ -30,7 +34,9 @@ export async function listBlocks(
   const supabase = createClient();
   let q = supabase
     .from("calendar_blocks")
-    .select("id, size, start_date, end_date, reason, created_by, created_at")
+    .select(
+      "id, size, start_date, end_date, start_time, end_time, reason, created_by, created_at",
+    )
     .order("start_date", { ascending: true });
 
   // Overlap filter: block.start <= to AND block.end >= from
@@ -46,6 +52,8 @@ export async function createBlock(input: {
   size: string | null;
   start_date: string;
   end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
   reason?: string;
 }): Promise<CalendarBlock> {
   const staff = await assertStaff();
@@ -61,6 +69,20 @@ export async function createBlock(input: {
     throw new BlockError("End date can't be before the start date.");
   }
 
+  const startTime = input.start_time?.trim() || null;
+  const endTime = input.end_time?.trim() || null;
+  if ((startTime === null) !== (endTime === null)) {
+    throw new BlockError("Set both a start and end time, or leave both blank.");
+  }
+  if (startTime !== null) {
+    if (!HH_MM.test(startTime) || !HH_MM.test(endTime as string)) {
+      throw new BlockError("Times must be hh:mm.");
+    }
+    if (endTime as string <= startTime) {
+      throw new BlockError("End time must be after the start time.");
+    }
+  }
+
   const supabase = createClient();
   const { data, error } = await supabase
     .from("calendar_blocks")
@@ -68,10 +90,14 @@ export async function createBlock(input: {
       size,
       start_date: input.start_date,
       end_date: input.end_date,
+      start_time: startTime,
+      end_time: endTime,
       reason: input.reason?.trim() || null,
       created_by: staff.userId,
     })
-    .select("id, size, start_date, end_date, reason, created_by, created_at")
+    .select(
+      "id, size, start_date, end_date, start_time, end_time, reason, created_by, created_at",
+    )
     .single();
 
   if (error) {

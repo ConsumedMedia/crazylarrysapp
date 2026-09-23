@@ -8,7 +8,7 @@ import {
   addDays,
   ymd,
 } from "@/lib/availability/dates";
-import { BlocksPanel } from "./_components/BlocksPanel";
+import { BlocksPanel, fmtTimeOfDay } from "./_components/BlocksPanel";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Schedule · Crazy Larry's" };
@@ -134,15 +134,22 @@ export default async function SchedulePage({
                       >
                         {cell.dayOfMonth}
                       </span>
-                      {covering.map((b) => (
-                        <span
-                          key={b.id}
-                          title={b.reason ?? undefined}
-                          className="bg-tint px-1 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-ink-3"
-                        >
-                          {b.size ? `${b.size.replace("yd", "yd")} closed` : "Closed"}
-                        </span>
-                      ))}
+                      {covering.map((b) => {
+                        const label = b.start_time && b.end_time
+                          ? `${fmtTimeOfDay(b.start_time)}–${fmtTimeOfDay(b.end_time)}`
+                          : b.size
+                            ? `${b.size.replace("yd", "yd")} closed`
+                            : "Closed";
+                        return (
+                          <span
+                            key={b.id}
+                            title={b.reason ?? undefined}
+                            className="bg-tint px-1 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-ink-3"
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
                       {cell.inMonth && covering.length === 0 && (
                         <span className="mt-auto text-[9px] text-ink-3">
                           0 deliveries
@@ -170,7 +177,10 @@ export default async function SchedulePage({
                       <span className="font-extrabold">
                         {b.size ? b.size.replace("yd", " yd") : "Fleet-wide"}
                       </span>{" "}
-                      closed {b.start_date}
+                      {b.start_time && b.end_time
+                        ? `${fmtTimeOfDay(b.start_time)}–${fmtTimeOfDay(b.end_time)}`
+                        : "closed"}{" "}
+                      {b.start_date}
                       {b.end_date !== b.start_date && ` – ${b.end_date}`}
                       {b.reason && ` · ${b.reason}`}
                     </li>

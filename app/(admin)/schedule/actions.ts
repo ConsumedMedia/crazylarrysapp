@@ -28,6 +28,8 @@ export async function createBlockAction(
       size: rawSize === "" || rawSize === "all" ? null : rawSize,
       start_date: String(formData.get("start_date") ?? ""),
       end_date: String(formData.get("end_date") ?? ""),
+      start_time: String(formData.get("start_time") ?? "") || null,
+      end_time: String(formData.get("end_time") ?? "") || null,
       reason: String(formData.get("reason") ?? ""),
     });
     revalidatePath("/schedule");

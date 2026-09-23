@@ -7,6 +7,8 @@ import {
   listDriverJobs,
   checkMatrix,
 } from "@/lib/dispatch/queries";
+import { listBlocks } from "@/lib/availability/blocks";
+import { fmtTimeOfDay } from "../schedule/_components/BlocksPanel";
 import {
   JobCard,
   AssignmentPanel,
@@ -56,6 +58,7 @@ export default async function DispatchPage({
   const laneJobs = laneDriverId
     ? await listDriverJobs(laneDriverId, laneDate)
     : [];
+  const laneBlocks = await listBlocks(laneDate, laneDate);
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-7">
@@ -135,6 +138,24 @@ export default async function DispatchPage({
               </form>
             </div>
             <div className="p-4">
+              {laneBlocks.length > 0 && (
+                <ul className="mb-3 flex flex-col gap-1.5">
+                  {laneBlocks.map((b) => (
+                    <li
+                      key={b.id}
+                      className="border-l-4 border-orange bg-orange-tint px-3 py-2 text-[12px] font-semibold text-orange-tint-ink"
+                    >
+                      ⏰{" "}
+                      {b.start_time && b.end_time
+                        ? `${fmtTimeOfDay(b.start_time)}–${fmtTimeOfDay(b.end_time)}`
+                        : "All day"}
+                      {" — "}
+                      {b.size ? b.size.replace("yd", " yd") : "Fleet-wide"}
+                      {b.reason && ` · ${b.reason}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
               {laneDriverId ? (
                 <DriverLane
                   driverId={laneDriverId}

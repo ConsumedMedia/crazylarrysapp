@@ -20,6 +20,15 @@ function fmt(d: string) {
   });
 }
 
+/** "08:00:00" -> "8:00 AM" */
+export function fmtTimeOfDay(t: string): string {
+  const [hStr, mStr] = t.split(":");
+  const h = Number(hStr);
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${mStr} ${period}`;
+}
+
 function Submit({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
@@ -78,7 +87,29 @@ export function BlocksPanel({ blocks }: { blocks: CalendarBlock[] }) {
               className="border-2 border-line bg-bg px-2 py-1.5 text-[13px] text-ink"
             />
           </label>
+          <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+            From (optional)
+            <input
+              type="time"
+              name="start_time"
+              className="border-2 border-line bg-bg px-2 py-1.5 text-[13px] text-ink"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+            To (optional)
+            <input
+              type="time"
+              name="end_time"
+              className="border-2 border-line bg-bg px-2 py-1.5 text-[13px] text-ink"
+            />
+          </label>
         </div>
+        <p className="text-[11px] text-ink-3">
+          Leave the times blank to block the whole day. A time window applies
+          to every day in the range above, doesn&apos;t affect customer
+          booking availability, and only shows on the schedule/dispatch
+          views for staff.
+        </p>
         <input
           name="reason"
           placeholder="Reason (e.g. yard closed — holiday)"
@@ -113,6 +144,12 @@ export function BlocksPanel({ blocks }: { blocks: CalendarBlock[] }) {
             <span className="cl-nums flex-none font-extrabold">
               {fmt(b.start_date)}
               {b.end_date !== b.start_date && ` – ${fmt(b.end_date)}`}
+              {b.start_time && b.end_time && (
+                <span className="text-ink-2">
+                  {" "}
+                  · {fmtTimeOfDay(b.start_time)}–{fmtTimeOfDay(b.end_time)}
+                </span>
+              )}
             </span>
             <span className="border-2 border-line px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-ink-2">
               {b.size ? b.size.replace("yd", " yd") : "Fleet-wide"}
