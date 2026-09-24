@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signInErrorMessage } from "./signInError";
 
 export interface LoginState {
   error?: string;
@@ -51,7 +52,7 @@ export async function signInAction(
   });
 
   if (error || !data.user) {
-    return { error: "Invalid email or password." };
+    return { error: signInErrorMessage(error, "signInAction") };
   }
 
   await redirectByRole(supabase, data.user.id);

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signInErrorMessage } from "./signInError";
 
 export interface CustomerAuthState {
   error?: string;
@@ -77,7 +78,7 @@ export async function signInCustomerAction(
   });
 
   if (error || !data.user) {
-    return { error: "Invalid email or password." };
+    return { error: signInErrorMessage(error, "customerSignIn") };
   }
 
   const { data: profile } = await supabase

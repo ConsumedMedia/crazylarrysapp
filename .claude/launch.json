@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "crazylarrys-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--use-system-ca", "node_modules/next/dist/bin/next", "dev"],
       "port": 3000
     }
   ]
