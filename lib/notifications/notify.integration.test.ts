@@ -106,7 +106,12 @@ describe.skipIf(!RUN)(
           // Safe mode: every send must have been neutered by the flag, never
           // an actual provider call.
           expect(r.delivery_status).toBe("skipped");
-          expect(r.failure_category).toBe("disabled");
+          // SMS consent (4d0a081) is checked before the enabled flag, so an
+          // SMS to a customer who never opted in skips as no_consent. Either
+          // reason proves no provider call; email has no consent gate.
+          expect(
+            r.channel === "sms" ? ["disabled", "no_consent"] : ["disabled"],
+          ).toContain(r.failure_category);
           expect(r.provider_message_id ?? null).toBeNull();
         } else {
           // Live mode: outcome depends on whatever's actually configured —

@@ -3,7 +3,7 @@
  *
  * Opt-in: runs only when CL_RUN_DB_TESTS=1. It also needs a staff/owner login
  * because set_booking_status enforces is_staff():
- *   CL_TEST_STAFF_EMAIL, CL_TEST_STAFF_PASSWORD
+ *   CL_TEST_STAFF_EMAIL, CL_TEST_STAFF_PASSWORD (or SEED_OWNER_EMAIL / SEED_OWNER_PASSWORD)
  * Put all three in .env.local, then:  CL_RUN_DB_TESTS=1 npm test
  *
  * Why this exists: the pickup-job-on-pickup_scheduled logic was missing
@@ -24,8 +24,9 @@ const MARKER = `__pj_integration_test__${Date.now()}`;
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const staffEmail = process.env.CL_TEST_STAFF_EMAIL;
-const staffPassword = process.env.CL_TEST_STAFF_PASSWORD;
+// Falls back to the persistent seed owner account, like the other DB tests.
+const staffEmail = process.env.CL_TEST_STAFF_EMAIL ?? process.env.SEED_OWNER_EMAIL;
+const staffPassword = process.env.CL_TEST_STAFF_PASSWORD ?? process.env.SEED_OWNER_PASSWORD;
 
 describe.skipIf(!RUN)("set_booking_status → pickup_scheduled creates a pickup job", () => {
   let service: SupabaseClient;
@@ -37,7 +38,7 @@ describe.skipIf(!RUN)("set_booking_status → pickup_scheduled creates a pickup 
   beforeAll(async () => {
     if (!staffEmail || !staffPassword) {
       throw new Error(
-        "CL_RUN_DB_TESTS=1 but CL_TEST_STAFF_EMAIL / CL_TEST_STAFF_PASSWORD are not set. " +
+        "CL_RUN_DB_TESTS=1 but neither CL_TEST_STAFF_* nor SEED_OWNER_* credentials are set. " +
           "set_booking_status needs a staff/owner session.",
       );
     }
