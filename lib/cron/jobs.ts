@@ -8,6 +8,10 @@ import {
 } from "@/lib/notifications/notify";
 import { getValidAccessToken } from "@/lib/quickbooks/tokens";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
+import {
+  reconcileInvoicePayments,
+  type ReconcileResult,
+} from "@/lib/quickbooks/invoice-payments";
 import { quickBooksConfigured, missingQuickBooksEnv } from "@/lib/quickbooks/config";
 
 /**
@@ -156,6 +160,7 @@ export async function runQuickbooksSync(): Promise<{
   processed?: number;
   synced?: number;
   results?: Array<{ bookingId: string; invoiceId: string | null }>;
+  invoicePayments?: ReconcileResult | { error: string };
   error?: string;
 }> {
   if (!quickBooksConfigured()) return { ok: true, skipped: "not_configured" };
@@ -175,10 +180,23 @@ export async function runQuickbooksSync(): Promise<{
     results.push({ bookingId: row.booking_id as string, invoiceId });
   }
 
+  // Pay-link invoices on staff-created bookings: did the customer pay?
+  // Polling Invoice.Balance once a day (plus the staff "Check payment now"
+  // button) instead of a QBO webhook — Intuit's own guidance says webhooks
+  // can miss events and need a daily reconcile anyway; this IS that
+  // reconcile. Its own try/catch so a poll failure never hides the sync above.
+  let invoicePayments: ReconcileResult | { error: string };
+  try {
+    invoicePayments = await reconcileInvoicePayments();
+  } catch (e) {
+    invoicePayments = { error: (e as Error).message };
+  }
+
   return {
-    ok: true,
+    ok: !("error" in invoicePayments),
     processed: results.length,
     synced: results.filter((r) => r.invoiceId).length,
     results,
+    invoicePayments,
   };
 }

@@ -52,12 +52,15 @@ export interface BookingCtx {
   pickupDate: string; // yyyy-mm-dd
   address: string;
   total: number;
+  /** false for a staff-entered booking still awaiting cash/check/invoice payment. */
+  paid: boolean;
 }
 
 export function bookingConfirmation(c: BookingCtx): Rendered {
   const size = c.size.replace("yd", " yd");
+  const amountLine = c.paid ? `Paid ${money(c.total)}.` : `Amount due ${money(c.total)}.`;
   return {
-    sms: `Crazy Larry's: booking confirmed. ${size} dumpster to ${c.address} on ${fmtDate(c.deliveryDate)}, pickup ${fmtDate(c.pickupDate)}. Paid ${money(c.total)}. Questions? Call ${YARD_PHONE}.`,
+    sms: `Crazy Larry's: booking confirmed. ${size} dumpster to ${c.address} on ${fmtDate(c.deliveryDate)}, pickup ${fmtDate(c.pickupDate)}. ${amountLine} Questions? Call ${YARD_PHONE}.`,
     email: {
       subject: `Your dumpster is booked — ${fmtDate(c.deliveryDate)}`,
       text: [
@@ -67,7 +70,10 @@ export function bookingConfirmation(c: BookingCtx): Rendered {
         `Delivery: ${fmtDate(c.deliveryDate)}`,
         `Pickup:   ${fmtDate(c.pickupDate)}`,
         `Address:  ${c.address}`,
-        `Paid:     ${money(c.total)}`,
+        c.paid ? `Paid:     ${money(c.total)}` : `Due:      ${money(c.total)}`,
+        ...(c.paid
+          ? []
+          : [``, `Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.`]),
         ``,
         `We'll text you the morning before delivery and again before pickup.`,
       ].join("\n"),
@@ -78,7 +84,12 @@ export function bookingConfirmation(c: BookingCtx): Rendered {
         `<strong>Delivery:</strong> ${fmtDate(c.deliveryDate)}`,
         `<strong>Pickup:</strong> ${fmtDate(c.pickupDate)}`,
         `<strong>Address:</strong> ${c.address}`,
-        `<strong>Paid:</strong> ${money(c.total)}`,
+        c.paid
+          ? `<strong>Paid:</strong> ${money(c.total)}`
+          : `<strong>Due:</strong> ${money(c.total)}`,
+        ...(c.paid
+          ? []
+          : [``, `Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.`]),
         ``,
         `We'll text you the day before delivery and again before pickup.`,
       ]),

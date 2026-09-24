@@ -38,29 +38,46 @@ export default async function BookingDetailPage({
   await requireStaff();
   const detail = await getBookingDetail(params.id);
   if (!detail) notFound();
-  const { booking, dumpsterUnitNumber, drivewayFeeStaffName, customer, invoice, jobs, history } =
-    detail;
+  const {
+    booking,
+    dumpsterUnitNumber,
+    drivewayFeeStaffName,
+    createdByName,
+    paymentRecordedByName,
+    customer,
+    invoice,
+    jobs,
+    history,
+  } = detail;
   const changeRequests = await listChangeRequestsForBooking(booking.id);
   const pricing = await getPricingConfig();
 
+  const qboSyncNote = invoice?.quickbooks_invoice_id
+    ? ` · QBO inv ${invoice.quickbooks_invoice_id}`
+    : "";
+  const qboErrorNote =
+    invoice?.sync_status === "error"
+      ? ` · QuickBooks sync failed${invoice.failure_reason ? `: ${invoice.failure_reason}` : ""} (daily sync retries)`
+      : invoice && invoice.status === "paid" && invoice.sync_status === "pending"
+        ? " · QuickBooks sync pending"
+        : "";
+
   const paymentValue =
     booking.payment_status === "paid"
-      ? `Paid${invoice?.qb_charge_id ? ` · charge ${invoice.qb_charge_id}` : ""}${
-          invoice?.quickbooks_invoice_id
-            ? ` · QBO inv ${invoice.quickbooks_invoice_id}`
-            : invoice?.sync_status === "error"
-              ? " · QBO sync failed (cron will retry)"
-              : invoice
-                ? " · QBO sync pending"
-                : ""
-        }`
+      ? invoice?.payment_method === "cash" || invoice?.payment_method === "check"
+        ? `Paid by ${invoice.payment_method}${invoice.payment_reference ? ` #${invoice.payment_reference}` : ""} · recorded by ${paymentRecordedByName ?? "staff"}${invoice.paid_at ? ` ${fmtTs(invoice.paid_at)}` : ""}${invoice.payment_note ? ` — "${invoice.payment_note}"` : ""}${qboSyncNote}${qboErrorNote}`
+        : invoice?.payment_method === "qbo_invoice"
+          ? `Paid online via QuickBooks invoice${qboSyncNote}${invoice.qb_payment_id ? ` · QBO payment ${invoice.qb_payment_id}` : ""} · detected ${invoice.paid_at ? fmtTs(invoice.paid_at) : ""}`
+          : `Paid${invoice?.qb_charge_id ? ` · charge ${invoice.qb_charge_id}` : ""}${qboSyncNote}${qboErrorNote}`
       : booking.payment_status === "refunded"
         ? `Refunded${invoice?.refund_kind ? ` (${invoice.refund_kind})` : ""}${
             invoice?.qb_refund_id ? ` · ${invoice.qb_refund_id}` : ""
           }`
         : booking.payment_status === "failed"
           ? "Payment failed"
-          : "Unpaid";
+          : invoice?.status === "pending" && invoice.quickbooks_invoice_id
+            ? `Unpaid · QuickBooks invoice ${invoice.quickbooks_invoice_id} sent to ${invoice.invoice_sent_to ?? "customer"}${invoice.invoice_sent_at ? ` ${fmtTs(invoice.invoice_sent_at)}` : ""}${invoice.qb_balance != null && Number(invoice.qb_balance) < Number(invoice.amount) ? ` · partially paid, $${Number(invoice.qb_balance).toFixed(2)} still due` : ""}${invoice.qb_checked_at ? ` · last checked ${fmtTs(invoice.qb_checked_at)}` : ""}`
+            : "Unpaid";
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-7">
@@ -112,6 +129,14 @@ export default async function BookingDetailPage({
               />
               <Item label="Payment" value={paymentValue} />
               <Item
+                label="Booked"
+                value={
+                  booking.source === "staff"
+                    ? `By staff${createdByName ? ` (${createdByName})` : ""} · ${fmtTs(booking.created_at)}`
+                    : `Online checkout · ${fmtTs(booking.created_at)}`
+                }
+              />
+              <Item
                 label="Driveway protection fee"
                 value={
                   booking.driveway_fee_applied
@@ -132,7 +157,13 @@ export default async function BookingDetailPage({
               <Item label="Email" value={customer.email ?? "—"} />
               <Item
                 label="Account"
-                value={customer.profile_id ? "Registered" : "Guest checkout"}
+                value={
+                  customer.profile_id
+                    ? "Registered"
+                    : booking.source === "staff"
+                      ? "No account (booked by staff)"
+                      : "Guest checkout"
+                }
               />
             </dl>
           </section>
@@ -234,6 +265,12 @@ export default async function BookingDetailPage({
             hasCharge={!!invoice?.qb_charge_id}
             drivewayFeeApplied={booking.driveway_fee_applied}
             drivewayFeeRate={pricing.settings.driveway_fee_rate}
+            customerEmail={customer.email}
+            invoiceIssuedId={
+              invoice?.status === "pending" ? invoice.quickbooks_invoice_id : null
+            }
+            invoiceLink={invoice?.status === "pending" ? invoice.qb_invoice_link : null}
+            invoiceSentTo={invoice?.invoice_sent_to ?? null}
           />
         </div>
       </div>

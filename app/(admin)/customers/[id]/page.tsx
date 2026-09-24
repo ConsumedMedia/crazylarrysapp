@@ -39,6 +39,7 @@ export default async function CustomerDetailPage({
         ← All customers
       </Link>
 
+      <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           {customer.full_name}
@@ -53,6 +54,13 @@ export default async function CustomerDetailPage({
             year: "numeric",
           })}
         </p>
+      </div>
+        <Link
+          href={`/bookings/new?customer=${customer.id}`}
+          className="bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700"
+        >
+          + New booking for this customer
+        </Link>
       </div>
 
       <section className="border-2 border-line-strong bg-surface">

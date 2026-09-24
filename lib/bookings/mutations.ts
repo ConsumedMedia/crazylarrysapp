@@ -33,7 +33,7 @@ function mapRpcError(e: { code?: string | null; message: string }): never {
 export async function changeBookingStatus(
   id: string,
   to: string,
-): Promise<BookingRow> {
+): Promise<{ booking: BookingRow; warning: string | null }> {
   await assertStaff();
   if (!isBookingStatus(to)) {
     throw new BookingMutationError("Unknown target status.", "bad_status");
@@ -44,7 +44,34 @@ export async function changeBookingStatus(
     p_to: to as BookingStatus,
   });
   if (error) mapRpcError(error);
-  return data as BookingRow;
+
+  // Cancelling an unpaid booking whose pay-link invoice was already emailed:
+  // void that QBO invoice so the customer can't still pay it. Done after the
+  // cancel (freeing the unit matters more); a void failure is surfaced, not
+  // swallowed, so staff can void it by hand.
+  let warning: string | null = null;
+  if (to === "cancelled") {
+    const { data: inv } = await supabase
+      .from("invoices")
+      .select("status, quickbooks_invoice_id")
+      .eq("booking_id", id)
+      .maybeSingle();
+    if (inv?.status === "pending" && inv.quickbooks_invoice_id) {
+      try {
+        const { voidDrivewayFeeInvoice: voidQboInvoice } = await import(
+          "@/lib/quickbooks/driveway-fee"
+        );
+        await voidQboInvoice(inv.quickbooks_invoice_id as string);
+        await supabase
+          .from("invoices")
+          .update({ status: "failed", failure_reason: "Voided in QuickBooks — booking cancelled before payment" })
+          .eq("booking_id", id);
+      } catch (e) {
+        warning = `Booking cancelled, but QuickBooks invoice ${inv.quickbooks_invoice_id} couldn't be voided (${(e as Error).message}) — void it in QuickBooks so the customer can't pay it.`;
+      }
+    }
+  }
+  return { booking: data as BookingRow, warning };
 }
 
 export async function setDocusignStatus(
@@ -102,7 +129,7 @@ export async function refundBooking(
   }
   if (!invoice.qb_charge_id) {
     throw new BookingMutationError(
-      "This booking has no QuickBooks charge to refund (was it paid another way?).",
+      "This booking wasn't paid by card at checkout (cash, check, or a QuickBooks invoice payment) — refund it in QuickBooks directly.",
       "no_charge",
     );
   }
@@ -294,4 +321,145 @@ export async function removeDrivewayFee(id: string): Promise<BookingRow> {
     throw new BookingMutationError("Removed, but couldn't reload the booking.", "reload_failed");
   }
   return finalRow as BookingRow;
+}
+
+/**
+ * Staff mark a booking paid by cash or check. The DB write (who/when/method/
+ * check #) is the source of truth and happens first; the matching QBO Payment
+ * is posted right after, best-effort — if QuickBooks is down, sync_status
+ * stays 'error'/'pending' and the daily sync retries it, same two-phase shape
+ * as the card checkout.
+ */
+export async function recordManualPayment(
+  id: string,
+  opts: { method: string; reference: string | null; note: string | null },
+): Promise<{ qboInvoiceId: string | null }> {
+  await assertStaff();
+  if (opts.method !== "cash" && opts.method !== "check") {
+    throw new BookingMutationError("Pick cash or check.", "bad_method");
+  }
+  const supabase = createClient();
+  const { error } = await supabase.rpc("record_manual_payment", {
+    p_booking_id: id,
+    p_method: opts.method,
+    p_reference: opts.reference,
+    p_note: opts.note,
+  });
+  if (error) {
+    const hint = (error as { hint?: string }).hint;
+    if (hint === "already_paid" || hint === "refunded" || hint === "cancelled") {
+      throw new BookingMutationError(error.message, hint);
+    }
+    mapRpcError(error);
+  }
+
+  let qboInvoiceId: string | null = null;
+  try {
+    const { syncInvoiceForBooking } = await import("@/lib/quickbooks/invoices");
+    qboInvoiceId = await syncInvoiceForBooking(id);
+  } catch (e) {
+    console.error(`[recordManualPayment] QBO sync threw for ${id}:`, (e as Error).message);
+  }
+  return { qboInvoiceId };
+}
+
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+/**
+ * Email the customer a QuickBooks invoice with QBO's hosted Pay Now link, or
+ * re-send the one already issued. QBO work first, then record_invoice_issued
+ * on the staff session (audit = the real staff member). If the invoice was
+ * created but the email failed, it's still recorded (so it's never orphaned
+ * untracked in QBO) and staff see the send error with a Resend button.
+ */
+export async function sendBookingInvoice(
+  id: string,
+  sendToRaw: string,
+): Promise<{ qbInvoiceId: string; invoiceLink: string | null; resent: boolean }> {
+  await assertStaff();
+  const sendTo = sendToRaw.trim();
+  if (!EMAIL.test(sendTo)) {
+    throw new BookingMutationError(
+      "An email address is required — QuickBooks only generates a pay link for invoices with a customer email.",
+      "no_email",
+    );
+  }
+  const supabase = createClient();
+
+  const { data: booking, error: bErr } = await supabase
+    .from("bookings")
+    .select("payment_status, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (bErr) throw new BookingMutationError(bErr.message, "booking_read");
+  if (!booking) throw new BookingMutationError("Booking not found.", "not_found");
+  if (booking.payment_status !== "unpaid") {
+    throw new BookingMutationError("Only an unpaid booking can be invoiced.", "not_unpaid");
+  }
+  if (booking.status === "cancelled") {
+    throw new BookingMutationError("This booking is cancelled.", "cancelled");
+  }
+
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("status, quickbooks_invoice_id")
+    .eq("booking_id", id)
+    .maybeSingle();
+  const existing =
+    invoice?.status === "pending" ? ((invoice.quickbooks_invoice_id as string | null) ?? null) : null;
+
+  const { createOrResendBookingInvoice } = await import("@/lib/quickbooks/invoice-payments");
+  let r;
+  try {
+    r = await createOrResendBookingInvoice({ bookingId: id, sendTo, existingQbInvoiceId: existing });
+  } catch (e) {
+    throw new BookingMutationError(
+      `Couldn't create the QuickBooks invoice (${(e as Error).message}). Nothing was sent — try again.`,
+      "qb_invoice_failed",
+    );
+  }
+
+  const { error: recErr } = await supabase.rpc("record_invoice_issued", {
+    p_booking_id: id,
+    p_qb_invoice_id: r.qbInvoiceId,
+    p_invoice_link: r.invoiceLink,
+    p_sent_to: r.sent ? sendTo : null,
+  });
+  if (recErr) {
+    console.error(
+      `[sendBookingInvoice] record_invoice_issued failed for ${id} (QBO invoice ${r.qbInvoiceId} exists):`,
+      recErr.message,
+    );
+    throw new BookingMutationError(
+      `QuickBooks invoice ${r.qbInvoiceId} was created${r.sent ? " and emailed" : ""}, but saving it here failed — note it manually.`,
+      "invoice_id_not_recorded",
+    );
+  }
+
+  if (!r.sent) {
+    throw new BookingMutationError(
+      `QuickBooks invoice ${r.qbInvoiceId} was created but the email didn't send (${r.sendError}). Use "Resend invoice" to try again.`,
+      "send_failed",
+    );
+  }
+  return { qbInvoiceId: r.qbInvoiceId, invoiceLink: r.invoiceLink, resent: !r.created };
+}
+
+/** Staff "Check payment now" — polls QBO for just this booking's invoice. */
+export async function checkInvoicePayment(id: string): Promise<{ paid: boolean; problem: string | null }> {
+  await assertStaff();
+  const { reconcileInvoicePayments } = await import("@/lib/quickbooks/invoice-payments");
+  let r;
+  try {
+    r = await reconcileInvoicePayments([id]);
+  } catch (e) {
+    throw new BookingMutationError(
+      `Couldn't reach QuickBooks (${(e as Error).message}).`,
+      "qb_check_failed",
+    );
+  }
+  return {
+    paid: r.paid.includes(id),
+    problem: r.problems.find((p) => p.bookingId === id)?.reason ?? null,
+  };
 }

@@ -34,7 +34,8 @@ export default async function BookingsPage({
 
   return (
     <div className="cl-fade-in flex flex-col gap-4 p-4 md:p-7">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
         <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           Bookings
         </h1>
@@ -42,6 +43,13 @@ export default async function BookingsPage({
           {bookings.length} {active ? `${active} ` : ""}booking
           {bookings.length === 1 ? "" : "s"}
         </p>
+        </div>
+        <Link
+          href="/bookings/new"
+          className="bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700"
+        >
+          + New booking
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-1.5">

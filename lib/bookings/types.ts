@@ -26,6 +26,8 @@ export interface BookingRow {
   driveway_fee_applied_at: string | null;
   driveway_fee_note: string | null;
   driveway_fee_qb_invoice_id: string | null;
+  source: "online" | "staff";
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -43,6 +45,17 @@ export interface InvoiceRow {
   refunded_at: string | null;
   sync_status: "pending" | "synced" | "error";
   quickbooks_invoice_id: string | null;
+  paid_at: string | null;
+  payment_method: "card" | "cash" | "check" | "qbo_invoice" | null;
+  payment_reference: string | null;
+  payment_note: string | null;
+  recorded_by: string | null;
+  qb_invoice_link: string | null;
+  invoice_sent_to: string | null;
+  invoice_sent_at: string | null;
+  qb_balance: number | null;
+  qb_checked_at: string | null;
+  failure_reason: string | null;
 }
 
 export interface CustomerRow {
@@ -69,6 +82,8 @@ export interface BookingDetail {
   booking: BookingRow;
   dumpsterUnitNumber: string | null;
   drivewayFeeStaffName: string | null;
+  createdByName: string | null;
+  paymentRecordedByName: string | null;
   customer: CustomerRow;
   invoice: InvoiceRow | null;
   jobs: JobRow[];

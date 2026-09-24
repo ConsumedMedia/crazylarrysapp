@@ -99,6 +99,7 @@ export function AvailabilityCalendar({
         <div className="flex flex-wrap gap-2">
           {DUMPSTER_SIZES.map((s) => (
             <button
+              type="button"
               key={s}
               onClick={() => setSize(s)}
               className={`border-2 px-4 py-2 text-left text-[13px] font-extrabold ${
@@ -120,6 +121,7 @@ export function AvailabilityCalendar({
           </div>
           <div className="flex gap-1">
             <button
+              type="button"
               onClick={() =>
                 setAnchor(
                   (a) =>
@@ -132,6 +134,7 @@ export function AvailabilityCalendar({
               ‹
             </button>
             <button
+              type="button"
               onClick={() =>
                 setAnchor(
                   (a) =>
@@ -258,6 +261,9 @@ function DayCell({
   const Tag = onSelect ? "button" : "div";
   return (
     <Tag
+      // Never a submit button: the calendar also lives inside the staff
+      // /bookings/new <form>, where a default-type button would submit it.
+      type={onSelect ? "button" : undefined}
       onClick={onSelect}
       className={`flex min-h-[74px] flex-col gap-0.5 p-1.5 text-left ${bg} ${ring} ${
         onSelect

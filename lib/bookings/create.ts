@@ -23,15 +23,30 @@ function clean(v: string | undefined): string | null {
   return t.length ? t : null;
 }
 
+/** RPC params shared by create_booking and staff_create_booking. */
+export interface NormalizedBookingParams {
+  p_size: CreateBookingInput["size"];
+  p_delivery_date: string;
+  p_delivery_address: string;
+  p_contact_name: string;
+  p_rental_days: number;
+  p_placement_notes: string | null;
+  p_debris_type: string | null;
+  p_contact_email: string | null;
+  p_contact_phone: string | null;
+  p_company_name: string | null;
+  p_sms_consent: boolean;
+}
+
 /**
- * Create a booking. Validates everything server-side, resolves the caller's
- * session for profile linkage, then calls the atomic create_booking RPC via
- * the service-role client. Returns the new booking id.
+ * Server-side validation for every booking entry point (online /book and the
+ * staff manual-booking form). The RPC re-checks the parts that matter for
+ * double-booking (date floor, availability) under its lock; this is for
+ * clean, specific error messages.
  */
-export async function createBooking(
+export function normalizeBookingInput(
   input: CreateBookingInput,
-): Promise<{ bookingId: string }> {
-  // ---- validate ----------------------------------------------------------
+): NormalizedBookingParams {
   if (!isDumpsterSize(input.size)) {
     throw new BookingCreateError("Pick a dumpster size.", "bad_size");
   }
@@ -77,6 +92,49 @@ export async function createBooking(
     throw new BookingCreateError("That email doesn't look right.", "bad_email");
   }
 
+  return {
+    p_size: input.size,
+    p_delivery_date: input.deliveryDate,
+    p_delivery_address: address,
+    p_contact_name: contactName,
+    p_rental_days: rentalDays,
+    p_placement_notes: clean(input.placementNotes),
+    p_debris_type: clean(input.debrisType),
+    p_contact_email: email,
+    p_contact_phone: phone,
+    p_company_name: clean(input.companyName),
+    p_sms_consent: input.smsConsent === true,
+  };
+}
+
+/** Map a create_booking / staff_create_booking RPC error to a BookingCreateError. */
+export function bookingRpcError(
+  error: { message: string; code?: string; hint?: string },
+  pricingMessage = "Online booking is temporarily unavailable — please call the yard.",
+): BookingCreateError {
+  const hint = error.hint;
+  if (hint === "pricing_not_configured" || hint === "tax_not_configured") {
+    return new BookingCreateError(pricingMessage, "pricing_not_configured");
+  }
+  if (hint === "unavailable") {
+    return new BookingCreateError(
+      "That date just filled up for this size. Pick another day.",
+      "unavailable",
+    );
+  }
+  return new BookingCreateError(error.message, error.code ?? "rpc_failed");
+}
+
+/**
+ * Create a booking. Validates everything server-side, resolves the caller's
+ * session for profile linkage, then calls the atomic create_booking RPC via
+ * the service-role client. Returns the new booking id.
+ */
+export async function createBooking(
+  input: CreateBookingInput,
+): Promise<{ bookingId: string }> {
+  const params = normalizeBookingInput(input);
+
   // ---- session -> profile linkage --------------------------------------
   let profileId: string | null = null;
   try {
@@ -92,36 +150,11 @@ export async function createBooking(
   // ---- atomic RPC -----------------------------------------------------
   const service = createServiceClient();
   const { data, error } = await service.rpc("create_booking", {
-    p_size: input.size,
-    p_delivery_date: input.deliveryDate,
-    p_delivery_address: address,
-    p_contact_name: contactName,
-    p_rental_days: rentalDays,
-    p_placement_notes: clean(input.placementNotes),
-    p_debris_type: clean(input.debrisType),
-    p_contact_email: email,
-    p_contact_phone: phone,
-    p_company_name: clean(input.companyName),
+    ...params,
     p_profile_id: profileId,
-    p_sms_consent: input.smsConsent === true,
   });
 
-  if (error) {
-    const hint = (error as { hint?: string }).hint;
-    if (hint === "pricing_not_configured" || hint === "tax_not_configured") {
-      throw new BookingCreateError(
-        "Online booking is temporarily unavailable — please call the yard.",
-        "pricing_not_configured",
-      );
-    }
-    if (hint === "unavailable") {
-      throw new BookingCreateError(
-        "That date just filled up for this size. Pick another day.",
-        "unavailable",
-      );
-    }
-    throw new BookingCreateError(error.message, error.code ?? "rpc_failed");
-  }
+  if (error) throw bookingRpcError(error as { message: string; code?: string; hint?: string });
 
   return { bookingId: data as string };
 }

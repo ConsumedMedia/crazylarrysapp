@@ -52,6 +52,7 @@ describe.skipIf(!RUN)(
         pickupDate: "2026-10-05",
         address: "1 Test St, Columbus, OH 43004",
         total: 401.05,
+        paid: true,
       });
       expect(r.sms).toContain("20 yd");
       expect(r.sms).toContain("$401.05");

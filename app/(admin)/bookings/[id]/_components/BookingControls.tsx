@@ -15,6 +15,9 @@ import {
   refundAction,
   applyDrivewayFeeAction,
   removeDrivewayFeeAction,
+  recordPaymentAction,
+  sendInvoiceAction,
+  checkPaymentAction,
   type BookingActionState,
 } from "../../actions";
 
@@ -57,6 +60,10 @@ export function BookingControls({
   hasCharge,
   drivewayFeeApplied,
   drivewayFeeRate,
+  customerEmail,
+  invoiceIssuedId,
+  invoiceLink,
+  invoiceSentTo,
 }: {
   id: string;
   status: BookingStatus;
@@ -66,12 +73,20 @@ export function BookingControls({
   hasCharge: boolean;
   drivewayFeeApplied: boolean;
   drivewayFeeRate: number;
+  customerEmail: string | null;
+  /** QBO id of an issued-but-unpaid pay-link invoice, if any. */
+  invoiceIssuedId: string | null;
+  invoiceLink: string | null;
+  invoiceSentTo: string | null;
 }) {
   const [statusState, statusAction] = useFormState(changeStatusAction, init);
   const [agrState, agrAction] = useFormState(setAgreementAction, init);
   const [refundState, refundFormAction] = useFormState(refundAction, init);
   const [applyFeeState, applyFeeAction] = useFormState(applyDrivewayFeeAction, init);
   const [removeFeeState, removeFeeAction] = useFormState(removeDrivewayFeeAction, init);
+  const [recordPayState, recordPayAction] = useFormState(recordPaymentAction, init);
+  const [sendInvState, sendInvAction] = useFormState(sendInvoiceAction, init);
+  const [checkPayState, checkPayAction] = useFormState(checkPaymentAction, init);
 
   const nexts = nextBookingStatuses(status);
   const canRefund = paymentStatus === "paid" && hasCharge;
@@ -202,14 +217,135 @@ export function BookingControls({
               </form>
             )}
           </div>
-        ) : paymentStatus === "unpaid" ? (
+        ) : paymentStatus === "paid" && !hasCharge ? (
           <p className="text-[12px] text-ink-2">
-            No successful charge on this booking.
+            Not paid by card at checkout — refund it in QuickBooks directly.
           </p>
         ) : null}
 
+        {paymentStatus === "unpaid" && status !== "cancelled" && (
+          <form
+            action={recordPayAction}
+            className="flex flex-col gap-2"
+            onSubmit={(e) => {
+              const fd = new FormData(e.currentTarget);
+              if (
+                !confirm(
+                  `Mark this booking paid by ${fd.get("method")}? This also records the payment in QuickBooks.`,
+                )
+              )
+                e.preventDefault();
+            }}
+          >
+            <input type="hidden" name="id" value={id} />
+            <div className="flex gap-2">
+              <select
+                name="method"
+                defaultValue="cash"
+                className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+              >
+                <option value="cash">Cash</option>
+                <option value="check">Check</option>
+              </select>
+              <input
+                name="reference"
+                placeholder="Check # (if check)"
+                className="min-w-0 flex-1 border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+              />
+            </div>
+            <input
+              name="note"
+              placeholder="Note (optional) — e.g. paid driver at delivery"
+              className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+            />
+            <Pending>
+              {(p) => (
+                <button
+                  disabled={p}
+                  className="self-start bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
+                >
+                  Mark as paid
+                </button>
+              )}
+            </Pending>
+          </form>
+        )}
+
+        {paymentStatus === "unpaid" && status !== "cancelled" && (
+          <div className="mt-3 flex flex-col gap-2 border-t-2 border-line pt-3">
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+              {invoiceIssuedId ? `QuickBooks invoice ${invoiceIssuedId}` : "Or send a QuickBooks pay link"}
+            </div>
+            {invoiceLink && (
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={invoiceLink}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="min-w-0 flex-1 border-2 border-line bg-bg px-2.5 py-2 text-[12px] text-ink-2"
+                />
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard?.writeText(invoiceLink)}
+                  className="border-2 border-line px-3 py-2 text-[12px] font-extrabold hover:border-ink"
+                >
+                  Copy
+                </button>
+              </div>
+            )}
+            <form action={sendInvAction} className="flex flex-col gap-2">
+              <input type="hidden" name="id" value={id} />
+              <input
+                name="email"
+                type="email"
+                defaultValue={invoiceSentTo ?? customerEmail ?? ""}
+                placeholder="Customer email (required for a pay link)"
+                className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+              />
+              <Pending>
+                {(p) => (
+                  <button
+                    disabled={p}
+                    className="self-start border-2 border-ink px-3 py-2 text-[12px] font-extrabold hover:bg-tint disabled:opacity-60"
+                  >
+                    {p
+                      ? "Sending…"
+                      : invoiceIssuedId
+                        ? "Resend invoice"
+                        : "Email QuickBooks invoice with pay link"}
+                  </button>
+                )}
+              </Pending>
+            </form>
+            {invoiceIssuedId && (
+              <form action={checkPayAction}>
+                <input type="hidden" name="id" value={id} />
+                <Pending>
+                  {(p) => (
+                    <button
+                      disabled={p}
+                      className="border-2 border-line px-3 py-2 text-[12px] font-extrabold hover:border-ink disabled:opacity-60"
+                    >
+                      {p ? "Checking…" : "Check payment now"}
+                    </button>
+                  )}
+                </Pending>
+              </form>
+            )}
+            <p className="text-[11px] text-ink-3">
+              The customer pays on QuickBooks&apos; own page (card, bank
+              transfer, and PayPal/Venmo if the company has it on). Payments
+              are picked up automatically once a day, or right away with
+              &ldquo;Check payment now&rdquo;.
+            </p>
+          </div>
+        )}
+
         <div className="mt-1.5">
           <Feedback state={refundState} />
+          <Feedback state={recordPayState} />
+          <Feedback state={sendInvState} />
+          <Feedback state={checkPayState} />
         </div>
       </div>
 

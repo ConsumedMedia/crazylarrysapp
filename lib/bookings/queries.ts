@@ -11,10 +11,10 @@ import type {
 } from "./types";
 
 const BOOKING_COLS =
-  "id, customer_id, dumpster_id, size_requested, delivery_address, delivery_date, pickup_date, status, placement_notes, debris_type, subtotal, tax, total, quickbooks_invoice_id, payment_status, docusign_status, driveway_fee_applied, driveway_fee_amount, driveway_fee_applied_by, driveway_fee_applied_at, driveway_fee_note, driveway_fee_qb_invoice_id, created_at, updated_at";
+  "id, customer_id, dumpster_id, size_requested, delivery_address, delivery_date, pickup_date, status, placement_notes, debris_type, subtotal, tax, total, quickbooks_invoice_id, payment_status, docusign_status, driveway_fee_applied, driveway_fee_amount, driveway_fee_applied_by, driveway_fee_applied_at, driveway_fee_note, driveway_fee_qb_invoice_id, source, created_by, created_at, updated_at";
 
 const INVOICE_COLS =
-  "id, booking_id, amount, status, qb_charge_id, qb_payment_id, qb_refund_id, refund_kind, refunded_amount, refunded_at, sync_status, quickbooks_invoice_id";
+  "id, booking_id, amount, status, qb_charge_id, qb_payment_id, qb_refund_id, refund_kind, refunded_amount, refunded_at, sync_status, quickbooks_invoice_id, paid_at, payment_method, payment_reference, payment_note, recorded_by, qb_invoice_link, invoice_sent_to, invoice_sent_at, qb_balance, qb_checked_at, failure_reason";
 
 export interface BookingListRow extends BookingRow {
   customer_name: string;
@@ -54,19 +54,21 @@ export async function getBookingDetail(
   const { data: booking, error } = await supabase
     .from("bookings")
     .select(
-      `${BOOKING_COLS}, dumpsters(unit_number), driveway_fee_staff:profiles!driveway_fee_applied_by(full_name)`,
+      `${BOOKING_COLS}, dumpsters(unit_number), driveway_fee_staff:profiles!driveway_fee_applied_by(full_name), created_by_staff:profiles!created_by(full_name)`,
     )
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`getBookingDetail: ${error.message}`);
   if (!booking) return null;
-  const { dumpsters, driveway_fee_staff, ...bookingRest } =
+  const { dumpsters, driveway_fee_staff, created_by_staff, ...bookingRest } =
     booking as Record<string, unknown>;
   const b = bookingRest as unknown as BookingRow;
   const dumpsterUnitNumber =
     (dumpsters as { unit_number?: string } | null)?.unit_number ?? null;
   const drivewayFeeStaffName =
     (driveway_fee_staff as { full_name?: string } | null)?.full_name ?? null;
+  const createdByName =
+    (created_by_staff as { full_name?: string } | null)?.full_name ?? null;
 
   const [{ data: customer }, { data: invoice }, { data: jobs }, { data: history }] =
     await Promise.all([
@@ -77,7 +79,7 @@ export async function getBookingDetail(
         .maybeSingle(),
       supabase
         .from("invoices")
-        .select(INVOICE_COLS)
+        .select(`${INVOICE_COLS}, recorded_by_staff:profiles!recorded_by(full_name)`)
         .eq("booking_id", id)
         .maybeSingle(),
       supabase
@@ -95,10 +97,17 @@ export async function getBookingDetail(
         .order("changed_at", { ascending: false }),
     ]);
 
+  const { recorded_by_staff, ...invoiceRest } =
+    (invoice as Record<string, unknown> | null) ?? {};
+  const paymentRecordedByName =
+    (recorded_by_staff as { full_name?: string } | null | undefined)?.full_name ?? null;
+
   return {
     booking: b,
     dumpsterUnitNumber,
     drivewayFeeStaffName,
+    createdByName,
+    paymentRecordedByName,
     customer: (customer ?? {
       id: b.customer_id,
       profile_id: null,
@@ -107,7 +116,7 @@ export async function getBookingDetail(
       phone: null,
       company_name: null,
     }) as CustomerRow,
-    invoice: (invoice as InvoiceRow | null) ?? null,
+    invoice: invoice ? (invoiceRest as unknown as InvoiceRow) : null,
     jobs: (jobs ?? []) as JobRow[],
     history: (history ?? []) as BookingDetail["history"],
   };

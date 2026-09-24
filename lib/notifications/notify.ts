@@ -148,6 +148,7 @@ interface BookingBundle {
   delivery_address: string;
   placement_notes: string | null;
   total: number;
+  payment_status: string;
   customer: {
     full_name: string;
     email: string | null;
@@ -161,7 +162,7 @@ async function loadBooking(bookingId: string): Promise<BookingBundle | null> {
   const { data } = await service
     .from("bookings")
     .select(
-      "id, size_requested, delivery_date, pickup_date, delivery_address, placement_notes, total, customers(full_name, email, phone, sms_consent)",
+      "id, size_requested, delivery_date, pickup_date, delivery_address, placement_notes, total, payment_status, customers(full_name, email, phone, sms_consent)",
     )
     .eq("id", bookingId)
     .maybeSingle();
@@ -178,6 +179,7 @@ async function loadBooking(bookingId: string): Promise<BookingBundle | null> {
     delivery_address: d.delivery_address as string,
     placement_notes: (d.placement_notes as string | null) ?? null,
     total: Number(d.total),
+    payment_status: d.payment_status as string,
     customer: c,
   };
 }
@@ -190,6 +192,7 @@ function bookingCtx(b: BookingBundle): T.BookingCtx {
     pickupDate: b.pickup_date ?? b.delivery_date,
     address: b.delivery_address,
     total: b.total,
+    paid: b.payment_status === "paid",
   };
 }
 
