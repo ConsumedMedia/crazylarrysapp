@@ -52,10 +52,13 @@ describe.skipIf(!RUN)("DocuSign client (sandbox)", () => {
     expect(exp2).toBe(exp1);
   });
 
-  it("resolves the agreement template from the PowerForm", async () => {
+  it("the configured agreement template exists and is the rental agreement", async () => {
     const id = await ds.getAgreementTemplateId();
-    console.log(`template id resolved: ${id.slice(0, 8)}…`);
-    expect(id).toMatch(/^[0-9a-f-]{36}$/i);
+    const { docusignJson } = await import("./client");
+    const t = await docusignJson<{ name: string; templateId: string }>(`templates/${id}`);
+    console.log(`DOCUSIGN_TEMPLATE_ID ${id.slice(0, 8)}… -> "${t.name}"`);
+    expect(t.templateId).toBe(id);
+    expect(t.name).toMatch(/Rental Agreement/i);
   });
 
   it("creates an envelope with the server-set embedded signer, issues a signing URL, reads it back, voids it", async () => {

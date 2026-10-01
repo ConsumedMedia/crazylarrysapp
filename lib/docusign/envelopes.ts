@@ -5,8 +5,8 @@ import { docusignBinary, docusignJson } from "./client";
 /**
  * Agreement envelopes for the online checkout.
  *
- * We create each envelope ourselves (from the PowerForm's template) instead
- * of letting the customer submit the PowerForm, so the server knows the
+ * We create each envelope ourselves (from DOCUSIGN_TEMPLATE_ID) instead of
+ * letting the customer submit a PowerForm, so the server knows the
  * envelope id from the moment it exists and sets the signer's name/email
  * itself. The Renter is an EMBEDDED recipient (clientUserId = our
  * agreement_sessions.id): DocuSign doesn't email them a signing link; we hand
@@ -18,16 +18,16 @@ export const SESSION_CUSTOM_FIELD = "cl_agreement_session";
 /** Unsigned agreement envelopes expire after this many days (DocuSign-side). */
 export const ENVELOPE_EXPIRE_DAYS = 2;
 
-let templateIdCache: string | null = null;
-
-/** The agreement template behind DOCUSIGN_POWERFORM_ID (cached per instance). */
+/**
+ * The rental-agreement template (DOCUSIGN_TEMPLATE_ID). Read from config, not
+ * via the PowerForm, so the public PowerForm link can be deactivated.
+ */
 export async function getAgreementTemplateId(): Promise<string> {
-  if (templateIdCache) return templateIdCache;
-  const { powerFormId } = getDocusignConfig();
-  const pf = await docusignJson<{ templateId?: string }>(`powerforms/${powerFormId}`);
-  if (!pf.templateId) throw new Error("DocuSign PowerForm has no templateId");
-  templateIdCache = pf.templateId;
-  return templateIdCache;
+  const { templateId } = getDocusignConfig();
+  if (!/^[0-9a-f-]{36}$/i.test(templateId)) {
+    throw new Error("DOCUSIGN_TEMPLATE_ID is not a template GUID");
+  }
+  return templateId;
 }
 
 export async function createAgreementEnvelope(opts: {

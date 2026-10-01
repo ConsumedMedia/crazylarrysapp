@@ -11,9 +11,10 @@ import "server-only";
  *   DOCUSIGN_INTEGRATION_KEY   app's integration key (JWT iss)
  *   DOCUSIGN_USER_ID           user GUID the app impersonates (JWT sub)
  *   DOCUSIGN_ACCOUNT_ID        API account id
- *   DOCUSIGN_POWERFORM_ID      the agreement PowerForm — its template is what we
- *                              create envelopes from (the PowerForm link itself
- *                              is no longer shown to customers)
+ *   DOCUSIGN_TEMPLATE_ID       the rental-agreement template every checkout
+ *                              envelope is created from. Read directly — the
+ *                              old public PowerForm is not used and can stay
+ *                              deactivated.
  *   DOCUSIGN_PRIVATE_KEY_B64   base64 of the RSA key PEM (may also contain the
  *                              public key block; only the private block is used)
  */
@@ -24,7 +25,7 @@ const REQUIRED = [
   "DOCUSIGN_INTEGRATION_KEY",
   "DOCUSIGN_USER_ID",
   "DOCUSIGN_ACCOUNT_ID",
-  "DOCUSIGN_POWERFORM_ID",
+  "DOCUSIGN_TEMPLATE_ID",
   "DOCUSIGN_PRIVATE_KEY_B64",
 ] as const;
 
@@ -35,7 +36,7 @@ export interface DocusignConfig {
   integrationKey: string;
   userId: string;
   accountId: string;
-  powerFormId: string;
+  templateId: string;
   privateKeyPem: string;
 }
 
@@ -71,7 +72,7 @@ export function getDocusignConfig(): DocusignConfig {
     integrationKey: env.DOCUSIGN_INTEGRATION_KEY!.trim(),
     userId: env.DOCUSIGN_USER_ID!.trim(),
     accountId: env.DOCUSIGN_ACCOUNT_ID!.trim(),
-    powerFormId: env.DOCUSIGN_POWERFORM_ID!.trim(),
+    templateId: env.DOCUSIGN_TEMPLATE_ID!.trim(),
     privateKeyPem,
   };
   return cached;
