@@ -10,7 +10,12 @@ const BOOK_CSP = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   "connect-src 'self' https://sandbox.api.intuit.com https://api.intuit.com https://*.supabase.co",
-  "frame-src https://*.docusign.net https://*.docusign.com",
+  // DocuSign's embedded signing session runs in the checkout modal's iframe,
+  // then DocuSign redirects that iframe to our own /book/agreement/return —
+  // so the frame must be allowed to navigate to 'self' as well.
+  "frame-src 'self' https://*.docusign.net https://*.docusign.com",
+  // Only our own pages may frame /book (the return page lives in our modal).
+  "frame-ancestors 'self'",
   "form-action 'self'",
   "base-uri 'self'",
 ].join("; ");

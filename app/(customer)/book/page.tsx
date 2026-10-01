@@ -1,5 +1,6 @@
 import { getPricingConfig } from "@/lib/bookings/pricing";
 import { quickBooksConfigured } from "@/lib/quickbooks/config";
+import { docusignConfigured } from "@/lib/docusign/config";
 import { BookingWizard } from "./_components/BookingWizard";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,8 @@ export const metadata = { title: "Book a dumpster · Crazy Larry's" };
 
 export default async function BookPage() {
   const pricing = await getPricingConfig();
-  const docusignUrl = process.env.NEXT_PUBLIC_DOCUSIGN_URL ?? null;
+  // The agreement is signed via a server-created envelope (no public PowerForm link).
+  const agreementsEnabled = docusignConfigured();
 
   // Card data is POSTed from the browser straight to this Intuit endpoint;
   // the host is environment-dependent and is not a secret.
@@ -34,7 +36,7 @@ export default async function BookPage() {
       </div>
       <BookingWizard
         pricing={pricing}
-        docusignUrl={docusignUrl}
+        agreementsEnabled={agreementsEnabled}
         tokenizeUrl={tokenizeUrl}
         paymentsReady={paymentsReady}
       />

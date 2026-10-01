@@ -122,6 +122,10 @@ export function bookingRpcError(
       "unavailable",
     );
   }
+  if (hint && hint.startsWith("agreement_")) {
+    // create_booking's own re-check of the DocuSign agreement (under the lock).
+    return new BookingCreateError(error.message, hint);
+  }
   return new BookingCreateError(error.message, error.code ?? "rpc_failed");
 }
 
@@ -132,6 +136,7 @@ export function bookingRpcError(
  */
 export async function createBooking(
   input: CreateBookingInput,
+  opts: { agreementSessionId?: string | null } = {},
 ): Promise<{ bookingId: string }> {
   const params = normalizeBookingInput(input);
 
@@ -152,6 +157,7 @@ export async function createBooking(
   const { data, error } = await service.rpc("create_booking", {
     ...params,
     p_profile_id: profileId,
+    p_agreement_session_id: opts.agreementSessionId ?? null,
   });
 
   if (error) throw bookingRpcError(error as { message: string; code?: string; hint?: string });

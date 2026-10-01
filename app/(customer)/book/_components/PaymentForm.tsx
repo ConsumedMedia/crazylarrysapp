@@ -28,13 +28,16 @@ export function PaymentForm({
   disabledReason,
   buildInput,
   onCompensated,
+  onAgreementRejected,
 }: {
   tokenizeUrl: string;
   total: number | null;
   disabled: boolean;
   disabledReason?: string;
-  buildInput: () => (CreateBookingInput & { agreementAcknowledged: boolean }) | null;
+  buildInput: () => (CreateBookingInput & { agreementSessionId: string | null }) | null;
   onCompensated: () => void;
+  /** Server refused because of the agreement (missing/unsigned/used/mismatch). */
+  onAgreementRejected: (code: string) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -119,6 +122,11 @@ export function PaymentForm({
 
       if (res.ok && res.bookingId) {
         router.push(`/book/confirmed/${res.bookingId}`);
+        return;
+      }
+      if (res.code?.startsWith("agreement_")) {
+        setError(res.error ?? "Please sign the rental agreement again.");
+        onAgreementRejected(res.code);
         return;
       }
       if (res.code === "compensated") {

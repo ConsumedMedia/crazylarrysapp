@@ -200,3 +200,30 @@ export async function runQuickbooksSync(): Promise<{
     invoicePayments,
   };
 }
+
+// --- DocuSign agreement cleanup --------------------------------------------
+
+/**
+ * DocuSign agreement housekeeping (lib/docusign/agreement.ts):
+ *   1. void unsigned envelopes past their 2-day window
+ *   2. retry archiving any verified agreement with no stored PDF yet
+ *   3. delete signed agreements that never became a booking, after 30 days
+ * Agreements attached to a booking are never deleted.
+ */
+export async function runAgreementCleanup(): Promise<{
+  ok: boolean;
+  voided: { checked: number; voided: number; errors: string[] };
+  archived: { checked: number; stored: number; errors: string[] };
+  unbookedDeleted: { checked: number; deleted: number; errors: string[] };
+}> {
+  const a = await import("@/lib/docusign/agreement");
+  const voided = await a.voidAbandonedAgreements();
+  const archived = await a.retryAgreementArchives();
+  const unbookedDeleted = await a.deleteUnbookedSignedAgreements();
+  return {
+    ok: voided.errors.length + archived.errors.length + unbookedDeleted.errors.length === 0,
+    voided,
+    archived,
+    unbookedDeleted,
+  };
+}

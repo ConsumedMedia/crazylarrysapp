@@ -4,6 +4,7 @@ import {
   runReminders,
   runQuickbooksRefresh,
   runQuickbooksSync,
+  runAgreementCleanup,
 } from "@/lib/cron/jobs";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,8 @@ export const dynamic = "force-dynamic";
  * one failing job (e.g. QuickBooks down) doesn't stop the customer-facing
  * ones (overdue notices, reminders) from running.
  *
- * Order: overdue -> reminders -> quickbooks-refresh -> quickbooks-sync.
+ * Order: overdue -> reminders -> quickbooks-refresh -> quickbooks-sync ->
+ * agreement-cleanup (void unsigned DocuSign envelopes past 2 days).
  * Customer-facing jobs run first so they're not starved by a slow QB call.
  *
  * The individual /api/cron/{overdue,reminders,quickbooks-refresh,quickbooks-sync}
@@ -38,6 +40,7 @@ export async function GET(request: NextRequest) {
     ["reminders", runReminders],
     ["quickbooks_refresh", runQuickbooksRefresh],
     ["quickbooks_sync", runQuickbooksSync],
+    ["agreement_cleanup", runAgreementCleanup],
   ];
 
   const results: Record<string, { ok: boolean; result?: unknown; error?: string }> = {};

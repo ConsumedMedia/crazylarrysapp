@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { AgreementModal } from "./AgreementModal";
 import { PaymentForm } from "./PaymentForm";
+import { startAgreementAction, verifyAgreementAction } from "../actions";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { rentalWindow } from "@/lib/availability/dates";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
@@ -53,14 +54,47 @@ function fmtDate(d: string) {
 
 const STEPS = ["Size", "Dates", "Details", "Review & pay"];
 
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const DRAFT_KEY = "cl_book_draft";
+
+interface AgreementState {
+  sessionId: string | null;
+  status: "none" | "starting" | "signing" | "verifying" | "signed" | "error";
+  message?: string;
+  /** set only once the SERVER confirmed completion with DocuSign */
+  signedEmail?: string;
+  signedName?: string;
+  /** the last check can be retried (still confirming / DocuSign unreachable) */
+  retryable?: boolean;
+}
+
+interface Draft {
+  sessionId: string;
+  size: DumpsterSize;
+  deliveryDate: string;
+  street: string;
+  city: string;
+  stateAbbr: string;
+  zip: string;
+  placement: string;
+  driverNotes: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  companyName: string;
+  debris: string;
+  smsConsent: boolean;
+}
+
 export function BookingWizard({
   pricing,
-  docusignUrl,
+  agreementsEnabled,
   tokenizeUrl,
   paymentsReady,
 }: {
   pricing: PricingConfig;
-  docusignUrl: string | null;
+  /** Server has DocuSign configured; otherwise online booking can't proceed. */
+  agreementsEnabled: boolean;
   tokenizeUrl: string;
   paymentsReady: boolean;
 }) {
@@ -82,7 +116,11 @@ export function BookingWizard({
   const [smsConsent, setSmsConsent] = useState(false);
 
   const [agreementOpen, setAgreementOpen] = useState(false);
-  const [agreementAck, setAgreementAck] = useState(false);
+  const [signingUrl, setSigningUrl] = useState<string | null>(null);
+  const [agreement, setAgreement] = useState<AgreementState>({
+    sessionId: null,
+    status: "none",
+  });
 
   const quote = useMemo(() => {
     if (!size) return null;
@@ -104,7 +142,143 @@ export function BookingWizard({
     stateAbbr.trim() &&
     zip.trim() &&
     contactName.trim() &&
-    (contactEmail.trim() || contactPhone.trim());
+    EMAIL_RE.test(contactEmail.trim());
+
+  // A signed agreement is bound to the exact name + email that signed it (the
+  // server refuses a mismatched email). Editing either afterwards invalidates
+  // it here too, so the UI never shows "signed" for a booking the server will
+  // reject.
+  const agreementSigned =
+    agreement.status === "signed" &&
+    agreement.signedEmail === contactEmail.trim().toLowerCase() &&
+    agreement.signedName === contactName.trim();
+
+  const verify = useCallback(async (sessionId: string) => {
+    setAgreement((a) => ({ ...a, sessionId, status: "verifying", message: undefined, retryable: false }));
+    const r = await verifyAgreementAction(sessionId);
+    if (r.ok) {
+      setAgreement((a) => ({ ...a, sessionId, status: "signed", signedEmail: r.signerEmail, message: undefined }));
+      return;
+    }
+    const retryable = r.code === "agreement_incomplete" || r.code === "throttled" || r.code === "unavailable";
+    setAgreement((a) => ({
+      ...a,
+      sessionId: retryable ? sessionId : null,
+      status: "error",
+      retryable,
+      message: r.error ?? "We couldn't confirm the agreement.",
+    }));
+  }, []);
+
+  // The return page (inside the modal's iframe) tells us signing finished.
+  // Only a same-origin message is accepted, and it only TRIGGERS a server
+  // check with DocuSign — it never marks anything signed by itself.
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return;
+      const d = e.data as { type?: string; sessionId?: string; event?: string };
+      if (d?.type !== "cl-docusign-return" || !d.sessionId) return;
+      setAgreementOpen(false);
+      setSigningUrl(null);
+      if (d.event === "signing_complete") {
+        void verify(d.sessionId);
+      } else {
+        setAgreement((a) => ({
+          ...a,
+          status: "error",
+          retryable: false,
+          message:
+            d.event === "decline"
+              ? "You declined the agreement. It has to be signed to book online."
+              : "Signing wasn't finished. Open the agreement again to continue.",
+        }));
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [verify]);
+
+  // Phones sign full-page (DocuSign only supports full-screen iframes on
+  // mobile): the wizard is saved to sessionStorage before leaving and restored
+  // here when the return page sends the customer back to /book?agreement=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const returned = params.get("agreement");
+    if (!returned) return;
+    let draft: Draft | null = null;
+    try {
+      draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "null") as Draft | null;
+      sessionStorage.removeItem(DRAFT_KEY);
+    } catch {
+      draft = null;
+    }
+    window.history.replaceState(null, "", "/book");
+    if (!draft || draft.sessionId !== returned) return;
+    setSize(draft.size);
+    setDeliveryDate(draft.deliveryDate);
+    setStreet(draft.street);
+    setCity(draft.city);
+    setStateAbbr(draft.stateAbbr);
+    setZip(draft.zip);
+    setPlacement(draft.placement);
+    setDriverNotes(draft.driverNotes);
+    setContactName(draft.contactName);
+    setContactPhone(draft.contactPhone);
+    setContactEmail(draft.contactEmail);
+    setCompanyName(draft.companyName);
+    setDebris(draft.debris);
+    setSmsConsent(draft.smsConsent);
+    setStep(4);
+    const signedName = draft.contactName.trim();
+    if (params.get("event") === "signing_complete") {
+      setAgreement({ sessionId: returned, status: "verifying", signedName });
+      void verify(returned);
+    } else {
+      setAgreement({
+        sessionId: returned,
+        status: "error",
+        signedName,
+        message: "Signing wasn't finished. Open the agreement again to continue.",
+      });
+    }
+    // restore once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function startSigning() {
+    setAgreement((a) => ({ ...a, status: "starting", message: undefined, retryable: false }));
+    const r = await startAgreementAction({
+      contactName: contactName.trim(),
+      contactEmail: contactEmail.trim(),
+      existingSessionId: agreement.sessionId,
+    });
+    if (!r.ok) {
+      setAgreement((a) => ({ ...a, status: "error", message: r.error }));
+      return;
+    }
+    const signedName = contactName.trim();
+    if (r.alreadySigned) {
+      setAgreement({ sessionId: r.sessionId, status: "signed", signedEmail: contactEmail.trim().toLowerCase(), signedName });
+      return;
+    }
+    setAgreement({ sessionId: r.sessionId, status: "signing", signedName });
+    const phone = window.matchMedia("(max-width: 639px)").matches;
+    if (phone && size && deliveryDate) {
+      const draft: Draft = {
+        sessionId: r.sessionId, size, deliveryDate, street, city, stateAbbr, zip, placement,
+        driverNotes, contactName, contactPhone, contactEmail, companyName, debris, smsConsent,
+      };
+      try {
+        sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        window.location.assign(r.signingUrl);
+        return;
+      } catch {
+        /* storage blocked: fall back to the modal */
+      }
+    }
+    setSigningUrl(r.signingUrl);
+    setAgreementOpen(true);
+  }
 
   function buildBookingInput() {
     if (!size || !deliveryDate) return null;
@@ -122,7 +296,7 @@ export function BookingWizard({
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
       companyName: companyName || undefined,
-      agreementAcknowledged: agreementAck,
+      agreementSessionId: agreementSigned ? agreement.sessionId : null,
       smsConsent,
     };
   }
@@ -416,7 +590,7 @@ export function BookingWizard({
                         className={inputCls}
                       />
                     </Field>
-                    <Field label="Email — for the receipt">
+                    <Field label="Email — required: your signed agreement and receipt">
                       <input
                         value={contactEmail}
                         onChange={(e) => setContactEmail(e.target.value)}
@@ -522,39 +696,77 @@ export function BookingWizard({
                     <span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">
                       Rental agreement
                     </span>
-                    <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-2">
-                      {agreementAck ? "Acknowledged" : "Not signed"}
+                    <span
+                      className={`text-[11px] font-extrabold uppercase tracking-[0.1em] ${
+                        agreementSigned ? "text-teal-tint-ink" : "text-ink-2"
+                      }`}
+                    >
+                      {agreementSigned
+                        ? "Signed · verified with DocuSign"
+                        : agreement.status === "verifying"
+                          ? "Confirming with DocuSign…"
+                          : "Not signed"}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 p-4">
                     <p className="flex-1 text-[13px] text-ink-2">
-                      Larry&apos;s standard rental agreement, hosted by DocuSign.
-                      Open it, complete signing there, then check the box.
+                      {agreementSigned
+                        ? `Signed by ${contactName.trim()} (${contactEmail.trim()}). Changing your name or email means signing again.`
+                        : agreementsEnabled
+                          ? `Larry's standard rental agreement, signed through DocuSign as ${contactName.trim() || "you"} (${contactEmail.trim() || "your email"}). Payment unlocks once DocuSign confirms your signature.`
+                          : "Online signing isn't available right now. Please call the yard to book."}
                     </p>
-                    <button
-                      onClick={() => setAgreementOpen(true)}
-                      className="border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint"
-                    >
-                      Read &amp; sign
-                    </button>
+                    {!agreementSigned && agreementsEnabled && (
+                      <div className="flex flex-wrap gap-2">
+                        {agreement.status === "error" && agreement.retryable && agreement.sessionId && (
+                          <button
+                            onClick={() => void verify(agreement.sessionId!)}
+                            className="bg-teal px-4 py-2.5 text-[13px] font-extrabold text-white hover:bg-teal-700"
+                          >
+                            Check signature
+                          </button>
+                        )}
+                        <button
+                          onClick={() => void startSigning()}
+                          disabled={agreement.status === "starting" || agreement.status === "verifying"}
+                          className="border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint disabled:opacity-60"
+                        >
+                          {agreement.status === "starting"
+                            ? "Opening DocuSign…"
+                            : agreement.status === "verifying"
+                              ? "Confirming…"
+                              : agreement.status === "error" && agreement.retryable
+                                ? "Open agreement"
+                                : "Read & sign"}
+                        </button>
+                      </div>
+                    )}
+                    {agreement.status === "error" && agreement.message && (
+                      <p className="w-full text-[12px] font-semibold text-orange-tint-ink">
+                        {agreement.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <PaymentForm
                   tokenizeUrl={tokenizeUrl}
                   total={quote?.total ?? null}
-                  disabled={!agreementAck || !quote || !paymentsReady}
+                  disabled={!agreementSigned || !quote || !paymentsReady}
                   disabledReason={
                     !paymentsReady
                       ? "Card payment is being set up. Please call the yard to reserve a can."
-                      : !agreementAck
-                        ? "Complete the rental agreement above to continue."
+                      : !agreementSigned
+                        ? "Sign the rental agreement above to continue. Payment unlocks once DocuSign confirms it."
                         : !quote
                           ? "Pricing unavailable — call the yard."
                           : undefined
                   }
                   buildInput={buildBookingInput}
                   onCompensated={() => setStep(2)}
+                  onAgreementRejected={() =>
+                    setAgreement({ sessionId: null, status: "error", message: "Please sign the rental agreement again." })
+                  }
                 />
               </div>
 
@@ -616,11 +828,25 @@ export function BookingWizard({
 
       <AgreementModal
         open={agreementOpen}
-        onClose={() => setAgreementOpen(false)}
-        onAcknowledge={setAgreementAck}
-        acknowledged={agreementAck}
+        onClose={() => {
+          setAgreementOpen(false);
+          setSigningUrl(null);
+          setAgreement((a) =>
+            // We can't know from here whether they finished — the return
+            // redirect may simply not have reached us. Offer a server-side
+            // check as well as reopening.
+            a.status === "signing"
+              ? {
+                  ...a,
+                  status: "error",
+                  retryable: true,
+                  message: "If you finished signing in DocuSign, check your signature. Otherwise open the agreement again.",
+                }
+              : a,
+          );
+        }}
         size={size ?? ""}
-        docusignUrl={docusignUrl}
+        signingUrl={signingUrl}
       />
     </div>
   );
