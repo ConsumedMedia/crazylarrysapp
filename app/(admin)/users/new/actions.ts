@@ -44,6 +44,7 @@ export async function createUserAction(
     });
 
     revalidatePath("/users/new");
+    revalidatePath("/users");
     revalidatePath("/drivers");
 
     const parts: string[] = [];
