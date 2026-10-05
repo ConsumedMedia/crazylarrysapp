@@ -21,7 +21,10 @@ interface LogRow {
   driver_id: string | null;
   type: string;
   channel: Channel;
+  /** Who was actually sent to (the test address when redirected). */
   recipient: string;
+  /** The intended recipient, set only when CL_NOTIFICATIONS_TEST_TO redirected the send. */
+  original_recipient: string | null;
   delivery_status: "sent" | "failed" | "skipped";
   sent_at: string | null;
   body: string;
@@ -33,7 +36,11 @@ interface LogRow {
 async function writeLog(row: LogRow): Promise<void> {
   try {
     const service = createServiceClient();
-    await service.from("notifications_log").insert(row);
+    // supabase-js reports insert failures in the result, not by throwing —
+    // without this check a rejected row (e.g. a column the DB doesn't have
+    // yet) vanishes without a trace.
+    const { error } = await service.from("notifications_log").insert(row);
+    if (error) console.error("[notify] notifications_log insert failed:", error.message);
   } catch (e) {
     // Logging the log failure is all we can safely do.
     console.error("[notify] notifications_log insert failed:", (e as Error).message);
@@ -52,7 +59,8 @@ function logRowFrom(
     driver_id: base.driverId,
     type: base.type,
     channel,
-    recipient,
+    recipient: result.sentTo ?? recipient,
+    original_recipient: result.redirected ? recipient : null,
     delivery_status: result.ok ? "sent" : result.skipped ? "skipped" : "failed",
     sent_at: result.ok ? new Date().toISOString() : null,
     body,

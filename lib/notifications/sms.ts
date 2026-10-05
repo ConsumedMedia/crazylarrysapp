@@ -35,6 +35,13 @@ export interface SendResult {
   error?: string;
   skipped?: boolean;
   category?: FailureCategory;
+  /**
+   * Set once a provider call is attempted: the address/number actually sent
+   * to, and whether CL_NOTIFICATIONS_TEST_TO redirected it away from the
+   * intended recipient. notify.ts logs the real destination from these.
+   */
+  sentTo?: string;
+  redirected?: boolean;
 }
 
 export function smsEnabled(): boolean {
@@ -108,6 +115,7 @@ export async function sendSms(
     }
     to = t;
   }
+  const delivery = { sentTo: to, redirected: !!testTo };
 
   try {
     const ctrl = new AbortController();
@@ -139,6 +147,7 @@ export async function sendSms(
         ok: false,
         category: categorizeQuoError(res.status, detail),
         error: `Quo ${res.status}: ${detail}`,
+        ...delivery,
       };
     }
 
@@ -149,13 +158,14 @@ export async function sendSms(
     } catch {
       /* 202 with empty body is fine */
     }
-    return { ok: true, providerMessageId: id };
+    return { ok: true, providerMessageId: id, ...delivery };
   } catch (e) {
     const isTimeout = (e as Error).name === "AbortError";
     return {
       ok: false,
       category: "transient",
       error: (isTimeout ? "Quo request timed out" : (e as Error).message).slice(0, 300),
+      ...delivery,
     };
   }
 }
