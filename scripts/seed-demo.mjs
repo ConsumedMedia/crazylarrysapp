@@ -4,6 +4,10 @@
  *   node scripts/seed-demo.mjs           # dry run: prints the plan, touches nothing
  *   node scripts/seed-demo.mjs --confirm # WIPES transactional data, then seeds
  *
+ * Refuses --confirm if the database holds anything this script didn't create
+ * (real customers/bookings, payment attempts, call transcripts, job photos,
+ * non-seed drivers) unless --force-wipe=<supabase project ref> is also given.
+ *
  * What it does (only with --confirm):
  *   0. Signs in as the persistent SEED_OWNER_EMAIL/PASSWORD account — a real
  *      owner session used for every role grant and lifecycle RPC below, so
@@ -196,6 +200,84 @@ const BOOKINGS = [
     name: "Angela Poe", company: "Metro Dental Partners", email: "apoe@metrodental.example.com", phone: "614-555-0209",
     debris: "Office remodel — millwork and flooring", notes: "Dumpster in the rear parking row." },
 ];
+
+// ---------------------------------------------------------------------------
+// real-data guard — this database is production now. The wipe deletes EVERY
+// row in WIPE_ORDER, so before touching anything, look for rows this script
+// could not have created. Any found → refuse, unless the operator re-runs with
+// --force-wipe=<project-ref> (the Supabase project ref, typed out, so a stray
+// flag or shell-history replay can't do it by accident). Runs on the dry run
+// too, so the plan says up front whether --confirm would be refused.
+// ---------------------------------------------------------------------------
+const PROJECT_REF = new URL(SUPABASE_URL).hostname.split(".")[0];
+const FORCE_ARG = process.argv.find((a) => a.startsWith("--force-wipe="));
+const FORCED = FORCE_ARG === `--force-wipe=${PROJECT_REF}`;
+if (FORCE_ARG && !FORCED) {
+  console.error(`\n  --force-wipe must name this database's project ref exactly: --force-wipe=${PROJECT_REF}\n`);
+  process.exit(1);
+}
+
+const SEED_CUSTOMER_EMAILS = [
+  ...new Set([...BOOKINGS.map((b) => b.email), PORTAL_EMAIL, "would.be.customer@example.com"].map((e) => e.toLowerCase())),
+];
+const SEED_DRIVER_EMAILS = DRIVERS.filter((d) => d.email).map((d) => d.email.toLowerCase());
+
+async function findNonSeedData() {
+  const c = new pg.Client({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  await c.connect();
+  try {
+    await c.query("begin read only");
+    const { rows } = await c.query(
+      `with seed_drivers as (
+         select d.id from public.drivers d join auth.users u on u.id = d.profile_id
+         where lower(u.email) = any($2)
+            or d.profile_id = (select id from public.profiles where role = 'driver' order by created_at asc limit 1)
+       ), real_customers as (
+         select id from public.customers where email is null or lower(email) <> all($1)
+       )
+       select
+         (select count(*) from real_customers)::int as customers,
+         (select count(*) from public.bookings where customer_id in (select id from real_customers))::int as bookings,
+         (select count(*) from public.payment_attempts)::int as payment_attempts,
+         (select count(*) from public.call_transcripts)::int as call_transcripts,
+         (select count(*) from public.job_photos)::int as job_photos,
+         (select count(*) from public.drivers where id not in (select id from seed_drivers))::int as drivers`,
+      [SEED_CUSTOMER_EMAILS, SEED_DRIVER_EMAILS],
+    );
+    const { rows: sample } = await c.query(
+      `select b.id, b.created_at, c.full_name, c.email from public.bookings b
+       join public.customers c on c.id = b.customer_id
+       where c.email is null or lower(c.email) <> all($1)
+       order by b.created_at desc limit 5`,
+      [SEED_CUSTOMER_EMAILS],
+    );
+    await c.query("rollback");
+    return { counts: rows[0], sample };
+  } finally {
+    await c.end();
+  }
+}
+
+const realData = await findNonSeedData();
+const realTotal = Object.values(realData.counts).reduce((a, n) => a + n, 0);
+if (realTotal > 0) {
+  console.error(`\n  ✋ ${PROJECT_REF} holds data this script did not create:`);
+  for (const [k, n] of Object.entries(realData.counts)) if (n > 0) console.error(`       ${k.padEnd(18)} ${n}`);
+  for (const b of realData.sample) {
+    console.error(`       e.g. booking ${b.id}  ${b.created_at.toISOString().slice(0, 10)}  ${b.full_name} <${b.email ?? "no email"}>`);
+  }
+  if (FORCED) {
+    console.error(`\n  --force-wipe=${PROJECT_REF} given — the wipe will delete it anyway.\n`);
+  } else if (CONFIRM) {
+    console.error(
+      `\n  --confirm would DELETE all of it. Refusing.\n` +
+        `  If wiping this database is truly intended, re-run with --confirm --force-wipe=${PROJECT_REF}\n`,
+    );
+    process.exit(1);
+  } else {
+    console.error(`\n  --confirm will be REFUSED unless --force-wipe=${PROJECT_REF} is also given.\n`);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // dry run
