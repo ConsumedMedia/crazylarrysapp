@@ -70,6 +70,7 @@ export async function sendEmail(opts: {
     }
     to = testTo;
   }
+  const delivery = { sentTo: to, redirected: !!testTo };
 
   try {
     const ctrl = new AbortController();
@@ -105,6 +106,7 @@ export async function sendEmail(opts: {
         ok: false,
         category: categorizeResendError(res.status, detail),
         error: `Resend ${res.status}: ${detail}`,
+        ...delivery,
       };
     }
 
@@ -114,13 +116,14 @@ export async function sendEmail(opts: {
     } catch {
       /* ignore */
     }
-    return { ok: true, providerMessageId: id };
+    return { ok: true, providerMessageId: id, ...delivery };
   } catch (e) {
     const isTimeout = (e as Error).name === "AbortError";
     return {
       ok: false,
       category: "transient",
       error: (isTimeout ? "Resend request timed out" : (e as Error).message).slice(0, 300),
+      ...delivery,
     };
   }
 }
