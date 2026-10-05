@@ -25,9 +25,10 @@ function buildNav(pendingRequests: number, role: "staff" | "owner"): NavItem[] {
     { key: "customers", label: "Customers", href: "/customers" },
     { key: "call-log", label: "Call log", href: "/call-log" },
     { key: "settings", label: "Settings", href: "/settings" },
-    // Owner-only: this is the one screen that can grant staff/owner access.
+    // Owner-only: the Users list (and /users/new under it) is the one place
+    // that grants, changes or removes staff/owner/driver access.
     ...(role === "owner"
-      ? [{ key: "users-new", label: "New user", href: "/users/new" } as NavItem]
+      ? [{ key: "users", label: "Users", href: "/users" } as NavItem]
       : []),
   ];
 }
