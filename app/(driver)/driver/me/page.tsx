@@ -1,4 +1,7 @@
+import Link from "next/link";
 import { myDriverProfile } from "@/lib/driver/queries";
+import { requireDriver } from "@/lib/auth/requireDriver";
+import { hasStaffRole } from "@/lib/auth/modes";
 import { signOutAction } from "@/lib/auth/actions";
 import { ThemeToggle } from "@/lib/design/ThemeToggle";
 import { getThemeChoice } from "@/lib/design/theme.server";
@@ -7,7 +10,8 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Me · Crazy Larry's" };
 
 export default async function DriverMePage() {
-  const profile = await myDriverProfile();
+  const [profile, ctx] = await Promise.all([myDriverProfile(), requireDriver()]);
+  const adminMode = await hasStaffRole(ctx.userId);
   const theme = getThemeChoice();
 
   return (
@@ -68,6 +72,16 @@ export default async function DriverMePage() {
         </div>
         <ThemeToggle initialChoice={theme} />
       </div>
+
+      {/* Same login, other mode: only for staff/owner accounts. */}
+      {adminMode && (
+        <Link
+          href="/dashboard"
+          className="w-full border-2 border-line-strong bg-surface px-4 py-3 text-center text-[13px] font-extrabold hover:bg-tint"
+        >
+          Admin view →
+        </Link>
+      )}
 
       <form action={signOutAction}>
         <button className="w-full border-2 border-ink px-4 py-3 text-[13px] font-extrabold hover:bg-tint">

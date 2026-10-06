@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { requireStaff } from "@/lib/auth/requireStaff";
+import { hasActiveDriverRow } from "@/lib/auth/modes";
 import { countPendingChangeRequests } from "@/lib/bookings/change-requests";
 import { RouteFade } from "@/lib/design/RouteFade";
 import { ThemeToggle } from "@/lib/design/ThemeToggle";
@@ -45,7 +47,10 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const staff = await requireStaff();
-  const pendingRequests = await countPendingChangeRequests();
+  const [pendingRequests, driverMode] = await Promise.all([
+    countPendingChangeRequests(),
+    hasActiveDriverRow(staff.userId),
+  ]);
   const NAV = buildNav(pendingRequests, staff.role);
   const theme = getThemeChoice();
 
@@ -66,6 +71,18 @@ export default async function AdminLayout({
         </div>
 
         <SidebarNav items={NAV} />
+
+        {/* Same login, other mode: only for accounts with an active driver row. */}
+        {driverMode && (
+          <div className="border-t border-white/10 py-3">
+            <Link
+              href="/driver"
+              className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-rail-ink-2 hover:bg-white/[0.07] hover:text-white"
+            >
+              Driver view →
+            </Link>
+          </div>
+        )}
 
         <div className="mt-auto flex flex-col gap-3 border-t border-white/10 p-4">
           <ThemeToggle initialChoice={theme} />
@@ -106,6 +123,14 @@ export default async function AdminLayout({
               Search a can number, address, or customer
             </span>
           </div>
+          {driverMode && (
+            <Link
+              href="/driver"
+              className="flex-none border-2 border-line-strong px-2.5 py-2 text-[11px] font-extrabold uppercase tracking-wide md:hidden"
+            >
+              Driver view
+            </Link>
+          )}
           <div className="hidden items-center gap-2 md:flex">
             <div className="flex items-center gap-2 border-2 border-line py-[3px] pl-[3px] pr-2.5">
               <div className="grid h-7 w-7 place-items-center bg-teal text-[11px] font-extrabold text-white">
