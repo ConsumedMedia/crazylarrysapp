@@ -39,6 +39,31 @@ export async function changeBookingStatus(
     throw new BookingMutationError("Unknown target status.", "bad_status");
   }
   const supabase = createClient();
+
+  // A card-paid booking must go through Cancel & refund: a plain cancel frees
+  // the unit but leaves the booking marked paid. The UI hides the button; this
+  // refuses a forged or stale form too. Paid WITHOUT a card charge (cash,
+  // check, QBO pay-link) has no in-app refund path, so plain cancel stays
+  // allowed there and the UI warns instead.
+  if (to === "cancelled") {
+    const { data: b, error: bErr } = await supabase
+      .from("bookings")
+      .select("payment_status, invoices(qb_charge_id)")
+      .eq("id", id)
+      .maybeSingle();
+    if (bErr) throw new BookingMutationError(bErr.message, "booking_read");
+    const inv = (Array.isArray(b?.invoices) ? b?.invoices[0] : b?.invoices) as
+      | { qb_charge_id: string | null }
+      | null
+      | undefined;
+    if (b?.payment_status === "paid" && inv?.qb_charge_id) {
+      throw new BookingMutationError(
+        "This booking was paid by card. Use Cancel & refund so the payment is refunded too.",
+        "paid_use_refund",
+      );
+    }
+  }
+
   const { data, error } = await supabase.rpc("set_booking_status", {
     p_booking_id: id,
     p_to: to as BookingStatus,
