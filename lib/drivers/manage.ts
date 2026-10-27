@@ -23,6 +23,43 @@ export interface CandidateProfile {
   email: string | null;
 }
 
+export interface DriverOpenJob {
+  jobId: string;
+  bookingId: string;
+  type: string;
+  scheduledDate: string | null;
+  address: string;
+}
+
+/**
+ * Jobs still assigned to this driver (not completed/cancelled). Staff-level
+ * (the Users page uses the owner-only open_jobs_for_profile RPC instead);
+ * reads through the caller's session under "jobs: staff full access".
+ */
+export async function listOpenJobsForDriver(driverId: string): Promise<DriverOpenJob[]> {
+  await assertStaff();
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("id, booking_id, type, scheduled_date, bookings(delivery_address)")
+    .eq("driver_id", driverId)
+    .eq("status", "assigned")
+    .order("scheduled_date", { ascending: true, nullsFirst: false });
+  if (error) throw new DriverManageError(error.message);
+  return (data ?? []).map((j) => {
+    const b = (Array.isArray(j.bookings) ? j.bookings[0] : j.bookings) as
+      | { delivery_address: string }
+      | null;
+    return {
+      jobId: j.id as string,
+      bookingId: j.booking_id as string,
+      type: j.type as string,
+      scheduledDate: (j.scheduled_date as string | null) ?? null,
+      address: b?.delivery_address ?? "",
+    };
+  });
+}
+
 export async function listTrucks(): Promise<TruckOption[]> {
   await assertStaff();
   const supabase = createClient();

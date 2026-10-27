@@ -162,6 +162,7 @@ export function DriverRowEditor({
 
   const [activePending, startActiveTransition] = useTransition();
   const [activeError, setActiveError] = useState<string | null>(null);
+  const [activeJobs, setActiveJobs] = useState<NonNullable<DriverActionState["openJobs"]>>([]);
 
   const [contactPending, startContactTransition] = useTransition();
   const [contactError, setContactError] = useState<string | null>(null);
@@ -175,6 +176,7 @@ export function DriverRowEditor({
     const nextActive = !localDriver.active;
     setLocalDriver((d) => ({ ...d, active: nextActive }));
     setActiveError(null);
+    setActiveJobs([]);
     startActiveTransition(async () => {
       const fd = new FormData();
       fd.set("driver_id", driver.id);
@@ -183,6 +185,7 @@ export function DriverRowEditor({
       if (!result.ok) {
         setLocalDriver((d) => ({ ...d, active: !nextActive }));
         setActiveError(result.error ?? "Couldn't update.");
+        setActiveJobs(result.openJobs ?? []);
       }
     });
   }
@@ -264,7 +267,20 @@ export function DriverRowEditor({
         </div>
 
         {activeError && (
-          <div className="text-[11px] text-orange-tint-ink">{activeError}</div>
+          <div className="text-[11px] text-orange-tint-ink">
+            {activeError}
+            {activeJobs.length > 0 && (
+              <ul className="mt-1 list-disc pl-4 text-ink-2">
+                {activeJobs.map((j) => (
+                  <li key={j.jobId}>
+                    <a className="underline" href={`/bookings/${j.bookingId}`}>
+                      {j.type} {j.scheduledDate ?? "unscheduled"} — {j.address}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
 
         <button

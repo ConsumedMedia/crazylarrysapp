@@ -1,13 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createDriver, updateDriver, DriverManageError } from "@/lib/drivers/manage";
+import {
+  createDriver,
+  updateDriver,
+  listOpenJobsForDriver,
+  DriverManageError,
+  type DriverOpenJob,
+} from "@/lib/drivers/manage";
 import { NotAuthorizedError } from "@/lib/auth/requireStaff";
 
 export interface DriverActionState {
   ok: boolean;
   error?: string;
   message?: string;
+  openJobs?: DriverOpenJob[];
 }
 
 function toState(e: unknown): DriverActionState {
@@ -85,10 +92,24 @@ export async function toggleDriverActiveAction(
   formData: FormData,
 ): Promise<DriverActionState> {
   try {
-    await updateDriver(String(formData.get("driver_id") ?? ""), {
-      active: formData.get("active") === "true",
-    });
+    const driverId = String(formData.get("driver_id") ?? "");
+    const active = formData.get("active") === "true";
+    if (!active) {
+      // Same rules as turning off driver access on the Users page: refuse while
+      // the driver still has assigned jobs, and release their truck so it can
+      // go to someone else (reactivating doesn't restore it).
+      const openJobs = await listOpenJobsForDriver(driverId);
+      if (openJobs.length) {
+        return {
+          ok: false,
+          error: `Can't deactivate: this driver has ${openJobs.length} open job(s). Reassign them first.`,
+          openJobs,
+        };
+      }
+    }
+    await updateDriver(driverId, active ? { active } : { active, truck_id: null });
     revalidatePath("/drivers");
+    revalidatePath("/dispatch");
     return { ok: true };
   } catch (e) {
     return toState(e);
