@@ -90,6 +90,11 @@ export function BookingControls({
 
   const nexts = nextBookingStatuses(status);
   const canRefund = paymentStatus === "paid" && hasCharge;
+  // A card-paid booking is cancelled with Cancel & refund (under Payment).
+  // Plain Cancel would free the unit but leave the booking marked paid; the
+  // server refuses it too (changeBookingStatus).
+  const lifecycle = canRefund ? nexts.filter((s) => s !== "cancelled") : nexts;
+  const cancellable = nexts.includes("cancelled");
 
   return (
     <div className="flex flex-col gap-5">
@@ -101,7 +106,7 @@ export function BookingControls({
           {nexts.length === 0 && (
             <span className="text-[12px] text-ink-2">Terminal state.</span>
           )}
-          {nexts.map((to) => (
+          {lifecycle.map((to) => (
             <form key={to} action={statusAction}>
               <input type="hidden" name="id" value={id} />
               <input type="hidden" name="to" value={to} />
@@ -122,6 +127,18 @@ export function BookingControls({
             </form>
           ))}
         </div>
+        {canRefund && cancellable && (
+          <p className="mt-1.5 text-[11px] text-ink-3">
+            To cancel, use <strong>Cancel &amp; refund</strong> under Payment — it refunds the
+            card and cancels in one step.
+          </p>
+        )}
+        {paymentStatus === "paid" && !hasCharge && cancellable && (
+          <p className="mt-1.5 text-[11px] font-semibold text-orange-tint-ink">
+            Cancelling keeps this booking marked Paid. Refund the cash, check or QuickBooks
+            payment yourself.
+          </p>
+        )}
         <div className="mt-1.5">
           <Feedback state={statusState} />
         </div>
