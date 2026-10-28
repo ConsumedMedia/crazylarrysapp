@@ -17,6 +17,9 @@ export default defineConfig({
       { find: /^@\/(.*)$/, replacement: `${root}$1` },
     ],
   },
+  // tsconfig says jsx: "preserve" (Next compiles it); tests need the same
+  // automatic runtime Next uses, so .tsx renders without importing React.
+  esbuild: { jsx: "automatic" },
   test: {
     setupFiles: ["./vitest.setup.ts"],
     // Integration tests hit the linked Supabase project.
