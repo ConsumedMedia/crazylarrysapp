@@ -8,8 +8,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Everything except static assets and image optimization files.
+     * Everything except static assets, image optimization files and inbound
+     * webhooks (signature-verified, no session — refreshing one would only
+     * add a Supabase round trip before the handler answers).
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/webhooks/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
