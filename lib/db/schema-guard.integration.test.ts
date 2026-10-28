@@ -140,6 +140,18 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     expect(rows).toEqual([{ evtenabled: "O", evtevent: "ddl_command_end" }]);
   });
 
+  it("ingest_quo_call_event (public webhook writer) is callable by service_role only", async () => {
+    const rows = await q<{ anon_x: boolean; auth_x: boolean; svc_x: boolean }>(
+      `select has_function_privilege('anon', p, 'execute') as anon_x,
+              has_function_privilege('authenticated', p, 'execute') as auth_x,
+              has_function_privilege('service_role', p, 'execute') as svc_x
+       from to_regprocedure('public.ingest_quo_call_event(text,text,jsonb)') p
+       where p is not null`,
+    );
+    // Before migration 20261028000000 is applied there is nothing to check.
+    for (const r of rows) expect(r).toEqual({ anon_x: false, auth_x: false, svc_x: true });
+  });
+
   it("no un-reviewed SECURITY DEFINER function is executable by anon", async () => {
     const rows = await q<{ fn: string }>(
       `select p.oid::regprocedure::text as fn from pg_proc p
