@@ -54,6 +54,21 @@ describe("verifyQuoSignature", () => {
     expect(verifyQuoSignature(input({ webhookSignature: sig }))).toEqual({ ok: true });
   });
 
+  it("rejects a header with several v1 entries when none is valid", () => {
+    const otherSecret = "whsec_" + Buffer.from("a different 32-byte secret value").toString("base64");
+    const sig = [
+      "v1,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      sign(otherSecret, VECTOR.id, VECTOR.ts, VECTOR.body), // right content, wrong secret
+      sign(VECTOR.secret, VECTOR.id, VECTOR.ts, '{"test": 1}'), // right secret, other body
+    ].join(" ");
+    expect(verifyQuoSignature(input({ webhookSignature: sig }))).toEqual({ ok: false, reason: "bad_signature" });
+  });
+
+  it("rejects a header whose only valid signature is on a v2 entry (only v1 counts)", () => {
+    const sig = `v1,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= ${VECTOR.sig.replace("v1,", "v2,")}`;
+    expect(verifyQuoSignature(input({ webhookSignature: sig }))).toEqual({ ok: false, reason: "bad_signature" });
+  });
+
   it("rejects a tampered body", () => {
     expect(verifyQuoSignature(input({ rawBody: '{"test": 2432232315}' }))).toEqual({
       ok: false,
