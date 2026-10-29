@@ -3,6 +3,7 @@ import { requireStaff } from "@/lib/auth/requireStaff";
 import { listCallTranscripts, type CallTranscriptRow } from "@/lib/call-log/queries";
 import { callLabel, isMissedCall, summaryLines } from "@/lib/call-log/display";
 import { prettyPhone } from "@/lib/notifications/phone";
+import { formatYardDateTime } from "@/lib/time/yard";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
 
 export const dynamic = "force-dynamic";
@@ -13,15 +14,6 @@ function fmtDuration(sec: number | null) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-function fmtTs(d: string) {
-  return new Date(d).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 function fmtOffset(sec: number | null) {
@@ -104,7 +96,7 @@ export default async function CallLogPage() {
                 >
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="cl-nums w-32 flex-none font-extrabold">
-                      {fmtTs(c.call_started_at ?? c.received_at)}
+                      {formatYardDateTime(c.call_started_at ?? c.received_at)}
                     </span>
                     <span
                       className={`px-2 py-0.5 text-[10px] font-extrabold uppercase ${

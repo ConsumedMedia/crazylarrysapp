@@ -9,6 +9,7 @@ import {
 } from "../actions";
 import type { ChangeRequestRow } from "@/lib/bookings/change-requests";
 import { parseYmd } from "@/lib/availability/dates";
+import { formatYardDate } from "@/lib/time/yard";
 import type { DumpsterSize } from "@/lib/dumpsters/state-machine";
 import { ChangeDateCalendar } from "./ChangeDateCalendar";
 
@@ -279,7 +280,7 @@ export function RequestChangeForm({
                     {STATUS_LABEL[r.status]}
                   </span>
                   <span className="text-[11px] text-ink-3">
-                    {new Date(r.created_at).toLocaleDateString()}
+                    {formatYardDate(r.created_at)}
                   </span>
                 </div>
                 <div className="mt-1.5 text-[13px]">

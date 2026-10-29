@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPendingChangeRequests } from "@/lib/bookings/change-requests";
 import { ResolveRequestForm } from "./_components/ResolveRequestForm";
+import { formatYardDate } from "@/lib/time/yard";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function RequestsPage() {
                   {r.customer_name} — {r.booking_address}
                 </Link>
                 <span className="text-[11px] text-ink-3">
-                  Requested {new Date(r.created_at).toLocaleDateString()}
+                  Requested {formatYardDate(r.created_at)}
                 </span>
               </div>
               <div className="mt-2 grid gap-3 sm:grid-cols-[1fr_1fr]">

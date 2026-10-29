@@ -4,6 +4,7 @@ import { requireStaff } from "@/lib/auth/requireStaff";
 import { getCustomerDetail } from "@/lib/customers/queries";
 import { BOOKING_STATUS_META } from "@/lib/bookings/state-machine";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
+import { formatYardTime } from "@/lib/time/yard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Customer · Crazy Larry's" };
@@ -49,10 +50,7 @@ export default async function CustomerDetailPage({
         </h1>
         <p className="text-[12px] text-ink-2">
           {customer.is_registered ? "Has an account" : "Guest checkout"} · customer since{" "}
-          {new Date(customer.created_at).toLocaleDateString(undefined, {
-            month: "short",
-            year: "numeric",
-          })}
+          {formatYardTime(customer.created_at, { month: "short", year: "numeric" })}
         </p>
       </div>
         <Link

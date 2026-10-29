@@ -7,6 +7,7 @@ import {
   type ChangeRequestActionState,
 } from "../bookings/[id]/actions";
 import type { MyPendingChangeRequestRow } from "@/lib/bookings/change-requests";
+import { formatYardDate } from "@/lib/time/yard";
 
 const init: ChangeRequestActionState = { ok: false };
 
@@ -90,7 +91,7 @@ export function PendingRequestBanner({
               on <Link href={`/account/bookings/${r.booking_id}`} className="underline">
                 {r.booking_delivery_address}
               </Link>
-              . Submitted {new Date(r.created_at).toLocaleDateString()}.
+              . Submitted {formatYardDate(r.created_at)}.
             </div>
           </div>
           <span className="whitespace-nowrap bg-purple-tint px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.06em] text-purple-tint-ink">

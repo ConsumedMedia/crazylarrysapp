@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import type { StaffUser } from "@/lib/users/team";
+import { formatYardTime } from "@/lib/time/yard";
 import type { TruckOption } from "@/lib/drivers/manage";
 import {
   editUserAction,
@@ -27,7 +28,7 @@ const STATUS_LABEL: Record<StaffUser["status"], string> = {
 
 function fmt(ts: string | null): string {
   if (!ts) return "Never";
-  return new Date(ts).toLocaleString("en-US", {
+  return formatYardTime(ts, {
     month: "short",
     day: "numeric",
     year: "numeric",

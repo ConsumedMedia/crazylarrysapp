@@ -1,12 +1,9 @@
 import { getQuickBooksStatus } from "@/lib/quickbooks/status";
+import { formatYardTime } from "@/lib/time/yard";
 
 function fmt(ts: string | null): string {
   if (!ts) return "—";
-  const d = new Date(ts);
-  return d.toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatYardTime(ts, { dateStyle: "medium", timeStyle: "short" });
 }
 
 const NOTICES: Record<string, { tone: "ok" | "warn"; text: string }> = {

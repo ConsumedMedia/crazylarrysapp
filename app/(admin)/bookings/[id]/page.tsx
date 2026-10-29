@@ -6,6 +6,7 @@ import { listChangeRequestsForBooking } from "@/lib/bookings/change-requests";
 import { getPricingConfig } from "@/lib/bookings/pricing";
 import { BOOKING_STATUS_META, DOCUSIGN_META } from "@/lib/bookings/state-machine";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
+import { formatYardDate, formatYardDateTime } from "@/lib/time/yard";
 import { BookingControls } from "./_components/BookingControls";
 import { ResolveRequestForm } from "../../requests/_components/ResolveRequestForm";
 
@@ -19,14 +20,6 @@ function fmt(d: string | null) {
     day: "numeric",
     year: "numeric",
     timeZone: "UTC",
-  });
-}
-function fmtTs(d: string) {
-  return new Date(d).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
   });
 }
 
@@ -65,9 +58,9 @@ export default async function BookingDetailPage({
   const paymentValue =
     booking.payment_status === "paid"
       ? invoice?.payment_method === "cash" || invoice?.payment_method === "check"
-        ? `Paid by ${invoice.payment_method}${invoice.payment_reference ? ` #${invoice.payment_reference}` : ""} · recorded by ${paymentRecordedByName ?? "staff"}${invoice.paid_at ? ` ${fmtTs(invoice.paid_at)}` : ""}${invoice.payment_note ? ` — "${invoice.payment_note}"` : ""}${qboSyncNote}${qboErrorNote}`
+        ? `Paid by ${invoice.payment_method}${invoice.payment_reference ? ` #${invoice.payment_reference}` : ""} · recorded by ${paymentRecordedByName ?? "staff"}${invoice.paid_at ? ` ${formatYardDateTime(invoice.paid_at)}` : ""}${invoice.payment_note ? ` — "${invoice.payment_note}"` : ""}${qboSyncNote}${qboErrorNote}`
         : invoice?.payment_method === "qbo_invoice"
-          ? `Paid online via QuickBooks invoice${qboSyncNote}${invoice.qb_payment_id ? ` · QBO payment ${invoice.qb_payment_id}` : ""} · detected ${invoice.paid_at ? fmtTs(invoice.paid_at) : ""}`
+          ? `Paid online via QuickBooks invoice${qboSyncNote}${invoice.qb_payment_id ? ` · QBO payment ${invoice.qb_payment_id}` : ""} · detected ${invoice.paid_at ? formatYardDateTime(invoice.paid_at) : ""}`
           : `Paid${invoice?.qb_charge_id ? ` · charge ${invoice.qb_charge_id}` : ""}${qboSyncNote}${qboErrorNote}`
       : booking.payment_status === "refunded"
         ? `Refunded${invoice?.refund_kind ? ` (${invoice.refund_kind})` : ""}${
@@ -76,7 +69,7 @@ export default async function BookingDetailPage({
         : booking.payment_status === "failed"
           ? "Payment failed"
           : invoice?.status === "pending" && invoice.quickbooks_invoice_id
-            ? `Unpaid · QuickBooks invoice ${invoice.quickbooks_invoice_id} sent to ${invoice.invoice_sent_to ?? "customer"}${invoice.invoice_sent_at ? ` ${fmtTs(invoice.invoice_sent_at)}` : ""}${invoice.qb_balance != null && Number(invoice.qb_balance) < Number(invoice.amount) ? ` · partially paid, $${Number(invoice.qb_balance).toFixed(2)} still due` : ""}${invoice.qb_checked_at ? ` · last checked ${fmtTs(invoice.qb_checked_at)}` : ""}`
+            ? `Unpaid · QuickBooks invoice ${invoice.quickbooks_invoice_id} sent to ${invoice.invoice_sent_to ?? "customer"}${invoice.invoice_sent_at ? ` ${formatYardDateTime(invoice.invoice_sent_at)}` : ""}${invoice.qb_balance != null && Number(invoice.qb_balance) < Number(invoice.amount) ? ` · partially paid, $${Number(invoice.qb_balance).toFixed(2)} still due` : ""}${invoice.qb_checked_at ? ` · last checked ${formatYardDateTime(invoice.qb_checked_at)}` : ""}`
             : "Unpaid";
 
   return (
@@ -132,8 +125,8 @@ export default async function BookingDetailPage({
                 label="Booked"
                 value={
                   booking.source === "staff"
-                    ? `By staff${createdByName ? ` (${createdByName})` : ""} · ${fmtTs(booking.created_at)}`
-                    : `Online checkout · ${fmtTs(booking.created_at)}`
+                    ? `By staff${createdByName ? ` (${createdByName})` : ""} · ${formatYardDateTime(booking.created_at)}`
+                    : `Online checkout · ${formatYardDateTime(booking.created_at)}`
                 }
               />
               <Item
@@ -181,7 +174,7 @@ export default async function BookingDetailPage({
                         {r.status}
                       </span>
                       <span className="text-[11px] text-ink-3">
-                        {new Date(r.created_at).toLocaleDateString()}
+                        {formatYardDate(r.created_at)}
                       </span>
                     </div>
                     <div className="mt-1 text-[13px]">
@@ -240,7 +233,7 @@ export default async function BookingDetailPage({
               {history.map((h) => (
                 <li key={h.id} className="flex gap-3">
                   <span className="cl-nums w-28 flex-none text-ink-3">
-                    {fmtTs(h.changed_at)}
+                    {formatYardDateTime(h.changed_at)}
                   </span>
                   <span>
                     {h.old_status ? `${h.old_status} → ` : "created · "}

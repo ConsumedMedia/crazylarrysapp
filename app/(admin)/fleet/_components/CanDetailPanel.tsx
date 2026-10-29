@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { DumpsterDetail } from "@/lib/dumpsters/types";
 import { STATUS_META, nextStatuses } from "@/lib/dumpsters/state-machine";
 import { STATUS_HEX } from "@/lib/design/tokens";
+import { formatYardTime } from "@/lib/time/yard";
 import { CanActions } from "./CanActions";
 
 export function CanDetailPanel({
@@ -68,10 +69,7 @@ export function CanDetailPanel({
             {history.slice(0, 6).map((h) => (
               <li key={h.id} className="flex items-baseline gap-2">
                 <span className="cl-nums w-24 flex-none text-ink-3">
-                  {new Date(h.changed_at).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {formatYardTime(h.changed_at, { month: "short", day: "numeric" })}
                 </span>
                 <span>
                   {h.old_status ? `${h.old_status} → ` : "created · "}
