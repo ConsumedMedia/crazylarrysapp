@@ -73,18 +73,5 @@ export function rentalWindow(delivery: string, rentalDays: number): string[] {
   return Array.from({ length: rentalDays + 1 }, (_, i) => addDays(delivery, i));
 }
 
-/** Tomorrow (UTC), the earliest selectable delivery date. */
-export function tomorrowYmd(now = new Date()): string {
-  const d = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
-  d.setUTCDate(d.getUTCDate() + 1);
-  return ymd(d);
-}
-
-/** Today (UTC) as yyyy-mm-dd. */
-export function todayYmd(now = new Date()): string {
-  return ymd(
-    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())),
-  );
-}
+// "Today" and "tomorrow" are the yard's (America/New_York), not UTC's:
+// see yardToday / yardTomorrow in lib/time/yard.ts.

@@ -2,7 +2,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import { isDumpsterSize } from "@/lib/dumpsters/state-machine";
-import { tomorrowYmd } from "@/lib/availability/dates";
+import { yardTomorrow } from "@/lib/time/yard";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import type { CreateBookingInput } from "./types";
 
@@ -53,7 +53,7 @@ export function normalizeBookingInput(
   if (!ISO_DATE.test(input.deliveryDate)) {
     throw new BookingCreateError("Pick a delivery date.", "bad_date");
   }
-  if (input.deliveryDate < tomorrowYmd()) {
+  if (input.deliveryDate < yardTomorrow()) {
     throw new BookingCreateError(
       "The earliest delivery is tomorrow.",
       "past_date",

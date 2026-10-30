@@ -7,6 +7,7 @@ import {
   alreadyNotified,
 } from "@/lib/notifications/notify";
 import { getValidAccessToken } from "@/lib/quickbooks/tokens";
+import { yardTomorrow } from "@/lib/time/yard";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
 import {
   reconcileInvoicePayments,
@@ -60,7 +61,7 @@ export async function runReminders(): Promise<{
   errors: string[];
 }> {
   const service = createServiceClient();
-  const tomorrow = new Date(Date.now() + 24 * 3600_000).toISOString().slice(0, 10);
+  const tomorrow = yardTomorrow();
 
   const [deliveries, pickups] = await Promise.all([
     service.from("bookings").select("id").eq("delivery_date", tomorrow).eq("status", "confirmed"),

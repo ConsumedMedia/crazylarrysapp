@@ -1,6 +1,7 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { quickbooksJson } from "./client";
+import { yardDateOf } from "@/lib/time/yard";
 
 /**
  * QuickBooks Online invoice sync (Accounting API).
@@ -258,7 +259,7 @@ export async function syncInvoiceForBooking(
             CustomerRef: { value: customerRef },
             TotalAmt: total,
             ...(method !== "card" && invoiceRow.paid_at
-              ? { TxnDate: String(invoiceRow.paid_at).slice(0, 10) }
+              ? { TxnDate: yardDateOf(String(invoiceRow.paid_at)) }
               : {}),
             ...(methodRef ? { PaymentMethodRef: { value: methodRef } } : {}),
             ...(reference ? { PaymentRefNum: reference.slice(0, 21) } : {}),

@@ -5,8 +5,10 @@ import {
   DAY_NAMES,
   MONTH_NAMES,
   monthGrid,
+  parseYmd,
   rentalWindow,
 } from "@/lib/availability/dates";
+import { yardTomorrow } from "@/lib/time/yard";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
 import type { AvailabilityDay, RangeAvailability } from "@/lib/availability/types";
@@ -45,9 +47,10 @@ export function AvailabilityCalendar({
     else setInternalSelected(d);
   };
 
+  // Open on the month holding the earliest delivery day (the yard's tomorrow).
   const [anchor, setAnchor] = useState<Date>(() => {
-    const n = new Date();
-    return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 1));
+    const t = parseYmd(yardTomorrow());
+    return new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1));
   });
   const [data, setData] = useState<DayMap>({});
   const [loading, setLoading] = useState(true);

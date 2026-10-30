@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DispatchJob } from "@/lib/dispatch/types";
 import { CompleteButton } from "./CompleteButton";
+import { yardToday } from "@/lib/time/yard";
 
 function fmtDate(d: string) {
   return new Date(d + "T00:00:00Z").toLocaleDateString(undefined, {
@@ -9,10 +10,6 @@ function fmtDate(d: string) {
     day: "numeric",
     timeZone: "UTC",
   });
-}
-
-function todayYmd() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 /**
@@ -36,7 +33,7 @@ export function JobDetailContent({
    *  rail already shows the full list alongside, so it's redundant there. */
   showBackHeader?: boolean;
 }) {
-  const isToday = job.scheduled_date === todayYmd();
+  const isToday = job.scheduled_date === yardToday();
   const mapsHref = `https://maps.google.com/?q=${encodeURIComponent(job.delivery_address)}`;
 
   return (

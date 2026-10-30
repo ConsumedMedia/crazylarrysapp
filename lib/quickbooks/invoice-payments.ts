@@ -2,6 +2,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { quickbooksFetch, quickbooksJson } from "./client";
 import { bookingInvoiceLines, findOrCreateCustomer } from "./invoices";
+import { yardToday } from "@/lib/time/yard";
 
 /**
  * Unpaid-booking invoicing via QuickBooks' own hosted "Pay Now" page.
@@ -105,7 +106,7 @@ export async function createOrResendBookingInvoice(opts: {
         method: "POST",
         body: JSON.stringify({
           CustomerRef: { value: customerRef },
-          TxnDate: new Date().toISOString().slice(0, 10),
+          TxnDate: yardToday(),
           Line: await bookingInvoiceLines(booking),
           BillEmail: { Address: opts.sendTo },
           AllowOnlineCreditCardPayment: true,

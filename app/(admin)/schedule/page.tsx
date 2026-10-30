@@ -6,8 +6,10 @@ import {
   MONTH_NAMES,
   monthGrid,
   addDays,
+  parseYmd,
   ymd,
 } from "@/lib/availability/dates";
+import { yardToday } from "@/lib/time/yard";
 import { BlocksPanel, fmtTimeOfDay } from "./_components/BlocksPanel";
 
 export const dynamic = "force-dynamic";
@@ -25,8 +27,7 @@ function anchorFrom(sp: SP): Date {
     const [y, m, d] = sp.date.split("-").map(Number);
     return new Date(Date.UTC(y, m - 1, d));
   }
-  const n = new Date();
-  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+  return parseYmd(yardToday());
 }
 
 export default async function SchedulePage({
@@ -60,7 +61,7 @@ export default async function SchedulePage({
 
   const [blocks, allBlocks] = await Promise.all([
     listBlocks(rangeFrom, rangeTo),
-    listBlocks(ymd(new Date()), addDays(ymd(new Date()), 365)),
+    listBlocks(yardToday(), addDays(yardToday(), 365)),
   ]);
 
   const blocksOn = (date: string) =>

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireDriver } from "@/lib/auth/requireDriver";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import type { DispatchJob } from "@/lib/dispatch/types";
+import { addDays } from "@/lib/availability/dates";
+import { yardToday } from "@/lib/time/yard";
 
 const JOB_SELECT = `
   id, type, status, scheduled_date, route_order, completed_at, driver_id, booking_id,
@@ -45,10 +47,6 @@ function mapJob(r: Record<string, unknown>): DispatchJob {
   };
 }
 
-function todayYmd(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 /** The signed-in driver's own jobs. RLS ("jobs: driver reads assigned jobs")
  *  already restricts to their assigned jobs; the date filter is applied on top. */
 export async function myJobs(date?: string): Promise<{
@@ -58,7 +56,7 @@ export async function myJobs(date?: string): Promise<{
   jobs: DispatchJob[];
 }> {
   const ctx = await requireDriver();
-  const d = date ?? todayYmd();
+  const d = date ?? yardToday();
   const supabase = createClient();
   const { data, error } = await supabase
     .from("jobs")
@@ -105,7 +103,7 @@ export interface DriverHeaderInfo {
 export async function myTodaySummary(): Promise<DriverHeaderInfo> {
   const ctx = await requireDriver();
   const supabase = createClient();
-  const date = todayYmd();
+  const date = yardToday();
 
   const [{ data: jobs, error: jobsErr }, { data: truck }] = await Promise.all([
     supabase
@@ -172,9 +170,7 @@ export async function myDriverProfile(): Promise<DriverProfile> {
 export async function myRecentCompleted(days = 7): Promise<DispatchJob[]> {
   await requireDriver();
   const supabase = createClient();
-  const since = new Date();
-  since.setUTCDate(since.getUTCDate() - days);
-  const sinceYmd = since.toISOString().slice(0, 10);
+  const sinceYmd = addDays(yardToday(), -days);
 
   const { data, error } = await supabase
     .from("jobs")

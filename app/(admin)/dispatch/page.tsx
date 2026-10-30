@@ -8,6 +8,7 @@ import {
   checkMatrix,
 } from "@/lib/dispatch/queries";
 import { listBlocks } from "@/lib/availability/blocks";
+import { yardToday } from "@/lib/time/yard";
 import { fmtTimeOfDay } from "../schedule/_components/BlocksPanel";
 import {
   JobCard,
@@ -19,10 +20,6 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Dispatch · Crazy Larry's" };
 
 type SP = { sel?: string; driver?: string; date?: string };
-
-function todayYmd() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default async function DispatchPage({
   searchParams,
@@ -54,7 +51,7 @@ export default async function DispatchPage({
   const laneDate =
     searchParams.date && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date)
       ? searchParams.date
-      : todayYmd();
+      : yardToday();
   const laneJobs = laneDriverId
     ? await listDriverJobs(laneDriverId, laneDate)
     : [];

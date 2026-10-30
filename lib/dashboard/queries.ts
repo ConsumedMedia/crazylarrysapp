@@ -4,7 +4,8 @@ import { requireStaff } from "@/lib/auth/requireStaff";
 import { fleetSummary } from "@/lib/dumpsters/queries";
 import type { FleetSummary } from "@/lib/dumpsters/types";
 import { getNotificationHealth, type ChannelHealth } from "@/lib/notifications/health";
-import { todayYmd } from "@/lib/availability/dates";
+import { addDays } from "@/lib/availability/dates";
+import { yardMidnight, yardToday } from "@/lib/time/yard";
 
 export interface MovementRow {
   jobId: string;
@@ -56,7 +57,7 @@ export interface OverviewData {
 export async function getOverview(): Promise<OverviewData> {
   await requireStaff();
   const supabase = createClient();
-  const today = todayYmd();
+  const today = yardToday();
 
   const [
     { data: todaysJobs },
@@ -149,15 +150,15 @@ export async function getOverview(): Promise<OverviewData> {
   };
 }
 
-/** Owner-only: revenue actually collected today (paid invoices, paid_at = today). */
+/** Owner-only: revenue actually collected today (paid invoices, paid_at within the yard's day). */
 export async function getRevenueToday(): Promise<number> {
   const supabase = createClient();
-  const today = todayYmd();
+  const today = yardToday();
   const { data } = await supabase
     .from("invoices")
     .select("amount, paid_at")
     .eq("status", "paid")
-    .gte("paid_at", `${today}T00:00:00Z`)
-    .lt("paid_at", `${today}T23:59:59.999Z`);
+    .gte("paid_at", yardMidnight(today).toISOString())
+    .lt("paid_at", yardMidnight(addDays(today, 1)).toISOString());
   return (data ?? []).reduce((sum, r) => sum + Number(r.amount ?? 0), 0);
 }
