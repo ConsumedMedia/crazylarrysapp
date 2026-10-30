@@ -4,6 +4,7 @@ import { createBooking, BookingCreateError } from "./create";
 import { createCharge, refundCharge, PaymentError } from "@/lib/quickbooks/payments";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
 import { notifyBookingConfirmation } from "@/lib/notifications/notify";
+import { yardTomorrow } from "@/lib/time/yard";
 import type { CreateBookingInput } from "./types";
 
 export interface CheckoutResult {
@@ -18,6 +19,7 @@ export interface CheckoutResult {
 /**
  * The real Review & Pay pipeline — replaces the Phase 4 dev stub.
  *
+ *   0. delivery-date floor (the yard's tomorrow) — refused before any charge
  *   1. authoritative quote (server-side, never trust the client amount)
  *   2. charge the tokenized card
  *      └─ declined  -> record_payment_attempt('declined'), no booking, stop
@@ -31,6 +33,18 @@ export async function payAndBook(
   input: CreateBookingInput,
   payment: { token: string; idempotencyKey: string },
 ): Promise<CheckoutResult> {
+  // ---- 0. date floor, before the card is touched -------------------------
+  // A page loaded before 8 PM Eastern can still offer a date that is "today"
+  // by the time Pay is pressed. Refuse it here so it never charges; the
+  // database re-checks under its lock and the refund in step 3 covers that.
+  if (input.deliveryDate < yardTomorrow()) {
+    return {
+      ok: false,
+      code: "past_date",
+      error: "Delivery must be tomorrow or later.",
+    };
+  }
+
   const service = createServiceClient();
 
   // ---- 1. authoritative amount -----------------------------------------
