@@ -1,5 +1,6 @@
 import "server-only";
 import { toE164US } from "./phone";
+import { isReservedPhone } from "./reserved";
 
 /**
  * Quo (formerly OpenPhone) SMS. POST https://api.quo.com/v1/messages
@@ -94,6 +95,17 @@ export async function sendSms(
     };
   }
 
+  // A reserved fictional number is never sent to, redirected or not, so test
+  // mode behaves the way production will once TEST_TO is cleared.
+  if (isReservedPhone(toE164)) {
+    return {
+      ok: false,
+      skipped: true,
+      category: "recipient_missing",
+      error: "reserved test number (555-01xx) — not sent",
+    };
+  }
+
   let to = toE164;
   const testTo = process.env.CL_NOTIFICATIONS_TEST_TO?.trim();
   if (testTo) {
@@ -111,6 +123,13 @@ export async function sendSms(
         ok: false,
         category: "not_configured",
         error: `CL_NOTIFICATIONS_TEST_TO is not a valid US number: "${testTo}"`,
+      };
+    }
+    if (isReservedPhone(t)) {
+      return {
+        ok: false,
+        category: "not_configured",
+        error: `CL_NOTIFICATIONS_TEST_TO is a reserved test number (555-01xx): "${testTo}" — not sent`,
       };
     }
     to = t;

@@ -6,6 +6,9 @@
  *
  * Covers what the safe-mode integration test can't: sends are forced off
  * there, so they stop before the CL_NOTIFICATIONS_TEST_TO redirect runs.
+ *
+ * The customer and TEST_TO fixtures are deliberately NOT reserved contacts
+ * (example.com, 555-01xx): the send layer refuses those (reserved-contacts.test.ts).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -22,8 +25,8 @@ const BOOKING = {
   payment_status: "paid",
   customers: {
     full_name: "Test Customer",
-    email: "customer@example.com",
-    phone: "614-555-0100",
+    email: "customer@crazylarrys.test",
+    phone: "614-555-0200",
     sms_consent: true,
   },
 };
@@ -108,7 +111,7 @@ describe("notifications_log records where a send actually went", () => {
     expect(sms).toMatchObject({
       delivery_status: "sent",
       recipient: "+16145559999",
-      original_recipient: "+16145550100",
+      original_recipient: "+16145550200",
       provider_message_id: "quo-msg-1",
     });
 
@@ -116,26 +119,26 @@ describe("notifications_log records where a send actually went", () => {
     expect(email).toMatchObject({
       delivery_status: "skipped",
       failure_category: "test_mode",
-      recipient: "customer@example.com",
+      recipient: "customer@crazylarrys.test",
       original_recipient: null,
     });
   });
 
   it("email TEST_TO: email logged as redirected; SMS skipped, not redirected", async () => {
-    process.env.CL_NOTIFICATIONS_TEST_TO = "tester@example.com";
+    process.env.CL_NOTIFICATIONS_TEST_TO = "tester@crazylarrys.test";
     const { sms, email } = await run();
 
-    expect(sentTo("resend")).toEqual(["tester@example.com"]);
+    expect(sentTo("resend")).toEqual(["tester@crazylarrys.test"]);
     expect(email).toMatchObject({
       delivery_status: "sent",
-      recipient: "tester@example.com",
-      original_recipient: "customer@example.com",
+      recipient: "tester@crazylarrys.test",
+      original_recipient: "customer@crazylarrys.test",
       provider_message_id: "resend-msg-1",
     });
     expect(sms).toMatchObject({
       delivery_status: "skipped",
       failure_category: "test_mode",
-      recipient: "+16145550100",
+      recipient: "+16145550200",
       original_recipient: null,
     });
   });
@@ -144,8 +147,8 @@ describe("notifications_log records where a send actually went", () => {
     delete process.env.CL_NOTIFICATIONS_TEST_TO;
     const { sms, email } = await run();
 
-    expect(sms).toMatchObject({ delivery_status: "sent", recipient: "+16145550100", original_recipient: null });
-    expect(email).toMatchObject({ delivery_status: "sent", recipient: "customer@example.com", original_recipient: null });
+    expect(sms).toMatchObject({ delivery_status: "sent", recipient: "+16145550200", original_recipient: null });
+    expect(email).toMatchObject({ delivery_status: "sent", recipient: "customer@crazylarrys.test", original_recipient: null });
   });
 
   it("a failed redirected send still logs the real destination", async () => {
@@ -157,7 +160,7 @@ describe("notifications_log records where a send actually went", () => {
       delivery_status: "failed",
       failure_category: "provider_rejected",
       recipient: "+16145559999",
-      original_recipient: "+16145550100",
+      original_recipient: "+16145550200",
     });
   });
 });

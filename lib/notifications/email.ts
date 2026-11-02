@@ -1,5 +1,6 @@
 import "server-only";
 import type { FailureCategory, SendResult } from "./sms";
+import { isReservedEmail } from "./reserved";
 
 /**
  * Resend transactional email. POST https://api.resend.com/emails
@@ -54,6 +55,17 @@ export async function sendEmail(opts: {
     };
   }
 
+  // A reserved fictional address is never sent to, redirected or not, so test
+  // mode behaves the way production will once TEST_TO is cleared.
+  if (isReservedEmail(opts.to)) {
+    return {
+      ok: false,
+      skipped: true,
+      category: "recipient_missing",
+      error: "reserved test address (example.com/.net/.org) — not sent",
+    };
+  }
+
   // CL_NOTIFICATIONS_TEST_TO redirects only when it's an email; a phone number
   // there is meant for the SMS channel, so ignore it here and skip rather than
   // mail a real customer during testing.
@@ -66,6 +78,13 @@ export async function sendEmail(opts: {
         skipped: true,
         category: "test_mode",
         error: "CL_NOTIFICATIONS_TEST_TO is a phone number — email skipped in test mode",
+      };
+    }
+    if (isReservedEmail(testTo)) {
+      return {
+        ok: false,
+        category: "not_configured",
+        error: `CL_NOTIFICATIONS_TEST_TO is a reserved test address: "${testTo}" — not sent`,
       };
     }
     to = testTo;
