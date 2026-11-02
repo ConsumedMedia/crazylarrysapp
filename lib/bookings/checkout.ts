@@ -1,10 +1,9 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
-import { createBooking, BookingCreateError } from "./create";
+import { createBooking, normalizeBookingInput, BookingCreateError } from "./create";
 import { createCharge, refundCharge, PaymentError } from "@/lib/quickbooks/payments";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
 import { notifyBookingConfirmation } from "@/lib/notifications/notify";
-import { yardTomorrow } from "@/lib/time/yard";
 import type { CreateBookingInput } from "./types";
 
 export interface CheckoutResult {
@@ -12,20 +11,52 @@ export interface CheckoutResult {
   bookingId?: string;
   error?: string;
   code?: string;
+  /** For code "compensated": why the booking was refused after the charge. */
+  reason?: string;
   /** true only when money was captured and then fully returned (race case). */
   refunded?: boolean;
+}
+
+const NOT_CHARGED = "you have not been charged (the card authorization has been reversed).";
+const REFUND_PENDING = "A refund is being processed — contact the yard if you don't see it within a few days.";
+
+/**
+ * What the customer is told when the database refuses the booking after the
+ * card was charged. "Filled up" is said only for a real capacity refusal.
+ */
+export function compensationMessage(reason: string, refundOk: boolean): string {
+  switch (reason) {
+    case "unavailable":
+      return refundOk
+        ? `That date filled up while you were checking out, so the booking didn't go through — ${NOT_CHARGED} Please pick another day.`
+        : `That date filled up while you were checking out and the booking didn't go through. ${REFUND_PENDING}`;
+    case "past_date":
+      return refundOk
+        ? `Delivery must be tomorrow or later, so the booking didn't go through — ${NOT_CHARGED} Please pick another day.`
+        : `Delivery must be tomorrow or later, so the booking didn't go through. ${REFUND_PENDING}`;
+    case "blocked":
+      return refundOk
+        ? `That date is no longer available, so the booking didn't go through — ${NOT_CHARGED} Please pick another day.`
+        : `That date is no longer available, so the booking didn't go through. ${REFUND_PENDING}`;
+    default:
+      return refundOk
+        ? `Something went wrong and the booking didn't go through — ${NOT_CHARGED} Please try again or call the yard.`
+        : `Something went wrong and the booking didn't go through. ${REFUND_PENDING}`;
+  }
 }
 
 /**
  * The real Review & Pay pipeline — replaces the Phase 4 dev stub.
  *
- *   0. delivery-date floor (the yard's tomorrow) — refused before any charge
+ *   0. validate everything that needs no database (size, date format, the
+ *      yard's tomorrow, rental length, address, contact) — refused before
+ *      any charge; the normalized params are used from here on
  *   1. authoritative quote (server-side, never trust the client amount)
  *   2. charge the tokenized card
  *      └─ declined  -> record_payment_attempt('declined'), no booking, stop
- *   3. create_booking (atomic)
+ *   3. create_booking (atomic: date floor, blocks and capacity under its lock)
  *      └─ throws    -> compensating refund + record_payment_attempt('compensating_refund'),
- *                      tell the customer they were not charged
+ *                      tell the customer why and that they were not charged
  *   4. record_payment (invoices row + bookings.payment_status='paid')
  *   5. best-effort QBO invoice sync (cron retries on failure)
  */
@@ -33,23 +64,22 @@ export async function payAndBook(
   input: CreateBookingInput,
   payment: { token: string; idempotencyKey: string },
 ): Promise<CheckoutResult> {
-  // ---- 0. date floor, before the card is touched -------------------------
-  // A page loaded before 8 PM Eastern can still offer a date that is "today"
-  // by the time Pay is pressed. Refuse it here so it never charges; the
-  // database re-checks under its lock and the refund in step 3 covers that.
-  if (input.deliveryDate < yardTomorrow()) {
-    return {
-      ok: false,
-      code: "past_date",
-      error: "Delivery must be tomorrow or later.",
-    };
+  // ---- 0. validate, before the card is touched ---------------------------
+  let params;
+  try {
+    params = normalizeBookingInput(input);
+  } catch (e) {
+    if (e instanceof BookingCreateError) {
+      return { ok: false, code: e.code, error: e.message };
+    }
+    throw e;
   }
 
   const service = createServiceClient();
 
   // ---- 1. authoritative amount -----------------------------------------
   const { data: quoteRows, error: quoteErr } = await service.rpc("booking_quote", {
-    p_size: input.size,
+    p_size: params.p_size,
   });
   const quote = Array.isArray(quoteRows) ? quoteRows[0] : quoteRows;
   if (quoteErr || !quote) {
@@ -68,7 +98,7 @@ export async function payAndBook(
       amount,
       token: payment.token,
       idempotencyKey: payment.idempotencyKey,
-      description: `Crazy Larry's — ${String(input.size).replace("yd", " yd")} dumpster`,
+      description: `Crazy Larry's — ${params.p_size.replace("yd", " yd")} dumpster`,
     });
   } catch (e) {
     const pe = e instanceof PaymentError ? e : null;
@@ -77,12 +107,12 @@ export async function payAndBook(
       p_qb_charge_id: null,
       p_qb_refund_id: null,
       p_amount: Number(amount),
-      p_contact_email: input.contactEmail ?? null,
+      p_contact_email: params.p_contact_email,
       p_reason: pe?.message ?? "charge failed",
       p_context: {
         code: pe?.code ?? "error",
-        size: input.size,
-        delivery_date: input.deliveryDate,
+        size: params.p_size,
+        delivery_date: params.p_delivery_date,
       },
     });
     return {
@@ -97,9 +127,10 @@ export async function payAndBook(
   // ---- 3. create the booking atomically -------------------------------
   let bookingId: string;
   try {
-    ({ bookingId } = await createBooking(input));
+    ({ bookingId } = await createBooking(params));
   } catch (e) {
     // Money is captured but there's no booking — compensate immediately.
+    const reason = e instanceof BookingCreateError ? e.code : "error";
     let refundId: string | null = null;
     let refundOk = false;
     try {
@@ -118,23 +149,22 @@ export async function payAndBook(
       p_qb_charge_id: charge.chargeId,
       p_qb_refund_id: refundId,
       p_amount: Number(amount),
-      p_contact_email: input.contactEmail ?? null,
+      p_contact_email: params.p_contact_email,
       p_reason:
         e instanceof BookingCreateError ? e.message : "booking creation failed",
       p_context: {
-        booking_error_code: e instanceof BookingCreateError ? e.code : "error",
+        booking_error_code: reason,
         refund_succeeded: refundOk,
-        size: input.size,
-        delivery_date: input.deliveryDate,
+        size: params.p_size,
+        delivery_date: params.p_delivery_date,
       },
     });
     return {
       ok: false,
       code: "compensated",
+      reason,
       refunded: refundOk,
-      error: refundOk
-        ? "That date filled up while you were checking out, so the booking didn't go through — you have not been charged (the card authorization has been reversed). Please pick another day."
-        : "That date filled up while you were checking out and the booking didn't go through. A refund is being processed — contact the yard if you don't see it within a few days.",
+      error: compensationMessage(reason, refundOk),
     };
   }
 

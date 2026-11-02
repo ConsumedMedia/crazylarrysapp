@@ -27,14 +27,15 @@ export function PaymentForm({
   disabled,
   disabledReason,
   buildInput,
-  onCompensated,
+  onRefused,
 }: {
   tokenizeUrl: string;
   total: number | null;
   disabled: boolean;
   disabledReason?: string;
   buildInput: () => (CreateBookingInput & { agreementAcknowledged: boolean }) | null;
-  onCompensated: () => void;
+  /** Moves the customer to the step that owns the refusal; false = stay here. */
+  onRefused: (code: string | undefined, reason: string | undefined, message: string) => boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -121,12 +122,14 @@ export function PaymentForm({
         router.push(`/book/confirmed/${res.bookingId}`);
         return;
       }
-      if (res.code === "compensated") {
-        setNotCharged(res.error ?? "You were not charged.");
-        onCompensated();
-        return;
-      }
-      setError(res.error ?? "Payment failed. Try again.");
+      const compensated = res.code === "compensated";
+      const message =
+        res.error ?? (compensated ? "You were not charged." : "Payment failed. Try again.");
+      // The wizard shows the message on the step it moves to; this form
+      // unmounts when the step changes.
+      if (onRefused(res.code, res.reason, message)) return;
+      if (compensated) setNotCharged(message);
+      else setError(message);
     });
   }
 

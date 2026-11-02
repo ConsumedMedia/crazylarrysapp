@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
 import { AgreementModal } from "./AgreementModal";
 import { PaymentForm } from "./PaymentForm";
+import { refusalStep } from "./refusal-step";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { rentalWindow } from "@/lib/availability/dates";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
@@ -67,6 +68,23 @@ export function BookingWizard({
   const [step, setStep] = useState(1);
   const [size, setSize] = useState<DumpsterSize | null>(null);
   const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
+  // A refused checkout's message, shown on the step it sent the customer to.
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function goTo(next: number) {
+    setNotice(null);
+    setStep(next);
+  }
+
+  /** Send a refused checkout to the step that owns the problem; false = stay on pay. */
+  function handleRefused(code: string | undefined, reason: string | undefined, message: string): boolean {
+    const { step: target, clearDate } = refusalStep(code, reason);
+    if (target === null) return false;
+    if (clearDate) setDeliveryDate(null);
+    setStep(target);
+    setNotice(message);
+    return true;
+  }
 
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
@@ -169,6 +187,14 @@ export function BookingWizard({
       </div>
 
       <div className="py-6">
+        {notice && (
+          <p
+            role="alert"
+            className="mb-5 border-l-4 border-orange bg-orange-tint px-3 py-2 text-[13px] font-semibold text-orange-tint-ink"
+          >
+            {notice}
+          </p>
+        )}
         {/* STEP 1 — SIZE */}
         {step === 1 && (
           <div className="flex flex-col gap-6">
@@ -236,7 +262,7 @@ export function BookingWizard({
                         disabled={!pricing.bookingReady}
                         onClick={() => {
                           setSize(s);
-                          setStep(2);
+                          goTo(2);
                         }}
                         className="mt-auto flex items-center justify-between bg-teal px-4 py-3 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50"
                       >
@@ -290,7 +316,7 @@ export function BookingWizard({
                       )}
                     </div>
                     <button
-                      onClick={() => setStep(3)}
+                      onClick={() => goTo(3)}
                       className="mt-3.5 flex w-full items-center justify-between bg-teal px-4 py-3.5 text-[14px] font-extrabold text-white hover:bg-teal-700"
                     >
                       Continue to details <span>→</span>
@@ -314,7 +340,7 @@ export function BookingWizard({
                 </div>
               </div>
             </div>
-            <BackButton onClick={() => setStep(1)}>← Change size</BackButton>
+            <BackButton onClick={() => goTo(1)}>← Change size</BackButton>
           </div>
         )}
 
@@ -467,7 +493,7 @@ export function BookingWizard({
                 >
                   <button
                     disabled={!detailsValid}
-                    onClick={() => setStep(4)}
+                    onClick={() => goTo(4)}
                     className="mt-3.5 flex w-full items-center justify-between bg-teal px-4 py-3.5 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50"
                   >
                     Review &amp; pay <span>→</span>
@@ -479,7 +505,7 @@ export function BookingWizard({
                 </div>
               </div>
             </div>
-            <BackButton onClick={() => setStep(2)}>← Change the date</BackButton>
+            <BackButton onClick={() => goTo(2)}>← Change the date</BackButton>
           </div>
         )}
 
@@ -554,7 +580,7 @@ export function BookingWizard({
                           : undefined
                   }
                   buildInput={buildBookingInput}
-                  onCompensated={() => setStep(2)}
+                  onRefused={handleRefused}
                 />
               </div>
 
@@ -609,7 +635,7 @@ export function BookingWizard({
                 </div>
               </div>
             </div>
-            <BackButton onClick={() => setStep(3)}>← Back to details</BackButton>
+            <BackButton onClick={() => goTo(3)}>← Back to details</BackButton>
           </div>
         )}
       </div>

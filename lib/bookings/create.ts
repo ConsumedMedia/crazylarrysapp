@@ -55,7 +55,7 @@ export function normalizeBookingInput(
   }
   if (input.deliveryDate < yardTomorrow()) {
     throw new BookingCreateError(
-      "The earliest delivery is tomorrow.",
+      "Delivery must be tomorrow or later.",
       "past_date",
     );
   }
@@ -107,6 +107,18 @@ export function normalizeBookingInput(
   };
 }
 
+/**
+ * _create_booking_core raises all three date refusals with hint 'unavailable';
+ * only the message tells them apart. Pinned against the live function by
+ * create-booking-wording.integration.test.ts. A message that matches none of
+ * these is never reported as "filled up".
+ */
+const DATE_REFUSALS: Array<[RegExp, string, string]> = [
+  [/^Delivery date must be tomorrow or later/, "past_date", "Delivery must be tomorrow or later."],
+  [/^Delivery on \S+ is blocked for /, "blocked", "That date is blocked for this size. Pick another day."],
+  [/^No \S+ units available for delivery on /, "unavailable", "That date just filled up for this size. Pick another day."],
+];
+
 /** Map a create_booking / staff_create_booking RPC error to a BookingCreateError. */
 export function bookingRpcError(
   error: { message: string; code?: string; hint?: string },
@@ -117,24 +129,22 @@ export function bookingRpcError(
     return new BookingCreateError(pricingMessage, "pricing_not_configured");
   }
   if (hint === "unavailable") {
-    return new BookingCreateError(
-      "That date just filled up for this size. Pick another day.",
-      "unavailable",
-    );
+    const match = DATE_REFUSALS.find(([re]) => re.test(error.message));
+    if (match) return new BookingCreateError(match[2], match[1]);
+    return new BookingCreateError(error.message, "unavailable_unrecognized");
   }
   return new BookingCreateError(error.message, error.code ?? "rpc_failed");
 }
 
 /**
- * Create a booking. Validates everything server-side, resolves the caller's
- * session for profile linkage, then calls the atomic create_booking RPC via
- * the service-role client. Returns the new booking id.
+ * Create a booking from already-normalized params (payAndBook validates
+ * before charging). Resolves the caller's session for profile linkage, then
+ * calls the atomic create_booking RPC via the service-role client. Returns
+ * the new booking id.
  */
 export async function createBooking(
-  input: CreateBookingInput,
+  params: NormalizedBookingParams,
 ): Promise<{ bookingId: string }> {
-  const params = normalizeBookingInput(input);
-
   // ---- session -> profile linkage --------------------------------------
   let profileId: string | null = null;
   try {

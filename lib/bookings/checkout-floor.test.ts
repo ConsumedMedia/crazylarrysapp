@@ -1,13 +1,14 @@
 /**
  * Unit test — payAndBook refuses a too-early delivery date BEFORE the card is
  * charged, with the clock faked, in both UTC (Vercel) and Asia/Tokyo.
- * QuickBooks, Supabase and createBooking are mocked; the mocked createBooking
- * applies the same floor normalizeBookingInput does, so without the step-0
- * check a too-early date is charged and then refunded.
+ * QuickBooks, Supabase and createBooking are mocked (normalizeBookingInput is
+ * real); the mocked createBooking applies the database's floor, so without the
+ * step-0 check a too-early date is charged and then refunded.
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from "vitest";
 import { yardTomorrow } from "@/lib/time/yard";
 import type { CreateBookingInput } from "./types";
+import type { NormalizedBookingParams } from "./create";
 
 const m = vi.hoisted(() => ({
   createCharge: vi.fn(),
@@ -21,15 +22,9 @@ vi.mock("@/lib/quickbooks/payments", () => ({
   refundCharge: m.refundCharge,
   PaymentError: class PaymentError extends Error {},
 }));
-vi.mock("./create", () => ({
+vi.mock("./create", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./create")>()),
   createBooking: m.createBooking,
-  BookingCreateError: class BookingCreateError extends Error {
-    code: string;
-    constructor(message: string, code = "error") {
-      super(message);
-      this.code = code;
-    }
-  },
 }));
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => ({ rpc: m.rpc }) }));
 vi.mock("@/lib/quickbooks/invoices", () => ({ syncInvoiceForBooking: vi.fn() }));
@@ -76,10 +71,10 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook date floor with the process in 
     );
     m.createCharge.mockResolvedValue({ chargeId: "ch-test" });
     m.refundCharge.mockResolvedValue({ refundId: "rf-test" });
-    // Same floor as normalizeBookingInput, read at call time.
-    m.createBooking.mockImplementation(async (input: CreateBookingInput) => {
-      if (input.deliveryDate < yardTomorrow()) {
-        throw new BookingCreateError("The earliest delivery is tomorrow.", "past_date");
+    // The database's floor, read at call time.
+    m.createBooking.mockImplementation(async (params: NormalizedBookingParams) => {
+      if (params.p_delivery_date < yardTomorrow()) {
+        throw new BookingCreateError("Delivery must be tomorrow or later.", "past_date");
       }
       return { bookingId: "bk-test" };
     });
