@@ -132,10 +132,13 @@ export async function payAndBook(
     // Money is captured but there's no booking — compensate immediately.
     const reason = e instanceof BookingCreateError ? e.code : "error";
     let refundId: string | null = null;
+    // Intuit decides: "void" before settlement, "refund" after.
+    let refundKind: "void" | "refund" | null = null;
     let refundOk = false;
     try {
       const r = await refundCharge({ chargeId: charge.chargeId, amount });
       refundId = r.refundId;
+      refundKind = r.kind;
       refundOk = true;
     } catch (re) {
       console.error(
@@ -155,6 +158,7 @@ export async function payAndBook(
       p_context: {
         booking_error_code: reason,
         refund_succeeded: refundOk,
+        refund_kind: refundKind,
         size: params.p_size,
         delivery_date: params.p_delivery_date,
       },

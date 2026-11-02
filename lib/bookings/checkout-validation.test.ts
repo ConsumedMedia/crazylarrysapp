@@ -111,7 +111,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
       fn === "booking_quote" ? { data: [{ total: 450 }], error: null } : { data: null, error: null },
     );
     m.createCharge.mockResolvedValue({ chargeId: "ch-test" });
-    m.refundCharge.mockResolvedValue({ refundId: "rf-test" });
+    m.refundCharge.mockResolvedValue({ refundId: "rf-test", kind: "void", status: "ISSUED", rawType: "VOID" });
     m.createBooking.mockResolvedValue({ bookingId: "bk-test" });
     // The refund-failed cases log on purpose; keep the run readable.
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -190,12 +190,26 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
           p_context: {
             booking_error_code: reason,
             refund_succeeded: refundOk,
+            refund_kind: refundOk ? "void" : null,
             size: "20yd",
             delivery_date: tomorrow,
           },
         });
       },
     );
+
+    it("records 'refund' when Intuit refunds a settled charge instead of voiding it", async () => {
+      m.createBooking.mockRejectedValueOnce(new BookingCreateError("db said unavailable", "unavailable"));
+      m.refundCharge.mockResolvedValueOnce({ refundId: "rf-settled", kind: "refund", status: "ISSUED", rawType: "REFUND" });
+      await payAndBook({ ...base, deliveryDate: yardTomorrow() } as CreateBookingInput, payment);
+      expect(m.rpc).toHaveBeenCalledWith(
+        "record_payment_attempt",
+        expect.objectContaining({
+          p_qb_refund_id: "rf-settled",
+          p_context: expect.objectContaining({ refund_succeeded: true, refund_kind: "refund" }),
+        }),
+      );
+    });
   });
 });
 
