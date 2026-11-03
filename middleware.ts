@@ -8,10 +8,12 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Everything except static assets, image optimization files and inbound
+     * Everything except static assets, image optimization files, inbound
      * webhooks (signature-verified, no session — refreshing one would only
-     * add a Supabase round trip before the handler answers).
+     * add a Supabase round trip before the handler answers) and the public
+     * /pay/<token> page (the token is its only credential; it must never
+     * read or refresh whoever's session the browser happens to carry).
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/webhooks/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/webhooks/|pay/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

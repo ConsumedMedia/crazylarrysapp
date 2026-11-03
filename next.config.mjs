@@ -15,9 +15,22 @@ const BOOK_CSP = [
   "base-uri 'self'",
 ].join("; ");
 
+// /pay/<token>: same card-page CSP, plus — because the URL itself is the
+// credential — never sent as a Referer, never cached, never indexed.
+const PAY_HEADERS = [
+  { key: "Content-Security-Policy", value: BOOK_CSP },
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "Cache-Control", value: "no-store, max-age=0" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow" },
+];
+
 const nextConfig = {
   async headers() {
     return [
+      {
+        source: "/pay/:path*",
+        headers: PAY_HEADERS,
+      },
       {
         source: "/book/:path*",
         headers: [{ key: "Content-Security-Policy", value: BOOK_CSP }],

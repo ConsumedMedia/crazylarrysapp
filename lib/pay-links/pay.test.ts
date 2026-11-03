@@ -106,10 +106,11 @@ describe("payWithLink", () => {
     expect(createCharge).not.toHaveBeenCalled();
   });
 
-  it("a malformed token is looked up as empty (still counted), never passed through", async () => {
-    rpcs.pay_link_lookup = ok({ state: "not_found" });
-    await pay({ token: "../../etc" });
-    expect(called("pay_link_lookup")[0]).toEqual({ p_token: "", p_client_key: "ck" });
+  it("a malformed token is not_found without touching the database", async () => {
+    const r = await pay({ token: "../../etc" });
+    expect(r.code).toBe("not_found");
+    expect(calls).toHaveLength(0);
+    expect(createCharge).not.toHaveBeenCalled();
   });
 
   it.each([

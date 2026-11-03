@@ -46,10 +46,9 @@ export type PayLinkLookup =
   | { state: "error" };
 
 export async function lookupPayLink(token: string, clientKey: string): Promise<PayLinkLookup> {
-  if (!isPayToken(token)) {
-    // Still counted against the visitor, so malformed guesses are throttled too.
-    token = "";
-  }
+  // A malformed token can't match anything: answer without touching the
+  // database (no lookup, no rate-limit row).
+  if (!isPayToken(token)) return { state: "not_found" };
   const service = createServiceClient();
   const { data, error } = await service.rpc("pay_link_lookup", {
     p_token: token,
