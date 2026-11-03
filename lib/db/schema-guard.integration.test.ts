@@ -155,7 +155,7 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
   it("pay-link tables: staff read through RLS only; the lookup counter has no API access", async () => {
     const rows = await q<{ t: string; rls: boolean; sel: boolean; ins: boolean; upd: boolean; del: boolean }>(
       `select c.relname as t, c.relrowsecurity as rls,
-              has_table_privilege('authenticated', c.oid, 'SELECT') as sel,
+              has_any_column_privilege('authenticated', c.oid, 'SELECT') as sel,
               has_table_privilege('authenticated', c.oid, 'INSERT') as ins,
               has_table_privilege('authenticated', c.oid, 'UPDATE') as upd,
               has_table_privilege('authenticated', c.oid, 'DELETE') as del
@@ -175,6 +175,18 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     ]);
   });
 
+  it("pay_links.token_encrypted (once it exists) is readable by service_role only", async () => {
+    const rows = await q<{ auth_x: boolean; anon_x: boolean; svc_x: boolean }>(
+      `select has_column_privilege('authenticated', 'public.pay_links', 'token_encrypted', 'SELECT') as auth_x,
+              has_column_privilege('anon', 'public.pay_links', 'token_encrypted', 'SELECT') as anon_x,
+              has_column_privilege('service_role', 'public.pay_links', 'token_encrypted', 'SELECT') as svc_x
+       from information_schema.columns
+       where table_schema = 'public' and table_name = 'pay_links' and column_name = 'token_encrypted'`,
+    );
+    // Before migration 20261103010000 is applied there is nothing to check.
+    for (const r of rows) expect(r).toEqual({ auth_x: false, anon_x: false, svc_x: true });
+  });
+
   it("pay-link functions: staff RPCs for authenticated, the public page's RPCs for service_role only", async () => {
     const rows = await q<{ fn: string; auth_x: boolean; svc_x: boolean }>(
       `select p.oid::regprocedure::text as fn,
@@ -186,11 +198,11 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
        order by 1`,
     );
     if (rows.length === 0) return;
-    const STAFF = new Set(["issue_pay_link", "staff_create_pay_link_booking", "resolve_payment_attempt"]);
+    const STAFF = new Set(["issue_pay_link", "staff_create_pay_link_booking", "resolve_payment_attempt", "pay_link_live_counts"]);
     for (const r of rows) {
       const name = r.fn.split("(")[0];
       expect(r.auth_x, r.fn).toBe(STAFF.has(name));
-      if (!name.startsWith("_") && name !== "end_pay_links_on_booking_change" && name !== "validate_pay_link_settings") {
+      if (!name.startsWith("_") && !["end_pay_links_on_booking_change", "validate_pay_link_settings", "clear_pay_link_token"].includes(name)) {
         expect(r.svc_x, r.fn).toBe(true);
       }
     }

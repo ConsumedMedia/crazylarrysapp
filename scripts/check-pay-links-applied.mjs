@@ -55,7 +55,7 @@ try {
   for (const [t, want] of Object.entries(TABLES)) {
     const [r] = await q(`select c.relrowsecurity as rls,
         has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') as anon_any,
-        has_table_privilege('authenticated', c.oid, 'SELECT') as select,
+        has_any_column_privilege('authenticated', c.oid, 'SELECT') as select,
         has_table_privilege('authenticated', c.oid, 'INSERT') as insert,
         has_table_privilege('authenticated', c.oid, 'UPDATE') as update,
         has_table_privilege('authenticated', c.oid, 'DELETE') as delete,
