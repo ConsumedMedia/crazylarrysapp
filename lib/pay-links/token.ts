@@ -50,3 +50,14 @@ export function clientIpFrom(headers: { get(name: string): string | null }): str
   if (fwd) return fwd.split(",")[0].trim() || null;
   return headers.get("x-real-ip");
 }
+
+/**
+ * Key for the encrypted copy of a live link (pay_links.token_encrypted), so
+ * reminders can resend the same link. Server env only; never stored in the
+ * database. Under 32 characters counts as unset: links are then issued
+ * without a stored copy and the cron reports reminders it couldn't send.
+ */
+export function payLinkTokenKey(): string | null {
+  const k = (process.env.CL_PAY_LINK_TOKEN_KEY ?? "").trim();
+  return k.length >= 32 ? k : null;
+}

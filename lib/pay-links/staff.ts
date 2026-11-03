@@ -7,6 +7,7 @@ import {
   normalizeBookingInput,
 } from "@/lib/bookings/create";
 import { notifyPayLink } from "@/lib/notifications/notify";
+import { payLinkTokenKey } from "./token";
 import type { CreateBookingInput } from "@/lib/bookings/types";
 
 /**
@@ -39,6 +40,16 @@ function rpcError(error: { message: string; code?: string; hint?: string }): Err
   if (error.code === "42501") return new PayLinkError("You do not have permission to do that.", "forbidden");
   if (error.hint && HINTS[error.hint]) return new PayLinkError(HINTS[error.hint], error.hint);
   return new PayLinkError(error.message, error.code ?? "rpc_failed");
+}
+
+/**
+ * The stored-copy key goes to the RPC only when it is set, so with no key the
+ * call is exactly the one-argument form (the link works; reminders for it
+ * can't carry it until a Resend after the key is set).
+ */
+function keyParam(): { p_token_key?: string } {
+  const key = payLinkTokenKey();
+  return key ? { p_token_key: key } : {};
 }
 
 /**
@@ -77,6 +88,7 @@ export async function createPayLinkBooking(
     p_company_name: params.p_company_name,
     p_verbal_sms_consent: params.p_sms_consent,
     p_customer_id: input.customerId ?? null,
+    ...keyParam(),
   });
   if (error) {
     const e = error as { message: string; code?: string; hint?: string };
@@ -98,7 +110,7 @@ export async function createPayLinkBooking(
 export async function resendPayLink(bookingId: string): Promise<void> {
   await assertStaff();
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("issue_pay_link", { p_booking_id: bookingId });
+  const { data, error } = await supabase.rpc("issue_pay_link", { p_booking_id: bookingId, ...keyParam() });
   if (error) throw rpcError(error as { message: string; code?: string; hint?: string });
   await notifyPayLink(bookingId, data as string, "pay_link");
 }
