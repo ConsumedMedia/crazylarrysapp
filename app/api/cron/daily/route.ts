@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   runOverdue,
   runReminders,
+  runPayLinks,
   runQuickbooksRefresh,
   runQuickbooksSync,
 } from "@/lib/cron/jobs";
@@ -14,7 +15,8 @@ export const dynamic = "force-dynamic";
  * one failing job (e.g. QuickBooks down) doesn't stop the customer-facing
  * ones (overdue notices, reminders) from running.
  *
- * Order: overdue -> reminders -> quickbooks-refresh -> quickbooks-sync.
+ * Order: overdue -> reminders -> pay_links -> quickbooks-refresh -> quickbooks-sync.
+ * pay_links does nothing but purge old rate-limit rows while the feature is off.
  * Customer-facing jobs run first so they're not starved by a slow QB call.
  *
  * The individual /api/cron/{overdue,reminders,quickbooks-refresh,quickbooks-sync}
@@ -36,6 +38,7 @@ export async function GET(request: NextRequest) {
   const jobs: Array<[string, () => Promise<unknown>]> = [
     ["overdue", runOverdue],
     ["reminders", runReminders],
+    ["pay_links", runPayLinks],
     ["quickbooks_refresh", runQuickbooksRefresh],
     ["quickbooks_sync", runQuickbooksSync],
   ];

@@ -4,6 +4,8 @@ import { sendSms, type SendResult } from "./sms";
 import { sendEmail } from "./email";
 import { toE164US } from "./phone";
 import * as T from "./templates";
+import { payLinkUrl, redactPayLinks, siteUrl } from "@/lib/pay-links/token";
+import { yardDateOf } from "@/lib/time/yard";
 
 /**
  * Notification orchestrator. Every export here is guaranteed not to throw —
@@ -34,6 +36,8 @@ interface LogRow {
 }
 
 async function writeLog(row: LogRow): Promise<void> {
+  // A working pay link must never sit in the log (staff-readable, kept forever).
+  row = { ...row, body: redactPayLinks(row.body), error: redactPayLinks(row.error) };
   try {
     const service = createServiceClient();
     // supabase-js reports insert failures in the result, not by throwing —
@@ -362,6 +366,90 @@ export async function notifyJobAssigned(
     });
   } catch (e) {
     console.error("[notify] job_assigned:", (e as Error).message);
+  }
+}
+
+/**
+ * The pay link (first send, resend or reminder). Email whenever there is an
+ * address; SMS only with consent (dispatch logs the skip otherwise). With no
+ * email on file the email channel isn't attempted at all — the contact rule
+ * guaranteed a consented phone instead. The token reaches the providers but
+ * never notifications_log (writeLog redacts it).
+ */
+export async function notifyPayLink(
+  bookingId: string,
+  token: string,
+  type: "pay_link" | "pay_link_reminder",
+): Promise<void> {
+  try {
+    const b = await loadBooking(bookingId);
+    if (!b) return;
+    const ctx = { ...bookingCtx(b), url: payLinkUrl(token) };
+    const email = b.customer?.email ?? null;
+    await dispatch({
+      type,
+      bookingId,
+      driverId: null,
+      rendered: type === "pay_link" ? T.payLink(ctx) : T.payLinkReminder(ctx),
+      email,
+      phone: b.customer?.phone ?? null,
+      smsConsent: b.customer?.sms_consent ?? false,
+      channels: email ? ["email", "sms"] : ["sms"],
+    });
+  } catch (e) {
+    console.error(`[notify] ${type}:`, redactPayLinks((e as Error).message));
+  }
+}
+
+/** Unpaid-booking alert — email only, one log row per staff recipient. */
+export async function notifyStaffUnpaidAlert(opts: {
+  bookingId: string;
+  recipients: Array<{ email: string }>;
+  reason: "after_days" | "reminder_sent";
+  remindersSent: number;
+  today: string;
+}): Promise<void> {
+  try {
+    const service = createServiceClient();
+    const { data } = await service
+      .from("bookings")
+      .select("id, size_requested, delivery_date, total, created_at, customers(full_name, phone)")
+      .eq("id", opts.bookingId)
+      .maybeSingle();
+    if (!data) return;
+    const d = data as Record<string, unknown>;
+    const c = d.customers as { full_name: string; phone: string | null } | null;
+    const made = yardDateOf(String(d.created_at));
+    const daysUnpaid = Math.round(
+      (Date.parse(`${opts.today}T00:00:00Z`) - Date.parse(`${made}T00:00:00Z`)) / 86_400_000,
+    );
+    const rendered = T.staffUnpaidAlert({
+      contactName: c?.full_name ?? "Customer",
+      phone: c?.phone ?? null,
+      size: d.size_requested as string,
+      deliveryDate: d.delivery_date as string,
+      total: Number(d.total),
+      daysUnpaid,
+      remindersSent: opts.remindersSent,
+      bookingUrl: `${siteUrl()}/bookings/${opts.bookingId}`,
+      reason: opts.reason,
+    });
+    await Promise.allSettled(
+      opts.recipients.map((r) =>
+        dispatch({
+          type: "staff_unpaid_alert",
+          bookingId: opts.bookingId,
+          driverId: null,
+          rendered,
+          email: r.email,
+          phone: null,
+          smsConsent: false,
+          channels: ["email"],
+        }),
+      ),
+    );
+  } catch (e) {
+    console.error("[notify] staff_unpaid_alert:", (e as Error).message);
   }
 }
 

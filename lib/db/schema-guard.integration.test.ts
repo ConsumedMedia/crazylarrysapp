@@ -152,6 +152,50 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     for (const r of rows) expect(r).toEqual({ anon_x: false, auth_x: false, svc_x: true });
   });
 
+  it("pay-link tables: staff read through RLS only; the lookup counter has no API access", async () => {
+    const rows = await q<{ t: string; rls: boolean; sel: boolean; ins: boolean; upd: boolean; del: boolean }>(
+      `select c.relname as t, c.relrowsecurity as rls,
+              has_table_privilege('authenticated', c.oid, 'SELECT') as sel,
+              has_table_privilege('authenticated', c.oid, 'INSERT') as ins,
+              has_table_privilege('authenticated', c.oid, 'UPDATE') as upd,
+              has_table_privilege('authenticated', c.oid, 'DELETE') as del
+       from pg_class c
+       where c.relnamespace = 'public'::regnamespace
+         and c.relname in ('cl_pay_link_settings','pay_links','pay_link_events','consent_records','pay_link_lookup_attempts')
+       order by 1`,
+    );
+    // Before migration 20261103000000 is applied there is nothing to check.
+    if (rows.length === 0) return;
+    expect(rows).toEqual([
+      { t: "cl_pay_link_settings", rls: true, sel: true, ins: false, upd: true, del: false },
+      { t: "consent_records", rls: true, sel: true, ins: false, upd: false, del: false },
+      { t: "pay_link_events", rls: true, sel: true, ins: false, upd: false, del: false },
+      { t: "pay_link_lookup_attempts", rls: true, sel: false, ins: false, upd: false, del: false },
+      { t: "pay_links", rls: true, sel: true, ins: false, upd: false, del: false },
+    ]);
+  });
+
+  it("pay-link functions: staff RPCs for authenticated, the public page's RPCs for service_role only", async () => {
+    const rows = await q<{ fn: string; auth_x: boolean; svc_x: boolean }>(
+      `select p.oid::regprocedure::text as fn,
+              has_function_privilege('authenticated', p.oid, 'execute') as auth_x,
+              has_function_privilege('service_role', p.oid, 'execute') as svc_x
+       from pg_proc p
+       where p.pronamespace = 'public'::regnamespace
+         and (p.proname like '%pay_link%' or p.proname = 'resolve_payment_attempt')
+       order by 1`,
+    );
+    if (rows.length === 0) return;
+    const STAFF = new Set(["issue_pay_link", "staff_create_pay_link_booking", "resolve_payment_attempt"]);
+    for (const r of rows) {
+      const name = r.fn.split("(")[0];
+      expect(r.auth_x, r.fn).toBe(STAFF.has(name));
+      if (!name.startsWith("_") && name !== "end_pay_links_on_booking_change" && name !== "validate_pay_link_settings") {
+        expect(r.svc_x, r.fn).toBe(true);
+      }
+    }
+  });
+
   it("no un-reviewed SECURITY DEFINER function is executable by anon", async () => {
     const rows = await q<{ fn: string }>(
       `select p.oid::regprocedure::text as fn from pg_proc p

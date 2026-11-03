@@ -4,10 +4,11 @@ import {
   notifyOverdue,
   notifyDeliveryReminder,
   notifyPickupReminder,
+  notifyStaffUnpaidAlert,
   alreadyNotified,
 } from "@/lib/notifications/notify";
 import { getValidAccessToken } from "@/lib/quickbooks/tokens";
-import { yardTomorrow } from "@/lib/time/yard";
+import { yardToday, yardTomorrow } from "@/lib/time/yard";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
 import {
   reconcileInvoicePayments,
@@ -100,6 +101,113 @@ export async function runReminders(): Promise<{
     }
     await notifyPickupReminder(id);
     out.pickup_reminders.sent++;
+  }
+
+  return out;
+}
+
+// --- pay links ----------------------------------------------------------
+//
+// pay_link_due_events (yard day) says what is due; claim_pay_link_event
+// inserts the ledger row BEFORE anything is sent, so a re-run of the cron
+// finds the row and sends nothing. With the feature off nothing is due, but
+// the lookup rate-limit rows are still purged.
+//
+// Customer reminders are NOT sent yet: the database keeps only a hash of the
+// token, so the cron can't rebuild the link. They're counted as
+// customer_reminders_waiting and left unclaimed until that is decided.
+
+export async function runPayLinks(): Promise<{
+  enabled: boolean;
+  date: string;
+  purged_lookup_rows: number;
+  staff_alerts: { sent: number; already_claimed: number; no_recipients: number };
+  customer_reminders_waiting: number;
+  errors: string[];
+}> {
+  const service = createServiceClient();
+  const today = yardToday();
+  const out = {
+    enabled: false,
+    date: today,
+    purged_lookup_rows: 0,
+    staff_alerts: { sent: 0, already_claimed: 0, no_recipients: 0 },
+    customer_reminders_waiting: 0,
+    errors: [] as string[],
+  };
+
+  const purged = await service.rpc("purge_pay_link_lookup_attempts");
+  if (purged.error) out.errors.push(`purge: ${purged.error.message}`);
+  else out.purged_lookup_rows = Number(purged.data ?? 0);
+
+  const { data: settings, error: sErr } = await service
+    .from("cl_pay_link_settings")
+    .select("enabled")
+    .eq("id", true)
+    .maybeSingle();
+  if (sErr) throw new Error(`cl_pay_link_settings: ${sErr.message}`);
+  out.enabled = settings?.enabled === true;
+  if (!out.enabled) return out;
+
+  const { data: due, error: dErr } = await service.rpc("pay_link_due_events", { p_today: today });
+  if (dErr) throw new Error(`pay_link_due_events: ${dErr.message}`);
+  const rows = (due ?? []) as Array<{ booking_id: string; kind: string; seq: number }>;
+
+  let recipients: Array<{ email: string }> | null = null;
+  for (const row of rows) {
+    if (row.kind === "customer_reminder") {
+      out.customer_reminders_waiting++;
+      continue;
+    }
+    if (row.kind !== "staff_alert") continue;
+
+    const { data: claimed, error: cErr } = await service.rpc("claim_pay_link_event", {
+      p_booking_id: row.booking_id,
+      p_kind: row.kind,
+      p_seq: row.seq,
+      p_yard_date: today,
+    });
+    if (cErr) {
+      out.errors.push(`claim ${row.booking_id}: ${cErr.message}`);
+      continue;
+    }
+    if (claimed !== true) {
+      out.staff_alerts.already_claimed++;
+      continue;
+    }
+
+    if (recipients === null) {
+      const { data: r, error: rErr } = await service.rpc("pay_link_staff_alert_recipients");
+      if (rErr) out.errors.push(`recipients: ${rErr.message}`);
+      recipients = ((r ?? []) as Array<{ email: string }>).filter((x) => !!x.email);
+    }
+    if (recipients.length === 0) {
+      out.staff_alerts.no_recipients++;
+      await service.rpc("finish_pay_link_event", {
+        p_booking_id: row.booking_id, p_kind: row.kind, p_seq: row.seq,
+        p_status: "failed", p_detail: "no active staff or owner with an email",
+      });
+      continue;
+    }
+
+    const { count } = await service
+      .from("pay_link_events")
+      .select("id", { count: "exact", head: true })
+      .eq("booking_id", row.booking_id)
+      .eq("kind", "customer_reminder")
+      .eq("status", "sent");
+    await notifyStaffUnpaidAlert({
+      bookingId: row.booking_id,
+      recipients,
+      reason: "after_days",
+      remindersSent: count ?? 0,
+      today,
+    });
+    await service.rpc("finish_pay_link_event", {
+      p_booking_id: row.booking_id, p_kind: row.kind, p_seq: row.seq,
+      p_status: "sent", p_detail: `${recipients.length} recipient(s); per-channel results in notifications_log`,
+    });
+    out.staff_alerts.sent++;
   }
 
   return out;

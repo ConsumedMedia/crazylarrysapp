@@ -272,3 +272,136 @@ export function jobAssigned(c: {
     },
   };
 }
+
+// --- pay links -------------------------------------------------------------
+// Customer- and staff-entered text (names, addresses) is escaped in the HTML
+// part of these templates.
+
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function button(url: string, label: string): string {
+  return `<a href="${esc(url)}" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">${label}</a>`;
+}
+
+export interface PayLinkCtx extends BookingCtx {
+  /** The full /pay/<token> URL. Never logged: notify.ts redacts it. */
+  url: string;
+}
+
+export function payLink(c: PayLinkCtx): Rendered {
+  const size = c.size.replace("yd", " yd");
+  return {
+    sms: `Crazy Larry's: your ${size} dumpster for ${fmtDate(c.deliveryDate)} is reserved. Total ${money(c.total)}. Review the agreement and pay here: ${c.url} Questions? Call ${YARD_PHONE}. Reply STOP to opt out.`,
+    email: {
+      subject: `Pay for your dumpster — delivery ${fmtDate(c.deliveryDate)}`,
+      text: [
+        `Hi ${c.contactName},`,
+        ``,
+        `Your ${size} dumpster is reserved.`,
+        `Delivery: ${fmtDate(c.deliveryDate)}`,
+        `Pickup:   ${fmtDate(c.pickupDate)}`,
+        `Address:  ${c.address}`,
+        `Total:    ${money(c.total)}`,
+        ``,
+        `Review the rental agreement and pay by card here:`,
+        c.url,
+        ``,
+        `No cash or check needed. This link works until the booking is paid or cancelled.`,
+      ].join("\n"),
+      html: renderEmail("Pay for your dumpster", [
+        `Hi ${esc(c.contactName)},`,
+        `Your <strong>${size}</strong> dumpster is reserved.`,
+        ``,
+        `<strong>Delivery:</strong> ${fmtDate(c.deliveryDate)}`,
+        `<strong>Pickup:</strong> ${fmtDate(c.pickupDate)}`,
+        `<strong>Address:</strong> ${esc(c.address)}`,
+        `<strong>Total:</strong> ${money(c.total)}`,
+        ``,
+        button(c.url, "Review &amp; pay"),
+        ``,
+        `No cash or check needed. This link works until the booking is paid or cancelled.`,
+      ]),
+    },
+  };
+}
+
+export function payLinkReminder(c: PayLinkCtx): Rendered {
+  const size = c.size.replace("yd", " yd");
+  return {
+    sms: `Crazy Larry's reminder: your ${size} dumpster for ${fmtDate(c.deliveryDate)} isn't paid yet (${money(c.total)}). Pay here: ${c.url} Questions? Call ${YARD_PHONE}. Reply STOP to opt out.`,
+    email: {
+      subject: `Reminder: your dumpster for ${fmtDate(c.deliveryDate)} isn't paid yet`,
+      text: [
+        `Hi ${c.contactName},`,
+        ``,
+        `Your ${size} dumpster for ${fmtDate(c.deliveryDate)} at ${c.address} isn't paid yet (${money(c.total)}).`,
+        ``,
+        `Pay by card here:`,
+        c.url,
+        ``,
+        `Questions or changes? Call ${YARD_PHONE}.`,
+      ].join("\n"),
+      html: renderEmail("Your dumpster isn't paid yet", [
+        `Hi ${esc(c.contactName)},`,
+        `Your <strong>${size}</strong> dumpster for <strong>${fmtDate(c.deliveryDate)}</strong> at ${esc(c.address)} isn't paid yet (${money(c.total)}).`,
+        ``,
+        button(c.url, "Pay now"),
+        ``,
+        `Questions or changes? Call ${YARD_PHONE}.`,
+      ]),
+    },
+  };
+}
+
+/** Email only, to staff. bookingUrl is the staff booking page, where Cancel lives. */
+export function staffUnpaidAlert(c: {
+  contactName: string;
+  phone: string | null;
+  size: string;
+  deliveryDate: string;
+  total: number;
+  daysUnpaid: number;
+  remindersSent: number;
+  bookingUrl: string;
+  reason: "after_days" | "reminder_sent";
+}): Rendered {
+  const size = c.size.replace("yd", " yd");
+  const why =
+    c.reason === "reminder_sent"
+      ? `A payment reminder was just sent (${c.remindersSent} so far).`
+      : `It has been unpaid for ${c.daysUnpaid} days (${c.remindersSent} reminder${c.remindersSent === 1 ? "" : "s"} sent).`;
+  const subject = `Unpaid booking: ${c.contactName} — delivery ${fmtDate(c.deliveryDate)} (${c.daysUnpaid} days)`;
+  return {
+    sms: `${subject}. ${c.bookingUrl}`,
+    email: {
+      subject,
+      text: [
+        `${c.contactName}${c.phone ? ` · ${c.phone}` : ""}`,
+        `${size} dumpster, delivery ${fmtDate(c.deliveryDate)}, total ${money(c.total)}`,
+        ``,
+        why,
+        `The unit stays held until the booking is paid or cancelled.`,
+        ``,
+        `Open the booking (call the customer, resend the link, or cancel it there):`,
+        c.bookingUrl,
+      ].join("\n"),
+      html: renderEmail("Unpaid booking", [
+        `<strong>${esc(c.contactName)}</strong>${c.phone ? ` · ${esc(c.phone)}` : ""}`,
+        `${size} dumpster, delivery <strong>${fmtDate(c.deliveryDate)}</strong>, total ${money(c.total)}`,
+        ``,
+        why,
+        `The unit stays held until the booking is paid or cancelled.`,
+        ``,
+        button(c.bookingUrl, "Open booking"),
+        `Call the customer, resend the link, or cancel it from the booking page.`,
+      ]),
+    },
+  };
+}
