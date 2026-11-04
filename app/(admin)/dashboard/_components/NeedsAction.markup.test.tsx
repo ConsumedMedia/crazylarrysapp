@@ -3,9 +3,12 @@
  * BEFORE the failed-refund group (step d, commit 5): with no failed refunds the
  * panel must stay byte-identical.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NeedsAction } from "./NeedsAction";
+
+// Added with commit 5 (failed-refund group): its button's server action.
+vi.mock("../actions", () => ({ resolveRefundAction: vi.fn() }));
 
 describe("NeedsAction markup (no failed refunds)", () => {
   it("nothing to do", () => {

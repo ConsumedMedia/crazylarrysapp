@@ -1,4 +1,7 @@
 import type { OverdueRow, UnassignedRow } from "@/lib/dashboard/queries";
+import type { FailedRefund } from "@/lib/payments/failed-refunds";
+import { formatYardDateTime } from "@/lib/time/yard";
+import { ResolveRefundButton } from "./ResolveRefundButton";
 
 function fmt(d: string | null) {
   if (!d) return "—";
@@ -12,11 +15,14 @@ function fmt(d: string | null) {
 export function NeedsAction({
   overdueBookings,
   unassignedJobs,
+  failedRefunds = [],
 }: {
   overdueBookings: OverdueRow[];
   unassignedJobs: UnassignedRow[];
+  /** Compensating refunds that failed and nobody has resolved yet. */
+  failedRefunds?: FailedRefund[];
 }) {
-  const empty = overdueBookings.length === 0 && unassignedJobs.length === 0;
+  const empty = overdueBookings.length === 0 && unassignedJobs.length === 0 && failedRefunds.length === 0;
 
   return (
     <section className="border-2 border-line-strong bg-surface">
@@ -30,6 +36,43 @@ export function NeedsAction({
         </p>
       ) : (
         <div className="flex flex-col gap-3 p-4">
+          {failedRefunds.length > 0 && (
+            <div data-testid="failed-refunds">
+              <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-orange">
+                Refund failed — fix in QuickBooks ({failedRefunds.length})
+              </div>
+              <ul className="flex flex-col gap-1.5">
+                {failedRefunds.map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex flex-col gap-1.5 border-l-4 border-orange bg-orange-tint px-2.5 py-2 text-[12px] text-orange-tint-ink"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="font-extrabold">
+                        {r.amount !== null ? `$${r.amount.toFixed(2)}` : "Amount unknown"} charged, not refunded
+                      </span>
+                      <span className="cl-nums">{formatYardDateTime(r.createdAt)}</span>
+                    </div>
+                    <div>
+                      {r.source === "pay_link" ? "Pay link" : "Online checkout"}
+                      {r.chargeId && ` · charge ${r.chargeId}`}
+                      {r.reason && ` · ${r.reason}`}
+                      {r.bookingId && (
+                        <>
+                          {" · "}
+                          <a href={`/bookings/${r.bookingId}`} className="font-bold underline">
+                            booking
+                          </a>
+                        </>
+                      )}
+                    </div>
+                    <ResolveRefundButton id={r.id} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {overdueBookings.length > 0 && (
             <div>
               <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-orange">

@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { getOverview, getRevenueToday } from "@/lib/dashboard/queries";
+import { listFailedRefunds } from "@/lib/payments/failed-refunds";
 import { StatusDonut } from "../fleet/_components/StatusDonut";
 import { StatCard } from "./_components/StatCard";
 import { MovementsToday } from "./_components/MovementsToday";
@@ -13,7 +14,7 @@ export const metadata = { title: "Overview · Crazy Larry's" };
 
 export default async function DashboardPage() {
   const staff = await requireStaff();
-  const overview = await getOverview();
+  const [overview, failedRefunds] = await Promise.all([getOverview(), listFailedRefunds()]);
   const revenueToday =
     staff.role === "owner" ? await getRevenueToday() : null;
 
@@ -58,6 +59,7 @@ export default async function DashboardPage() {
           <NeedsAction
             overdueBookings={overview.overdueBookings}
             unassignedJobs={overview.unassignedJobs}
+            failedRefunds={failedRefunds}
           />
         </div>
       </div>
