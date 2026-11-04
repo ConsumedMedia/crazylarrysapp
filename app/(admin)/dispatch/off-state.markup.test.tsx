@@ -41,6 +41,8 @@ vi.mock("@/lib/dispatch/queries", () => ({
   listAvailableUnits: async () => [],
   listDriverJobs: async () => NOT_DUE_JOBS.filter((j) => j.driver_id === "drv-1"),
   checkMatrix: async () => ({}),
+  // Added with commit 4: nothing is unpaid and due.
+  listUnpaidDue: async () => [],
 }));
 
 beforeAll(() => {

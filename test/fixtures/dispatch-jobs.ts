@@ -21,6 +21,8 @@ export const NOT_DUE_JOBS: DispatchJob[] = [
     job_tags: ["driveway"],
     job_tags_confirmed_at: "2026-11-03T15:00:00.000Z",
     booking_status: "confirmed",
+    payment_status: "unpaid", // unpaid, but delivery is two days out: not due
+    delivery_date: "2026-11-06",
     dumpster_id: null,
     dumpster_unit: null,
     customer_name: "Pat Example",
@@ -43,6 +45,8 @@ export const NOT_DUE_JOBS: DispatchJob[] = [
     job_tags: [],
     job_tags_confirmed_at: null,
     booking_status: "active",
+    payment_status: "paid", // delivered long ago, paid
+    delivery_date: "2026-10-28",
     dumpster_id: "dmp-1",
     dumpster_unit: "20-003",
     customer_name: "Sam Paid",
@@ -65,6 +69,8 @@ export const NOT_DUE_JOBS: DispatchJob[] = [
     job_tags: [],
     job_tags_confirmed_at: "2026-11-03T15:00:00.000Z",
     booking_status: "confirmed",
+    payment_status: "paid", // delivery today, paid
+    delivery_date: "2026-11-04",
     dumpster_id: "dmp-2",
     dumpster_unit: "10-001",
     customer_name: "Lee Prepaid",

@@ -11,7 +11,7 @@ const JOB_SELECT = `
   job_photos ( id ),
   bookings!inner (
     size_requested, delivery_address, debris_type, placement_notes, job_tags,
-    job_tags_confirmed_at, status, dumpster_id,
+    job_tags_confirmed_at, status, dumpster_id, payment_status, delivery_date,
     dumpsters ( unit_number ),
     customers!inner ( full_name, phone, company_name )
   )
@@ -38,6 +38,8 @@ function mapJob(r: Record<string, unknown>): DispatchJob {
     job_tags: (b.job_tags as string[] | null) ?? [],
     job_tags_confirmed_at: (b.job_tags_confirmed_at as string | null) ?? null,
     booking_status: b.status as string,
+    payment_status: b.payment_status as string,
+    delivery_date: b.delivery_date as string,
     dumpster_id: (b.dumpster_id as string | null) ?? null,
     dumpster_unit: d?.unit_number ?? null,
     customer_name: c.full_name as string,

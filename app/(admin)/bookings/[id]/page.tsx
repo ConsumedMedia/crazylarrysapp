@@ -6,7 +6,8 @@ import { listChangeRequestsForBooking } from "@/lib/bookings/change-requests";
 import { getPricingConfig } from "@/lib/bookings/pricing";
 import { BOOKING_STATUS_META, DOCUSIGN_META } from "@/lib/bookings/state-machine";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
-import { formatYardDate, formatYardDateTime } from "@/lib/time/yard";
+import { formatYardDate, formatYardDateTime, yardToday } from "@/lib/time/yard";
+import { isUnpaidDue } from "@/lib/bookings/unpaid-due";
 import { BookingControls } from "./_components/BookingControls";
 import { PayLinkPanel } from "./_components/PayLinkPanel";
 import { getPayLinkSettings } from "@/lib/pay-links/settings";
@@ -104,6 +105,16 @@ export default async function BookingDetailPage({
           {BOOKING_STATUS_META[booking.status].label}
         </span>
       </div>
+
+      {isUnpaidDue(booking, yardToday()) && (
+        <p
+          className="border-l-4 border-orange bg-orange-tint px-3 py-2 text-[13px] font-extrabold text-orange-tint-ink"
+          data-testid="unpaid-due-banner"
+        >
+          Not paid, and delivery is due ({fmt(booking.delivery_date)}). The driver is told to call the office
+          before delivering — collect payment or call the customer.
+        </p>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <div className="flex flex-col gap-4">

@@ -6,6 +6,7 @@ import {
   listAvailableUnits,
   listDriverJobs,
   checkMatrix,
+  listUnpaidDue,
 } from "@/lib/dispatch/queries";
 import { listBlocks } from "@/lib/availability/blocks";
 import { yardToday } from "@/lib/time/yard";
@@ -28,9 +29,10 @@ export default async function DispatchPage({
 }) {
   await requireStaff();
 
-  const [jobs, drivers] = await Promise.all([
+  const [jobs, drivers, unpaidDue] = await Promise.all([
     listUnassignedJobs(),
     listDrivers(),
+    listUnpaidDue(),
   ]);
   const activeDrivers = drivers.filter((d) => d.active);
 
@@ -74,6 +76,28 @@ export default async function DispatchPage({
           </Link>
         </p>
       </div>
+
+      {unpaidDue.length > 0 && (
+        <section
+          className="border-l-4 border-orange bg-orange-tint px-4 py-3 text-orange-tint-ink"
+          data-testid="unpaid-due-banner"
+        >
+          <p className="text-[13px] font-extrabold">
+            Not paid — {unpaidDue.length === 1 ? "1 booking is" : `${unpaidDue.length} bookings are`} due
+            for delivery or already out. Drivers are told to call the office before delivering.
+          </p>
+          <ul className="mt-1.5 flex flex-col gap-0.5 text-[12px]">
+            {unpaidDue.map((u) => (
+              <li key={u.bookingId}>
+                <Link href={`/bookings/${u.bookingId}`} className="font-bold underline">
+                  {u.address} · {u.customerName}
+                </Link>{" "}
+                <span className="cl-nums">— delivery {u.deliveryDate}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.3fr]">
         {/* Unassigned queue */}

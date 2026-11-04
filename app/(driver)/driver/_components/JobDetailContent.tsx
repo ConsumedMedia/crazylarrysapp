@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { DispatchJob } from "@/lib/dispatch/types";
 import { CompleteButton } from "./CompleteButton";
 import { yardToday } from "@/lib/time/yard";
+import { DRIVER_NOT_PAID, isUnpaidDue } from "@/lib/bookings/unpaid-due";
 
 function fmtDate(d: string) {
   return new Date(d + "T00:00:00Z").toLocaleDateString(undefined, {
@@ -33,7 +34,9 @@ export function JobDetailContent({
    *  rail already shows the full list alongside, so it's redundant there. */
   showBackHeader?: boolean;
 }) {
-  const isToday = job.scheduled_date === yardToday();
+  const today = yardToday();
+  const isToday = job.scheduled_date === today;
+  const notPaid = job.status !== "completed" && isUnpaidDue({ ...job, status: job.booking_status }, today);
   const mapsHref = `https://maps.google.com/?q=${encodeURIComponent(job.delivery_address)}`;
 
   return (
@@ -61,6 +64,17 @@ export function JobDetailContent({
             <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ink-3">
               Stop {stopNumber} of {stopTotal} · {isToday ? "today" : fmtDate(job.scheduled_date)}
             </span>
+          )}
+        </div>
+      )}
+
+      {notPaid && (
+        <div className="border-l-4 border-orange bg-orange px-4 py-3 text-white" role="alert" data-testid="driver-not-paid">
+          <div className="text-[16px] font-extrabold leading-tight">{DRIVER_NOT_PAID[job.type]}</div>
+          {yardPhone && (
+            <a href={`tel:${yardPhone}`} className="mt-1 inline-block text-[14px] font-bold underline">
+              Call the office
+            </a>
           )}
         </div>
       )}

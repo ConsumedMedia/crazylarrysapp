@@ -20,6 +20,9 @@ export interface DispatchJob {
   job_tags: string[];
   job_tags_confirmed_at: string | null;
   booking_status: string;
+  /** For the delivery-day "not paid" warning (lib/bookings/unpaid-due.ts). */
+  payment_status?: string;
+  delivery_date?: string;
   dumpster_id: string | null;
   dumpster_unit: string | null;
   // joined from customer

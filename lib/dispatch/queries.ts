@@ -2,12 +2,13 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import type { DispatchJob, DriverRow, AssignmentCheck } from "./types";
+import { yardToday } from "@/lib/time/yard";
 
 const JOB_SELECT = `
   id, type, status, scheduled_date, route_order, completed_at, driver_id, booking_id,
   bookings!inner (
     size_requested, delivery_address, debris_type, placement_notes, job_tags,
-    job_tags_confirmed_at, status, dumpster_id,
+    job_tags_confirmed_at, status, dumpster_id, payment_status, delivery_date,
     dumpsters ( unit_number ),
     customers!inner ( full_name, phone, company_name )
   )
@@ -33,12 +34,41 @@ function mapJob(r: Record<string, unknown>): DispatchJob {
     job_tags: (b.job_tags as string[] | null) ?? [],
     job_tags_confirmed_at: (b.job_tags_confirmed_at as string | null) ?? null,
     booking_status: b.status as string,
+    payment_status: b.payment_status as string,
+    delivery_date: b.delivery_date as string,
     dumpster_id: (b.dumpster_id as string | null) ?? null,
     dumpster_unit: d?.unit_number ?? null,
     customer_name: c.full_name as string,
     customer_phone: (c.phone as string | null) ?? null,
     customer_company: (c.company_name as string | null) ?? null,
   };
+}
+
+export interface UnpaidDueRow {
+  bookingId: string;
+  deliveryDate: string;
+  address: string;
+  customerName: string;
+}
+
+/** Open bookings still unpaid with delivery on or before the yard's today. */
+export async function listUnpaidDue(): Promise<UnpaidDueRow[]> {
+  await requireStaff();
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, delivery_date, delivery_address, customers!inner ( full_name )")
+    .eq("payment_status", "unpaid")
+    .lte("delivery_date", yardToday())
+    .not("status", "in", "(cancelled,returned)")
+    .order("delivery_date", { ascending: true });
+  if (error) throw new Error(`listUnpaidDue: ${error.message}`);
+  return ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
+    bookingId: r.id as string,
+    deliveryDate: r.delivery_date as string,
+    address: r.delivery_address as string,
+    customerName: (r.customers as { full_name: string }).full_name,
+  }));
 }
 
 export async function listUnassignedJobs(): Promise<DispatchJob[]> {

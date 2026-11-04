@@ -5,6 +5,8 @@ import { useFormState, useFormStatus } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import type { DispatchJob, DriverRow, AssignmentCheck } from "@/lib/dispatch/types";
 import { KNOWN_JOB_TAGS, prettyTag } from "@/lib/dispatch/tags";
+import { isUnpaidDue } from "@/lib/bookings/unpaid-due";
+import { yardToday } from "@/lib/time/yard";
 import {
   assignJobAction,
   unassignJobAction,
@@ -38,6 +40,14 @@ function Submit({ label, danger }: { label: string; danger?: boolean }) {
     >
       {pending ? "…" : label}
     </button>
+  );
+}
+
+function NotPaidChip() {
+  return (
+    <span className="bg-orange px-1.5 py-0.5 text-[10px] font-extrabold uppercase text-white" data-testid="not-paid">
+      Not paid
+    </span>
   );
 }
 
@@ -85,6 +95,7 @@ export function JobCard({
         <span className="cl-nums text-[12px] text-ink-2">
           {fmtDate(job.scheduled_date)}
         </span>
+        {isUnpaidDue({ ...job, status: job.booking_status }, yardToday()) && <NotPaidChip />}
       </div>
       <div className="text-[13px] font-bold">{job.delivery_address}</div>
       <div className="text-[12px] text-ink-2">
@@ -384,6 +395,7 @@ export function DriverLane({
               >
                 {j.status}
               </span>
+              {j.status !== "completed" && isUnpaidDue({ ...j, status: j.booking_status }, yardToday()) && <NotPaidChip />}
             </div>
             <div className="text-[13px] font-bold">{j.delivery_address}</div>
             <div className="text-[12px] text-ink-2">{j.customer_name}</div>
