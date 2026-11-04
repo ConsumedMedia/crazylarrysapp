@@ -15,6 +15,9 @@ vi.mock("@/app/(customer)/book/_components/AvailabilityCalendar", () => ({
   AvailabilityCalendar: () => <div data-stub="calendar" />,
 }));
 vi.mock("../actions", () => ({ createStaffBookingAction: vi.fn() }));
+// Added with commit 2 (pay-link Book button): the switch reads OFF.
+vi.mock("./pay-link-actions", () => ({ createPayLinkBookingAction: vi.fn() }));
+vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled: false }) }));
 
 let pricing: PricingConfig;
 let customer: Record<string, unknown> | null = null;

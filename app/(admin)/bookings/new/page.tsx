@@ -3,6 +3,8 @@ import { requireStaff } from "@/lib/auth/requireStaff";
 import { getPricingConfig } from "@/lib/bookings/pricing";
 import { getCustomerDetail } from "@/lib/customers/queries";
 import { NewBookingForm } from "./_components/NewBookingForm";
+import { PayLinkBookingForm } from "./_components/PayLinkBookingForm";
+import { getPayLinkSettings } from "@/lib/pay-links/settings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "New booking · Crazy Larry's" };
@@ -14,8 +16,20 @@ export default async function NewBookingPage({
 }) {
   await requireStaff();
   const pricing = await getPricingConfig();
+  // The pay-link switch (cl_pay_link_settings.enabled). Off = today's form, unchanged.
+  const { enabled: payLinksOn } = await getPayLinkSettings();
   const customer = searchParams.customer
     ? await getCustomerDetail(searchParams.customer)
+    : null;
+
+  const formCustomer = customer
+    ? {
+        id: customer.id,
+        fullName: customer.full_name,
+        email: customer.email,
+        phone: customer.phone,
+        companyName: customer.company_name,
+      }
     : null;
 
   return (
@@ -30,26 +44,24 @@ export default async function NewBookingPage({
         <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           New booking
         </h1>
-        <p className="text-[12px] text-ink-2">
-          For phone and in-person orders. No payment is taken here — the
-          booking starts unpaid; record cash/check or send a QuickBooks
-          invoice from the booking page.
-        </p>
+        {payLinksOn ? (
+          <p className="text-[12px] text-ink-2">
+            For phone and in-person orders. Book creates the booking and sends
+            the customer a link to pay by card.
+          </p>
+        ) : (
+          <p className="text-[12px] text-ink-2">
+            For phone and in-person orders. No payment is taken here — the
+            booking starts unpaid; record cash/check or send a QuickBooks
+            invoice from the booking page.
+          </p>
+        )}
       </div>
-      <NewBookingForm
-        pricing={pricing}
-        customer={
-          customer
-            ? {
-                id: customer.id,
-                fullName: customer.full_name,
-                email: customer.email,
-                phone: customer.phone,
-                companyName: customer.company_name,
-              }
-            : null
-        }
-      />
+      {payLinksOn ? (
+        <PayLinkBookingForm pricing={pricing} customer={formCustomer} />
+      ) : (
+        <NewBookingForm pricing={pricing} customer={formCustomer} />
+      )}
     </div>
   );
 }

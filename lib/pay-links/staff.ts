@@ -6,8 +6,9 @@ import {
   bookingRpcError,
   normalizeBookingInput,
 } from "@/lib/bookings/create";
-import { notifyPayLink } from "@/lib/notifications/notify";
-import { payLinkTokenKey } from "./token";
+import { notifyPayLink, type ChannelOutcome } from "@/lib/notifications/notify";
+import { payLinkTokenKey, payLinkUrl } from "./token";
+import { NO_REACHABLE_CONTACT, reachable, scrubPayTokens } from "./contact";
 import type { CreateBookingInput } from "@/lib/bookings/types";
 
 /**
@@ -28,8 +29,7 @@ export class PayLinkError extends Error {
 /** Hints raised by the pay-link RPCs, in staff words. */
 const HINTS: Record<string, string> = {
   pay_links_disabled: "Pay links are turned off in Settings.",
-  no_reachable_contact:
-    "Add an email, or a phone number and tick that the customer agreed to texts — otherwise we can't send the pay link.",
+  no_reachable_contact: NO_REACHABLE_CONTACT,
   not_unpaid: "This booking isn't unpaid, so it can't get a pay link.",
   not_open: "This booking is closed, so it can't get a pay link.",
   qbo_invoice_pending:
@@ -39,7 +39,8 @@ const HINTS: Record<string, string> = {
 function rpcError(error: { message: string; code?: string; hint?: string }): Error {
   if (error.code === "42501") return new PayLinkError("You do not have permission to do that.", "forbidden");
   if (error.hint && HINTS[error.hint]) return new PayLinkError(HINTS[error.hint], error.hint);
-  return new PayLinkError(error.message, error.code ?? "rpc_failed");
+  // Database text is passed on, but never with anything token-shaped in it.
+  return new PayLinkError(scrubPayTokens(error.message), error.code ?? "rpc_failed");
 }
 
 /**
@@ -52,14 +53,21 @@ function keyParam(): { p_token_key?: string } {
   return key ? { p_token_key: key } : {};
 }
 
+export { reachable };
+
 /**
- * The contact rule, checked before the database is touched (the RPC checks it
- * again): an email, or a phone with the customer's verbal OK to texts.
+ * What staff see after a link is issued: each channel's outcome, and the link
+ * itself ONLY when nothing went out (the plaintext exists only at creation, so
+ * this is the one chance to copy it). Never put `url` in a URL, redirect, log,
+ * error or console line.
  */
-export function reachable(input: { contactEmail?: string; contactPhone?: string; smsConsent?: boolean }): boolean {
-  const email = (input.contactEmail ?? "").trim();
-  const phone = (input.contactPhone ?? "").trim();
-  return email.length > 0 || (phone.length > 0 && input.smsConsent === true);
+export interface PayLinkSendResult {
+  sent: ChannelOutcome[];
+  url: string | null;
+}
+
+function sendResult(token: string, sent: ChannelOutcome[]): PayLinkSendResult {
+  return { sent, url: sent.some((o) => o.status === "sent") ? null : payLinkUrl(token) };
 }
 
 /**
@@ -69,7 +77,7 @@ export function reachable(input: { contactEmail?: string; contactPhone?: string;
  */
 export async function createPayLinkBooking(
   input: CreateBookingInput & { customerId?: string | null },
-): Promise<{ bookingId: string }> {
+): Promise<{ bookingId: string } & PayLinkSendResult> {
   await assertStaff();
   if (!reachable(input)) throw new PayLinkError(HINTS.no_reachable_contact, "no_reachable_contact");
   const params = normalizeBookingInput(input);
@@ -95,22 +103,27 @@ export async function createPayLinkBooking(
     if (e.hint && HINTS[e.hint]) throw rpcError(e);
     if (e.code === "42501") throw rpcError(e);
     // Date / capacity / pricing refusals come from _create_booking_core.
-    throw bookingRpcError(e, "Pricing isn't configured — enter rates and a tax rate in Settings first.");
+    throw bookingRpcError(
+      { ...e, message: scrubPayTokens(e.message) },
+      "Pricing isn't configured — enter rates and a tax rate in Settings first.",
+    );
   }
   const row = (Array.isArray(data) ? data[0] : data) as { booking_id: string; token: string } | null;
   if (!row?.booking_id || !row.token) {
     throw new BookingCreateError("The booking didn't come back from the database.", "rpc_failed");
   }
 
-  await notifyPayLink(row.booking_id, row.token, "pay_link");
-  return { bookingId: row.booking_id };
+  const sent = await notifyPayLink(row.booking_id, row.token, "pay_link");
+  return { bookingId: row.booking_id, ...sendResult(row.token, sent) };
 }
 
 /** Resend: a new link replaces the old one (dead in the same transaction), then send it. */
-export async function resendPayLink(bookingId: string): Promise<void> {
+export async function resendPayLink(bookingId: string): Promise<PayLinkSendResult> {
   await assertStaff();
   const supabase = createClient();
   const { data, error } = await supabase.rpc("issue_pay_link", { p_booking_id: bookingId, ...keyParam() });
   if (error) throw rpcError(error as { message: string; code?: string; hint?: string });
-  await notifyPayLink(bookingId, data as string, "pay_link");
+  if (typeof data !== "string" || !data) throw new PayLinkError("The new link didn't come back from the database.", "rpc_failed");
+  const sent = await notifyPayLink(bookingId, data, "pay_link");
+  return sendResult(data, sent);
 }

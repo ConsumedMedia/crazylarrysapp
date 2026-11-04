@@ -18,6 +18,15 @@ import { yardDateOf } from "@/lib/time/yard";
 
 type Channel = "email" | "sms";
 
+/** What happened on one channel. Deliberately carries no recipient or text. */
+export interface ChannelOutcome {
+  channel: Channel;
+  status: "sent" | "failed" | "skipped";
+  category: string | null;
+  /** CL_NOTIFICATIONS_TEST_TO sent it to the test address instead. */
+  redirected: boolean;
+}
+
 interface LogRow {
   booking_id: string | null;
   driver_id: string | null;
@@ -74,7 +83,11 @@ function logRowFrom(
   };
 }
 
-/** Fan out to the requested channels, log every outcome, never throw. */
+/**
+ * Fan out to the requested channels, log every outcome, never throw. Returns
+ * what happened on each channel (no recipients, no message text), for callers
+ * that show staff what went out.
+ */
 async function dispatch(opts: {
   type: string;
   bookingId: string | null;
@@ -84,14 +97,24 @@ async function dispatch(opts: {
   phone: string | null;
   smsConsent: boolean;
   channels: Channel[];
-}): Promise<void> {
+}): Promise<ChannelOutcome[]> {
   const base = { type: opts.type, bookingId: opts.bookingId, driverId: opts.driverId };
   const jobs: Promise<void>[] = [];
+  const outcomes: ChannelOutcome[] = [];
+  const log = (row: LogRow) => {
+    outcomes.push({
+      channel: row.channel,
+      status: row.delivery_status,
+      category: row.failure_category,
+      redirected: row.original_recipient !== null,
+    });
+    return writeLog(row);
+  };
 
   if (opts.channels.includes("sms")) {
     if (!opts.smsConsent) {
       jobs.push(
-        writeLog(
+        log(
           logRowFrom(base, "sms", opts.phone ?? "(none)", opts.rendered.sms, {
             ok: false,
             skipped: true,
@@ -104,7 +127,7 @@ async function dispatch(opts: {
       const e164 = toE164US(opts.phone);
       if (!e164) {
         jobs.push(
-          writeLog(
+          log(
             logRowFrom(base, "sms", opts.phone ?? "(none)", opts.rendered.sms, {
               ok: false,
               category: "recipient_missing",
@@ -115,7 +138,7 @@ async function dispatch(opts: {
       } else {
         jobs.push(
           sendSms(e164, opts.rendered.sms).then((r) =>
-            writeLog(logRowFrom(base, "sms", e164, opts.rendered.sms, r)),
+            log(logRowFrom(base, "sms", e164, opts.rendered.sms, r)),
           ),
         );
       }
@@ -125,7 +148,7 @@ async function dispatch(opts: {
   if (opts.channels.includes("email")) {
     if (!opts.email) {
       jobs.push(
-        writeLog(
+        log(
           logRowFrom(base, "email", "(none)", opts.rendered.email.text, {
             ok: false,
             category: "recipient_missing",
@@ -141,13 +164,14 @@ async function dispatch(opts: {
           text: opts.rendered.email.text,
           html: opts.rendered.email.html,
         }).then((r) =>
-          writeLog(logRowFrom(base, "email", opts.email as string, opts.rendered.email.text, r)),
+          log(logRowFrom(base, "email", opts.email as string, opts.rendered.email.text, r)),
         ),
       );
     }
   }
 
   await Promise.allSettled(jobs);
+  return outcomes;
 }
 
 // --- data loaders --------------------------------------------------------
@@ -380,13 +404,13 @@ export async function notifyPayLink(
   bookingId: string,
   token: string,
   type: "pay_link" | "pay_link_reminder",
-): Promise<void> {
+): Promise<ChannelOutcome[]> {
   try {
     const b = await loadBooking(bookingId);
-    if (!b) return;
+    if (!b) return [];
     const ctx = { ...bookingCtx(b), url: payLinkUrl(token) };
     const email = b.customer?.email ?? null;
-    await dispatch({
+    return await dispatch({
       type,
       bookingId,
       driverId: null,
@@ -398,6 +422,7 @@ export async function notifyPayLink(
     });
   } catch (e) {
     console.error(`[notify] ${type}:`, redactPayLinks((e as Error).message));
+    return [];
   }
 }
 

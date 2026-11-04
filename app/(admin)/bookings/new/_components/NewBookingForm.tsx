@@ -69,20 +69,78 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+export interface FormCustomer {
+  id: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  companyName: string | null;
+}
+
+/** What the submit area needs to decide whether it can submit. */
+export interface FormReadiness {
+  /** A delivery date is picked and the size has a price. */
+  ready: boolean;
+  contactEmail: string;
+  contactPhone: string;
+  smsConsent: boolean;
+}
+
+/** Today's staff booking form (pay links off): creates the booking unpaid. */
 export function NewBookingForm({
   pricing,
   customer,
 }: {
   pricing: PricingConfig;
-  customer: {
-    id: string;
-    fullName: string;
-    email: string | null;
-    phone: string | null;
-    companyName: string | null;
-  } | null;
+  customer: FormCustomer | null;
 }) {
   const [state, action] = useFormState(createStaffBookingAction, init);
+  return (
+    <BookingFormLayout
+      pricing={pricing}
+      customer={customer}
+      action={action}
+      summaryNote={
+        <p className="text-[11px] text-ink-3">
+          The customer gets the booking confirmation (email, and SMS only if
+          they agreed) showing this amount as due.
+        </p>
+      }
+      renderSubmit={({ ready }) => (
+        <>
+          {state.error && (
+            <p className="text-[12px] font-semibold text-orange-tint-ink">{state.error}</p>
+          )}
+          <Submit disabled={!ready} />
+        </>
+      )}
+    />
+  );
+}
+
+/**
+ * The form body shared by today's form and the pay-link form. Only the submit
+ * area, the note under the summary and the line under the texts checkbox
+ * differ, so with pay links off the markup is exactly what it was.
+ */
+export function BookingFormLayout({
+  pricing,
+  customer,
+  action,
+  summaryNote,
+  consentScript,
+  renderSubmit,
+}: {
+  pricing: PricingConfig;
+  customer: FormCustomer | null;
+  action: (formData: FormData) => void;
+  summaryNote: React.ReactNode;
+  consentScript?: React.ReactNode;
+  renderSubmit: (r: FormReadiness) => React.ReactNode;
+}) {
+  const [contactEmail, setContactEmail] = useState(customer?.email ?? "");
+  const [contactPhone, setContactPhone] = useState(customer?.phone ?? "");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [size, setSize] = useState<DumpsterSize>("15yd");
   const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
 
@@ -188,6 +246,7 @@ export function NewBookingForm({
               name="contactPhone"
               type="tel"
               defaultValue={customer?.phone ?? ""}
+              onChange={(e) => setContactPhone(e.currentTarget.value)}
               className={inputCls}
             />
           </Field>
@@ -196,6 +255,7 @@ export function NewBookingForm({
               name="contactEmail"
               type="email"
               defaultValue={customer?.email ?? ""}
+              onChange={(e) => setContactEmail(e.currentTarget.value)}
               className={inputCls}
             />
           </Field>
@@ -210,6 +270,7 @@ export function NewBookingForm({
             <input
               type="checkbox"
               name="smsConsent"
+              onChange={(e) => setSmsConsent(e.currentTarget.checked)}
               className="mt-0.5 h-4 w-4 flex-none accent-teal"
             />
             <span>
@@ -218,6 +279,7 @@ export function NewBookingForm({
               texts off for this customer.
             </span>
           </label>
+          {consentScript}
         </Section>
 
         <Section title="Summary">
@@ -247,14 +309,8 @@ export function NewBookingForm({
               </p>
             )}
           </div>
-          <p className="text-[11px] text-ink-3">
-            The customer gets the booking confirmation (email, and SMS only if
-            they agreed) showing this amount as due.
-          </p>
-          {state.error && (
-            <p className="text-[12px] font-semibold text-orange-tint-ink">{state.error}</p>
-          )}
-          <Submit disabled={!deliveryDate || !quote} />
+          {summaryNote}
+          {renderSubmit({ ready: !!deliveryDate && !!quote, contactEmail, contactPhone, smsConsent })}
         </Section>
       </div>
     </form>
