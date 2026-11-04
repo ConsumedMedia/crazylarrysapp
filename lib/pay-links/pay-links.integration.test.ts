@@ -67,4 +67,38 @@ describe.skipIf(!RUN)("pay links against the real database (read only)", () => {
       if (r.via_fallback) expect(owners).toContain(r.profile_id);
     }
   });
+
+  it("as a staff session: select * on pay_links is refused (42501); the staff UI's named columns work; token columns are refused", async () => {
+    const { PAY_LINK_STAFF_COLUMNS } = await import("./booking-state");
+    const outcome = await readOnly(async (c) => {
+      // A real visible owner, as PostgREST would present them: role
+      // authenticated + JWT claims, so is_staff() is true for RLS.
+      const owner = (await c.query(`select id::text from public.profiles where role = 'owner' and removed_at is null and not hidden_from_users limit 1`)).rows[0]?.id as string;
+      await c.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: owner, role: "authenticated" })]);
+      await c.query("set local role authenticated");
+      const tryRead = async (sql: string) => {
+        await c.query("savepoint s");
+        try {
+          const rows = (await c.query(sql)).rows;
+          await c.query("release savepoint s");
+          return { ok: true as const, n: rows.length };
+        } catch (e) {
+          await c.query("rollback to savepoint s");
+          return { ok: false as const, code: (e as { code?: string }).code };
+        }
+      };
+      return {
+        isStaff: (await c.query("select public.is_staff() as v")).rows[0].v as boolean,
+        star: await tryRead("select * from public.pay_links limit 1"),
+        named: await tryRead(`select ${PAY_LINK_STAFF_COLUMNS} from public.pay_links limit 1`),
+        idOnly: await tryRead("select id from public.pay_links where status = 'active' limit 1"),
+        tokenEncrypted: await tryRead("select token_encrypted from public.pay_links limit 1"),
+      };
+    });
+    expect(outcome.isStaff).toBe(true);
+    expect(outcome.star).toEqual({ ok: false, code: "42501" });
+    expect(outcome.named.ok).toBe(true);
+    expect(outcome.idOnly.ok).toBe(true);
+    expect(outcome.tokenEncrypted).toEqual({ ok: false, code: "42501" });
+  });
 });

@@ -51,6 +51,12 @@ try {
   ok("as anon: select token_encrypted -> 42501", !anon.ok && anon.code === "42501", anon.code ?? "allowed");
   const named = await readAs("authenticated", "select id, status, paid_at from public.pay_links limit 1");
   ok("as authenticated: other columns by name are allowed (RLS then filters rows)", named.ok, named.code ?? "ok");
+  // Must match PAY_LINK_STAFF_COLUMNS in lib/pay-links/booking-state.ts (the booking page's read).
+  const panel = await readAs(
+    "authenticated",
+    "select id, status, created_by, created_at, ended_at, ended_reason, agreement_ack_at, charge_started_at, paid_at from public.pay_links limit 1",
+  );
+  ok("as authenticated: the booking page's exact column list is allowed", panel.ok, panel.code ?? "ok");
 
   const [cons] = await q(`select count(*)::int as n from pg_constraint where conname = 'pay_links_token_only_while_active' and conrelid = 'public.pay_links'::regclass`);
   ok("check constraint: a stored copy only on an active link", cons.n === 1);

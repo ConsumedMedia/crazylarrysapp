@@ -24,6 +24,12 @@ vi.mock("../actions", () => ({
   sendInvoiceAction: vi.fn(),
   checkPaymentAction: vi.fn(),
 }));
+// Added with commit 3 (booking-page pay-link panel): switch OFF, no links.
+vi.mock("./pay-link-actions", () => ({ resendPayLinkAction: vi.fn() }));
+vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled: false }) }));
+vi.mock("@/lib/pay-links/booking-state", () => ({
+  getPayLinkState: async () => ({ active: null, links: [], remindersSent: 0, lastReminderAt: null, deliveries: [] }),
+}));
 vi.mock("../../requests/_components/ResolveRequestForm", () => ({
   ResolveRequestForm: () => <div data-stub="resolve-request" />,
 }));

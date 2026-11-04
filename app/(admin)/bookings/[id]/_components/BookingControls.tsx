@@ -64,6 +64,7 @@ export function BookingControls({
   invoiceIssuedId,
   invoiceLink,
   invoiceSentTo,
+  activePayLink = false,
 }: {
   id: string;
   status: BookingStatus;
@@ -78,6 +79,12 @@ export function BookingControls({
   invoiceIssuedId: string | null;
   invoiceLink: string | null;
   invoiceSentTo: string | null;
+  /**
+   * A pay link is live. The QuickBooks invoice is hidden (and refused by the
+   * server), and cash/check moves behind "Paid another way?", because
+   * recording it ends the link.
+   */
+  activePayLink?: boolean;
 }) {
   const [statusState, statusAction] = useFormState(changeStatusAction, init);
   const [agrState, agrAction] = useFormState(setAgreementAction, init);
@@ -87,6 +94,55 @@ export function BookingControls({
   const [recordPayState, recordPayAction] = useFormState(recordPaymentAction, init);
   const [sendInvState, sendInvAction] = useFormState(sendInvoiceAction, init);
   const [checkPayState, checkPayAction] = useFormState(checkPaymentAction, init);
+
+  // Cash/check recording: shown as-is, or behind "Paid another way?" while a pay link is live.
+  const cashForm = (
+    <form
+      action={recordPayAction}
+      className="flex flex-col gap-2"
+      onSubmit={(e) => {
+        const fd = new FormData(e.currentTarget);
+        if (
+          !confirm(
+            `Mark this booking paid by ${fd.get("method")}? This also records the payment in QuickBooks.`,
+          )
+        )
+          e.preventDefault();
+      }}
+    >
+      <input type="hidden" name="id" value={id} />
+      <div className="flex gap-2">
+        <select
+          name="method"
+          defaultValue="cash"
+          className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+        >
+          <option value="cash">Cash</option>
+          <option value="check">Check</option>
+        </select>
+        <input
+          name="reference"
+          placeholder="Check # (if check)"
+          className="min-w-0 flex-1 border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+        />
+      </div>
+      <input
+        name="note"
+        placeholder="Note (optional) — e.g. paid driver at delivery"
+        className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
+      />
+      <Pending>
+        {(p) => (
+          <button
+            disabled={p}
+            className="self-start bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
+          >
+            Mark as paid
+          </button>
+        )}
+      </Pending>
+    </form>
+  );
 
   const nexts = nextBookingStatuses(status);
   const canRefund = paymentStatus === "paid" && hasCharge;
@@ -240,55 +296,23 @@ export function BookingControls({
           </p>
         ) : null}
 
-        {paymentStatus === "unpaid" && status !== "cancelled" && (
-          <form
-            action={recordPayAction}
-            className="flex flex-col gap-2"
-            onSubmit={(e) => {
-              const fd = new FormData(e.currentTarget);
-              if (
-                !confirm(
-                  `Mark this booking paid by ${fd.get("method")}? This also records the payment in QuickBooks.`,
-                )
-              )
-                e.preventDefault();
-            }}
-          >
-            <input type="hidden" name="id" value={id} />
-            <div className="flex gap-2">
-              <select
-                name="method"
-                defaultValue="cash"
-                className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
-              >
-                <option value="cash">Cash</option>
-                <option value="check">Check</option>
-              </select>
-              <input
-                name="reference"
-                placeholder="Check # (if check)"
-                className="min-w-0 flex-1 border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
-              />
+        {paymentStatus === "unpaid" && status !== "cancelled" && !activePayLink && cashForm}
+        {paymentStatus === "unpaid" && status !== "cancelled" && activePayLink && (
+          <details className="border-2 border-line" data-testid="paid-another-way">
+            <summary className="cursor-pointer px-3 py-2 text-[12px] font-extrabold text-ink-2 hover:text-ink">
+              Paid another way?
+            </summary>
+            <div className="flex flex-col gap-2 border-t-2 border-line p-3">
+              <p className="border-l-4 border-orange bg-orange-tint px-2.5 py-1.5 text-[12px] font-semibold text-orange-tint-ink">
+                A pay link is live. Recording cash or check marks this booking paid and ends the link — the
+                customer can&apos;t pay by card with it after that. Only record money you have in hand.
+              </p>
+              {cashForm}
             </div>
-            <input
-              name="note"
-              placeholder="Note (optional) — e.g. paid driver at delivery"
-              className="border-2 border-line bg-bg px-2.5 py-2 text-[13px] text-ink"
-            />
-            <Pending>
-              {(p) => (
-                <button
-                  disabled={p}
-                  className="self-start bg-teal px-3 py-2 text-[12px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
-                >
-                  Mark as paid
-                </button>
-              )}
-            </Pending>
-          </form>
+          </details>
         )}
 
-        {paymentStatus === "unpaid" && status !== "cancelled" && (
+        {paymentStatus === "unpaid" && status !== "cancelled" && !activePayLink && (
           <div className="mt-3 flex flex-col gap-2 border-t-2 border-line pt-3">
             <div className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
               {invoiceIssuedId ? `QuickBooks invoice ${invoiceIssuedId}` : "Or send a QuickBooks pay link"}

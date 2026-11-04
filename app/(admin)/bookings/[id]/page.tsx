@@ -8,6 +8,9 @@ import { BOOKING_STATUS_META, DOCUSIGN_META } from "@/lib/bookings/state-machine
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
 import { formatYardDate, formatYardDateTime } from "@/lib/time/yard";
 import { BookingControls } from "./_components/BookingControls";
+import { PayLinkPanel } from "./_components/PayLinkPanel";
+import { getPayLinkSettings } from "@/lib/pay-links/settings";
+import { getPayLinkState } from "@/lib/pay-links/booking-state";
 import { ResolveRequestForm } from "../../requests/_components/ResolveRequestForm";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +47,13 @@ export default async function BookingDetailPage({
   } = detail;
   const changeRequests = await listChangeRequestsForBooking(booking.id);
   const pricing = await getPricingConfig();
+  const [{ enabled: payLinksOn }, payLink] = await Promise.all([
+    getPayLinkSettings(),
+    getPayLinkState(booking.id),
+  ]);
+  // Shown while a link is live (on or off — it stays payable), or while pay
+  // links are on. Off with no live link: the page is exactly as before.
+  const showPayLink = !!payLink.active || payLinksOn;
 
   const qboSyncNote = invoice?.quickbooks_invoice_id
     ? ` · QBO inv ${invoice.quickbooks_invoice_id}`
@@ -97,6 +107,18 @@ export default async function BookingDetailPage({
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <div className="flex flex-col gap-4">
+          {showPayLink && (
+            <PayLinkPanel
+              bookingId={booking.id}
+              state={payLink}
+              enabled={payLinksOn}
+              canIssue={
+                booking.payment_status === "unpaid" &&
+                booking.status !== "cancelled" &&
+                booking.status !== "returned"
+              }
+            />
+          )}
           <section className="border-2 border-line-strong bg-surface">
             <div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">
               Booking
@@ -264,6 +286,7 @@ export default async function BookingDetailPage({
             }
             invoiceLink={invoice?.status === "pending" ? invoice.qb_invoice_link : null}
             invoiceSentTo={invoice?.invoice_sent_to ?? null}
+            activePayLink={!!payLink.active}
           />
         </div>
       </div>

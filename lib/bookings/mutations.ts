@@ -424,6 +424,21 @@ export async function sendBookingInvoice(
   if (booking.status === "cancelled") {
     throw new BookingMutationError("This booking is cancelled.", "cancelled");
   }
+  // Never two ways to pay at once: while a card pay link is live, no
+  // QuickBooks invoice (the pay-link side refuses the reverse).
+  const { data: liveLinks, error: lErr } = await supabase
+    .from("pay_links")
+    .select("id")
+    .eq("booking_id", id)
+    .eq("status", "active")
+    .limit(1);
+  if (lErr) throw new BookingMutationError(lErr.message, "pay_link_read");
+  if ((liveLinks ?? []).length > 0) {
+    throw new BookingMutationError(
+      "A pay link is live for this booking, so a QuickBooks invoice isn't available. The customer can pay with the link.",
+      "pay_link_active",
+    );
+  }
 
   const { data: invoice } = await supabase
     .from("invoices")
