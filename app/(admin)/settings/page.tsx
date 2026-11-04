@@ -5,6 +5,14 @@ import {
   GlobalSettingsForm,
 } from "./_components/PricingForms";
 import { QuickBooksPanel } from "./_components/QuickBooksPanel";
+import { PayLinkSettingsPanel } from "./_components/PayLinkSettings";
+import {
+  envWarnings,
+  getAlertRecipientStatus,
+  getLiveCounts,
+  getPayLinkSettings,
+  listAlertCandidates,
+} from "@/lib/pay-links/settings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings · Crazy Larry's" };
@@ -17,6 +25,12 @@ export default async function SettingsPage({
   const staff = await requireStaff();
   const canEdit = staff.role === "owner";
   const config = await getPricingConfig();
+  const payLinks = await getPayLinkSettings();
+  const [live, recipient, candidates] = await Promise.all([
+    getLiveCounts(),
+    getAlertRecipientStatus(payLinks.staff_alert_user_id),
+    canEdit ? listAlertCandidates() : Promise.resolve([]),
+  ]);
 
   return (
     <div className="flex max-w-3xl flex-col gap-4 p-4 md:p-7">
@@ -52,6 +66,15 @@ export default async function SettingsPage({
         </div>
         <GlobalSettingsForm config={config} canEdit={canEdit} />
       </section>
+
+      <PayLinkSettingsPanel
+        settings={payLinks}
+        canEdit={canEdit}
+        candidates={candidates}
+        recipient={recipient}
+        live={live}
+        warnings={envWarnings()}
+      />
 
       {canEdit && <QuickBooksPanel notice={searchParams.qb} />}
     </div>

@@ -7,6 +7,7 @@ import {
 } from "@/lib/bookings/pricing";
 import { isDumpsterSize } from "@/lib/dumpsters/state-machine";
 import { NotAuthorizedError } from "@/lib/auth/requireStaff";
+import { parsePayLinkSettingsForm, savePayLinkSettings } from "@/lib/pay-links/settings";
 
 export interface SettingsState {
   ok: boolean;
@@ -23,6 +24,24 @@ function toState(e: unknown): SettingsState {
 function money(v: FormDataEntryValue | null): number {
   const n = Number(String(v ?? "").replace(/[^0-9.]/g, ""));
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : NaN;
+}
+
+export async function savePayLinkSettingsAction(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
+  const parsed = parsePayLinkSettingsForm(formData);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
+  try {
+    await savePayLinkSettings(parsed.value);
+    revalidatePath("/settings");
+    return {
+      ok: true,
+      message: parsed.value.enabled ? "Pay links saved — they are ON." : "Pay links saved — they are off.",
+    };
+  } catch (e) {
+    return toState(e);
+  }
 }
 
 export async function saveSizePricingAction(
