@@ -42,6 +42,7 @@ const ROWS: CallTranscriptRow[] = [
     transcript_dialogue: [
       { speaker: "staff", content: "Crazy Larry's, how can I help?", start: 0 },
       { speaker: "caller", content: "It's [card number removed], thanks.", start: 65 },
+      { speaker: "unknown", content: "Line with no speaker ids.", start: 70.62, end: 71.4, user_id: null, has_identifier: false },
     ],
   },
   {
@@ -82,6 +83,8 @@ describe("/call-log page", () => {
     expect(html).toContain("Crazy Larry&#x27;s, how can I help?");
     expect(html).toContain("1:05");
     expect(html).toContain("[card number removed]");
+    // A line with neither a userId nor an identifier says Unknown, not Caller; a fractional start shows whole seconds.
+    expect(html).toMatch(/1:10<\/span><span[^>]*>Unknown<\/span><span[^>]*>Line with no speaker ids\./);
     // Missed call: highlighted + labelled, several customers listed, none linked as "the" customer.
     expect(html).toContain("Missed · voicemail");
     expect(html).toContain("border-l-orange");

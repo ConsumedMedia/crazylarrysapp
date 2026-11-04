@@ -16,8 +16,10 @@ function fmtDuration(sec: number | null) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function fmtOffset(sec: number | null) {
-  if (sec === null) return "";
+// Quo's start is stored as sent (may be fractional); shown to the whole second.
+function fmtOffset(start: number | null) {
+  if (start === null || start === undefined) return "";
+  const sec = Math.floor(start);
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 }
 
@@ -151,10 +153,10 @@ export default async function CallLogPage() {
                               <span className="cl-nums w-10 flex-none text-ink-3">{fmtOffset(d.start)}</span>
                               <span
                                 className={`w-14 flex-none text-[11px] font-extrabold uppercase ${
-                                  d.speaker === "staff" ? "text-teal-tint-ink" : "text-ink-2"
+                                  d.speaker === "staff" ? "text-teal-tint-ink" : d.speaker === "unknown" ? "text-ink-3" : "text-ink-2"
                                 }`}
                               >
-                                {d.speaker === "staff" ? "Staff" : "Caller"}
+                                {d.speaker === "staff" ? "Staff" : d.speaker === "unknown" ? "Unknown" : "Caller"}
                               </span>
                               <span className="min-w-0 break-words">{d.content}</span>
                             </li>

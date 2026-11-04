@@ -265,7 +265,9 @@ describe("handleQuoWebhook — accepted deliveries", () => {
       },
     });
     expect(r.status).toBe(500);
-    expect(r.log).toEqual({ outcome: "ingest_failed", deliveryId: "msg_fail", type: "call.transcript.completed", callId: "ACcall1" });
+    expect(r.log).toEqual({ outcome: "ingest_failed", deliveryId: "msg_fail", type: "call.transcript.completed", callId: "ACcall1",
+      dialogue: { entries: 3, withUserId: 1, withIdentifier: 2, withNeither: 0, emptyDropped: 0 },
+    });
   });
 
   it("the log line never carries call content, numbers or the secret", async () => {
@@ -300,9 +302,9 @@ describe("redaction happens before storage — transcript, summary, next steps, 
     expect(summary.next_steps).toEqual([`Charge ${REDACTED_CARD} after delivery`, "Confirm the driveway placement"]);
 
     expect(transcript.transcript_dialogue).toEqual([
-      { speaker: "staff", content: "Crazy Larry's, how can I help?", start: 0 },
-      { speaker: "caller", content: `Sure, it's ${REDACTED_CARD}, expires 12/29.`, start: 3 },
-      { speaker: "caller", content: `Or use the other one, ${REDACTED_CARD}.`, start: 9 },
+      { speaker: "staff", content: "Crazy Larry's, how can I help?", start: 0, end: 2, user_id: "USlarry", has_identifier: false },
+      { speaker: "caller", content: `Sure, it's ${REDACTED_CARD}, expires 12/29.`, start: 3, end: 8, user_id: null, has_identifier: true },
+      { speaker: "caller", content: `Or use the other one, ${REDACTED_CARD}.`, start: 9, end: 12, user_id: null, has_identifier: true },
     ]);
     expect(transcript.transcript).toBe(
       [
@@ -323,5 +325,71 @@ describe("redaction happens before storage — transcript, summary, next steps, 
     const m = mapQuoEvent(TRANSCRIPT);
     expect(m.kind).toBe("ingest");
     expect(JSON.stringify(m)).not.toContain("4111");
+  });
+});
+
+describe("transcript speakers, timing and delivery shape", () => {
+  const withDialogue = (dialogue: unknown) =>
+    envelope("call.transcript.completed", {
+      callId: "ACcall2",
+      createdAt: "2026-11-04T14:00:01.000Z",
+      duration: 46,
+      processingStatus: "completed",
+      dialogue,
+    });
+
+  it("staff = userId, caller = identifier only, unknown = neither; start/end kept as sent; no identifier stored", () => {
+    const m = mapQuoEvent(
+      withDialogue([
+        { userId: "USlarry", identifier: "+16145550100", content: "Staff on a device", start: 0.25, end: 1.5 },
+        { userId: null, identifier: "+16145550142", content: "Caller line", start: 9.4, end: 9.9 },
+        { userId: null, identifier: null, content: "Nobody tagged", start: 9.6, end: null },
+        { content: "No keys at all" },
+      ]),
+    );
+    expect(m.kind).toBe("ingest");
+    if (m.kind !== "ingest") return;
+    expect(m.fields.transcript_dialogue).toEqual([
+      { speaker: "staff", content: "Staff on a device", start: 0.25, end: 1.5, user_id: "USlarry", has_identifier: true },
+      { speaker: "caller", content: "Caller line", start: 9.4, end: 9.9, user_id: null, has_identifier: true },
+      { speaker: "unknown", content: "Nobody tagged", start: 9.6, end: null, user_id: null, has_identifier: false },
+      { speaker: "unknown", content: "No keys at all", start: null, end: null, user_id: null, has_identifier: false },
+    ]);
+    expect(m.fields.transcript).toBe(
+      ["Staff: Staff on a device", "Caller: Caller line", "Unknown: Nobody tagged", "Unknown: No keys at all"].join("\n"),
+    );
+    expect(JSON.stringify(m.fields.transcript_dialogue)).not.toContain("+1614");
+  });
+
+  it("passes repeated lines through one for one (no dedupe, no merge)", () => {
+    const same = { userId: null, identifier: "+16145550142", content: "Hello?", start: 9, end: 9.5 };
+    const m = mapQuoEvent(withDialogue([same, same, same]));
+    if (m.kind !== "ingest") throw new Error("expected ingest");
+    expect(m.fields.transcript_dialogue).toHaveLength(3);
+  });
+
+  it("logs the dialogue shape as counts only", async () => {
+    const r = await handleQuoWebhook(
+      signed(
+        withDialogue([
+          { userId: "USlarry", identifier: null, content: "Hi", start: 0, end: 1 },
+          { userId: null, identifier: "+16145550142", content: "Card 4111 1111 1111 1111", start: 2, end: 3 },
+          { userId: null, identifier: null, content: "?", start: 4, end: 5 },
+          { userId: null, identifier: "+16145550142", content: "  ", start: 6, end: 7 },
+        ]),
+      ),
+      deps,
+    );
+    expect(r.status).toBe(200);
+    expect(r.log.dialogue).toEqual({ entries: 4, withUserId: 1, withIdentifier: 2, withNeither: 1, emptyDropped: 1 });
+    const line = JSON.stringify(r.log);
+    expect(line).not.toContain("+1614");
+    expect(line).not.toContain("4111");
+    expect(line).not.toContain("Hi");
+  });
+
+  it("non-transcript events carry no dialogue shape", async () => {
+    const r = await handleQuoWebhook(signed(COMPLETED), deps);
+    expect(r.log.dialogue).toBeUndefined();
   });
 });

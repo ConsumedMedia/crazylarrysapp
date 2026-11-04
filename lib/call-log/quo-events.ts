@@ -19,10 +19,31 @@ export const HANDLED_EVENT_TYPES = [
 ] as const;
 export type HandledEventType = (typeof HANDLED_EVENT_TYPES)[number];
 
+/**
+ * One transcript line. Quo's docs: internal speakers carry a userId (with or
+ * without an identifier); external participants carry an identifier and no
+ * userId. A line with neither is "unknown" rather than a guess.
+ */
 export interface DialogueLine {
-  speaker: "staff" | "caller";
+  speaker: "staff" | "caller" | "unknown";
   content: string;
+  /** Exactly as Quo sent it (not rounded); units are not documented. */
   start: number | null;
+  end: number | null;
+  /** Quo's workspace user id, when Quo sent one. */
+  user_id: string | null;
+  /** Whether Quo sent an identifier. The identifier itself (a phone number) is not kept. */
+  has_identifier: boolean;
+}
+
+/** Shape of one transcript delivery, for the log. Counts only, never text. */
+export interface DialogueShape {
+  /** Entries in Quo's dialogue array, before empty lines are dropped. */
+  entries: number;
+  withUserId: number;
+  withIdentifier: number;
+  withNeither: number;
+  emptyDropped: number;
 }
 
 /** Keys match p_event in the migration. Absent = this event doesn't carry it. */
@@ -42,7 +63,15 @@ export interface IngestFields {
 }
 
 export type MappedEvent =
-  | { kind: "ingest"; type: HandledEventType; callId: string; orgId: string | null; fields: IngestFields }
+  | {
+      kind: "ingest";
+      type: HandledEventType;
+      callId: string;
+      orgId: string | null;
+      fields: IngestFields;
+      /** Set for a completed transcript event. */
+      dialogueShape?: DialogueShape;
+    }
   | { kind: "ignore"; type: string | null; orgId: string | null; reason: "unhandled_type" | "no_call_id" | "malformed" };
 
 type Obj = Record<string, unknown>;
@@ -50,6 +79,9 @@ const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !
 const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v : undefined);
 const num = (v: unknown): number | undefined =>
   typeof v === "number" && Number.isFinite(v) ? Math.round(v) : undefined;
+/** A number exactly as sent (no rounding). */
+const rawNum = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+const speakerLabel = { staff: "Staff", caller: "Caller", unknown: "Unknown" } as const;
 const direction = (v: unknown) => (v === "incoming" || v === "outgoing" ? v : undefined);
 const textList = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.trim() !== "") : [];
@@ -89,6 +121,7 @@ export function mapQuoEvent(envelope: unknown): MappedEvent {
   if (!callId) return { kind: "ignore", type, orgId, reason: "no_call_id" };
 
   const fields: IngestFields = contextFields(context);
+  let dialogueShape: DialogueShape | undefined;
 
   switch (t) {
     case "call.completed": {
@@ -122,21 +155,33 @@ export function mapQuoEvent(envelope: unknown): MappedEvent {
     }
     case "call.transcript.completed": {
       if (resource.processingStatus === "completed" && Array.isArray(resource.dialogue)) {
-        const dialogue: DialogueLine[] = resource.dialogue
-          .filter(isObj)
+        const entries = resource.dialogue.filter(isObj);
+        dialogueShape = {
+          entries: resource.dialogue.length,
+          withUserId: entries.filter((d) => str(d.userId)).length,
+          withIdentifier: entries.filter((d) => str(d.identifier)).length,
+          withNeither: entries.filter((d) => !str(d.userId) && !str(d.identifier)).length,
+          emptyDropped: 0,
+        };
+        // One line out per non-empty entry in; nothing merged, reordered or deduplicated.
+        const dialogue: DialogueLine[] = entries
           .filter((d) => typeof d.content === "string" && d.content.trim() !== "")
-          .map((d) => ({
-            // A Quo userId means a workspace member; external parties only
-            // have an identifier (their number), which we don't keep per line.
-            speaker: str(d.userId) ? "staff" : "caller",
-            content: redactCardNumbers(d.content as string),
-            start: num(d.start) ?? null,
-          }));
+          .map((d) => {
+            const userId = str(d.userId) ?? null;
+            const hasIdentifier = !!str(d.identifier);
+            return {
+              speaker: userId ? "staff" : hasIdentifier ? "caller" : "unknown",
+              content: redactCardNumbers(d.content as string),
+              start: rawNum(d.start),
+              end: rawNum(d.end),
+              user_id: userId,
+              has_identifier: hasIdentifier,
+            };
+          });
+        dialogueShape.emptyDropped = resource.dialogue.length - dialogue.length;
         if (dialogue.length) {
           fields.transcript_dialogue = dialogue;
-          fields.transcript = dialogue
-            .map((d) => `${d.speaker === "staff" ? "Staff" : "Caller"}: ${d.content}`)
-            .join("\n");
+          fields.transcript = dialogue.map((d) => `${speakerLabel[d.speaker]}: ${d.content}`).join("\n");
         }
       }
       break;
@@ -155,5 +200,7 @@ export function mapQuoEvent(envelope: unknown): MappedEvent {
     }
   }
 
-  return { kind: "ingest", type: t, callId, orgId, fields };
+  return dialogueShape
+    ? { kind: "ingest", type: t, callId, orgId, fields, dialogueShape }
+    : { kind: "ingest", type: t, callId, orgId, fields };
 }

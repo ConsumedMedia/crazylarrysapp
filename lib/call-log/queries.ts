@@ -2,10 +2,14 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/auth/requireStaff";
 
+/** Rows stored before 2026-11-04 have only speaker (staff|caller), content and start (whole seconds). */
 export interface CallDialogueLine {
-  speaker: "staff" | "caller";
+  speaker: "staff" | "caller" | "unknown";
   content: string;
   start: number | null;
+  end?: number | null;
+  user_id?: string | null;
+  has_identifier?: boolean;
 }
 
 export interface CallTranscriptRow {

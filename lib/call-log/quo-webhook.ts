@@ -1,5 +1,5 @@
 import { MAX_WEBHOOK_BODY_BYTES, type QuoWebhookConfig } from "./config";
-import { mapQuoEvent, type IngestFields } from "./quo-events";
+import { mapQuoEvent, type DialogueShape, type IngestFields } from "./quo-events";
 import { verifyQuoSignature } from "./quo-signature";
 
 /**
@@ -15,6 +15,7 @@ import { verifyQuoSignature } from "./quo-signature";
  *
  * `log` is the only thing the route logs. It holds ids, the event type and
  * the outcome — never the body, transcript, summary, phone numbers or secrets.
+ * For a transcript it also holds the dialogue's shape: counts only.
  */
 
 export interface QuoWebhookRequest {
@@ -51,6 +52,8 @@ export interface QuoWebhookLog {
   deliveryId?: string;
   type?: string | null;
   callId?: string;
+  /** Transcript deliveries only: entry and key counts, no text. */
+  dialogue?: DialogueShape;
 }
 
 export interface QuoWebhookResult {
@@ -122,6 +125,7 @@ export async function handleQuoWebhook(
     };
   }
 
+  const shape = mapped.dialogueShape ? { dialogue: mapped.dialogueShape } : {};
   try {
     await deps.ingest(mapped.callId, deliveryId, mapped.fields);
   } catch {
@@ -129,13 +133,13 @@ export async function handleQuoWebhook(
     return {
       status: 500,
       body: { error: "retry" },
-      log: { outcome: "ingest_failed", deliveryId, type: mapped.type, callId: mapped.callId },
+      log: { outcome: "ingest_failed", deliveryId, type: mapped.type, callId: mapped.callId, ...shape },
     };
   }
 
   return {
     status: 200,
     body: { ok: true },
-    log: { outcome: "stored", deliveryId, type: mapped.type, callId: mapped.callId },
+    log: { outcome: "stored", deliveryId, type: mapped.type, callId: mapped.callId, ...shape },
   };
 }
