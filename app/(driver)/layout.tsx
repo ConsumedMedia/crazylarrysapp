@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { myTodaySummary } from "@/lib/driver/queries";
+import { hasStaffRole } from "@/lib/auth/modes";
 import { RouteFade } from "@/lib/design/RouteFade";
 import { BottomTabNav } from "./driver/_components/BottomTabNav";
 
@@ -19,6 +21,8 @@ export default async function DriverLayout({
   children: React.ReactNode;
 }) {
   const summary = await myTodaySummary();
+  // Staff/owner accounts with a drivers row get a way back to the admin side.
+  const adminMode = await hasStaffRole(summary.userId);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-bg text-ink lg:max-w-6xl">
@@ -35,6 +39,14 @@ export default async function DriverLayout({
             {fmtDate(summary.date)}
           </div>
         </div>
+        {adminMode && (
+          <Link
+            href="/dashboard"
+            className="flex-none border-2 border-white/30 px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-white hover:bg-white/10"
+          >
+            Admin view
+          </Link>
+        )}
         <div className="flex-none text-right">
           <div className="cl-nums text-[20px] font-black leading-none text-white">
             {summary.jobsToGo}
