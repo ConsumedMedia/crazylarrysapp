@@ -15,7 +15,10 @@ export class DriverActionError extends Error {
 /**
  * Driver marks their own job complete. complete_job is SECURITY DEFINER and
  * checks "is_staff() OR owns this job" itself, then runs the downstream
- * booking + dumpster transitions.
+ * booking + dumpster transitions. Because that check lets ANY staff session
+ * through, the driver app first confirms the job is assigned to this driver's
+ * own drivers row: an owner who is also a driver can't complete someone
+ * else's job from here (staff still can from the admin side).
  *
  * `photoStoragePath`, if given, is a file the client already uploaded
  * directly to the job-photos bucket *before* calling this — completion
@@ -30,6 +33,15 @@ export async function completeMyJob(
 ): Promise<void> {
   const ctx = await requireDriver();
   const supabase = createClient();
+  const { data: own, error: ownErr } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("id", jobId)
+    .eq("driver_id", ctx.driverId)
+    .maybeSingle();
+  if (ownErr) throw new DriverActionError("Couldn't check the job. Try again.", ownErr.code ?? "read_failed");
+  if (!own) throw new DriverActionError("This job isn't assigned to you.", "42501");
+
   const { data, error } = await supabase.rpc("complete_job", { p_job_id: jobId });
   if (error) {
     const map: Record<string, string> = {

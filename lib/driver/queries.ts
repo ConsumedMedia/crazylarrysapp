@@ -49,8 +49,15 @@ function mapJob(r: Record<string, unknown>): DispatchJob {
   };
 }
 
-/** The signed-in driver's own jobs. RLS ("jobs: driver reads assigned jobs")
- *  already restricts to their assigned jobs; the date filter is applied on top. */
+/**
+ * Every driver-app job read filters on the signed-in driver's own drivers row
+ * (driver_id = ctx.driverId). RLS alone is NOT enough: a staff/owner account
+ * that also has a drivers row matches "jobs: staff full access" and would see
+ * every driver's jobs. For a plain driver the filter changes nothing — RLS
+ * ("jobs: driver reads assigned jobs") already limits them to the same rows.
+ */
+
+/** The signed-in driver's own jobs for a day. */
 export async function myJobs(date?: string): Promise<{
   date: string;
   driverName: string;
@@ -63,6 +70,7 @@ export async function myJobs(date?: string): Promise<{
   const { data, error } = await supabase
     .from("jobs")
     .select(JOB_SELECT)
+    .eq("driver_id", ctx.driverId)
     .eq("scheduled_date", d)
     .neq("status", "cancelled")
     .order("route_order", { ascending: true, nullsFirst: false })
@@ -76,19 +84,23 @@ export async function myJobs(date?: string): Promise<{
   };
 }
 
+/** One of the signed-in driver's own jobs; null (-> 404) for anyone else's. */
 export async function myJob(jobId: string): Promise<DispatchJob | null> {
-  await requireDriver();
+  const ctx = await requireDriver();
   const supabase = createClient();
   const { data, error } = await supabase
     .from("jobs")
     .select(JOB_SELECT)
     .eq("id", jobId)
+    .eq("driver_id", ctx.driverId)
     .maybeSingle();
   if (error) throw new Error(`myJob: ${error.message}`);
   return data ? mapJob(data as Record<string, unknown>) : null;
 }
 
 export interface DriverHeaderInfo {
+  /** The signed-in account (for the header's "Admin view" check). */
+  userId: string;
   driverName: string;
   active: boolean;
   truckNickname: string | null;
@@ -111,6 +123,7 @@ export async function myTodaySummary(): Promise<DriverHeaderInfo> {
     supabase
       .from("jobs")
       .select("status")
+      .eq("driver_id", ctx.driverId)
       .eq("scheduled_date", date)
       .neq("status", "cancelled"),
     supabase
@@ -125,6 +138,7 @@ export async function myTodaySummary(): Promise<DriverHeaderInfo> {
   const jobsDone = rows.filter((j) => j.status === "completed").length;
 
   return {
+    userId: ctx.userId,
     driverName: ctx.fullName,
     active: ctx.active,
     truckNickname: (truck as { nickname?: string } | null)?.nickname ?? null,
@@ -170,13 +184,14 @@ export async function myDriverProfile(): Promise<DriverProfile> {
 
 /** For the "Done" tab — completed jobs over the last `days` days. */
 export async function myRecentCompleted(days = 7): Promise<DispatchJob[]> {
-  await requireDriver();
+  const ctx = await requireDriver();
   const supabase = createClient();
   const sinceYmd = addDays(yardToday(), -days);
 
   const { data, error } = await supabase
     .from("jobs")
     .select(JOB_SELECT)
+    .eq("driver_id", ctx.driverId)
     .eq("status", "completed")
     .gte("scheduled_date", sinceYmd)
     .order("scheduled_date", { ascending: false })
