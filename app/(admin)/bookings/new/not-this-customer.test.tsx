@@ -149,6 +149,50 @@ for (const { label, Form } of FORMS) {
       expect(val(f, "city")).toBe("Delaware");
     });
 
+    const expectAddressCleared = (f: ReturnType<typeof mount>) => {
+      for (const name of ["street", "city", "zip"]) expect(val(f, name), name).toBe("");
+      expect(val(f, "state")).toBe("OH");
+      const sent = f.formData();
+      for (const name of ["street", "city", "zip"]) expect(sent.get(name), `submitted ${name}`).toBe("");
+    };
+
+    it("an offered address that staff then edited is still cleared", async () => {
+      const f = start();
+      await pickPat(f);
+      f.click("1 Test St, Columbus");
+      f.type("street", "1 Test St Apt 2");
+      f.type("city", "Columbus Grove");
+      f.type("state", "OH");
+      f.type("zip", "43005");
+      expect(val(f, "street")).toBe("1 Test St Apt 2");
+      f.click("Not this customer");
+      expectAddressCleared(f);
+    });
+
+    it("an offered street retyped in full is still cleared, with the rest of the offered address", async () => {
+      const f = start();
+      await pickPat(f);
+      f.click("1 Test St, Columbus");
+      f.type("street", "");
+      f.type("street", "99 Completely Different Ave");
+      expect(val(f, "street")).toBe("99 Completely Different Ave");
+      expect(val(f, "city")).toBe("Columbus");
+      f.click("Not this customer");
+      expectAddressCleared(f);
+    });
+
+    it("an offered address retyped field by field is still cleared", async () => {
+      const f = start();
+      await pickPat(f);
+      f.click("1 Test St, Columbus");
+      for (const [name, value] of [["street", "99 Other Ave"], ["city", "Delaware"], ["state", "OH"], ["zip", "43015"]]) {
+        f.type(name, "");
+        f.type(name, value);
+      }
+      f.click("Not this customer");
+      expectAddressCleared(f);
+    });
+
     it("an offered address that New address already cleared doesn't take a later hand-typed one with it", async () => {
       const f = start();
       await pickPat(f);
