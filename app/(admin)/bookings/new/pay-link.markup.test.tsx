@@ -19,9 +19,14 @@ vi.mock("@/app/(customer)/book/_components/AvailabilityCalendar", () => ({
 }));
 vi.mock("../actions", () => ({ createStaffBookingAction: vi.fn() }));
 vi.mock("./pay-link-actions", () => ({ createPayLinkBookingAction: vi.fn() }));
+vi.mock("./customer-actions", () => ({
+  searchCustomersAction: vi.fn(),
+  pickCustomerAction: vi.fn(),
+  emailOwnerAction: vi.fn(),
+}));
 let enabled = true;
 vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled }) }));
-vi.mock("@/lib/customers/queries", () => ({ getCustomerDetail: async () => null }));
+vi.mock("@/lib/customers/search", () => ({ pickCustomer: async () => null }));
 vi.mock("@/lib/bookings/pricing", () => ({
   getPricingConfig: async () => ({
     sizes: [{ size: "15yd", base_price: 350, included_days: 7, included_tons: 2, is_active: true }],

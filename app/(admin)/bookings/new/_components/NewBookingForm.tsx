@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { AvailabilityCalendar } from "@/app/(customer)/book/_components/AvailabilityCalendar";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
@@ -8,6 +8,23 @@ import { rentalWindow } from "@/lib/availability/dates";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
 import type { PricingConfig } from "@/lib/bookings/pricing";
 import { createStaffBookingAction, type BookingActionState } from "../../actions";
+import { emailOwnerAction, pickCustomerAction, searchCustomersAction } from "../customer-actions";
+import type { CustomerHit, PickedCustomer } from "@/lib/customers/search-shared";
+import {
+  createSearchController,
+  editWarnings,
+  fillAddress,
+  fillFromPick,
+  type SearchState,
+} from "@/lib/customers/autofill";
+import {
+  AddressOptions,
+  ConsentOnFile,
+  EditWarnings,
+  PickedBanner,
+  RESULTS_ID,
+  SearchResults,
+} from "./CustomerAutofill";
 
 const PLACEMENTS = ["Driveway", "Street", "Yard", "Other — see notes"];
 const DEBRIS = [
@@ -69,13 +86,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export interface FormCustomer {
-  id: string;
-  fullName: string;
-  email: string | null;
-  phone: string | null;
-  companyName: string | null;
-}
+/** A customer the form starts with (?customer=<id>) — the same shape as a pick. */
+export type FormCustomer = PickedCustomer;
 
 /** What the submit area needs to decide whether it can submit. */
 export interface FormReadiness {
@@ -138,9 +150,136 @@ export function BookingFormLayout({
   consentScript?: React.ReactNode;
   renderSubmit: (r: FormReadiness) => React.ReactNode;
 }) {
+  // Contact and address fields are controlled so a pick (or an offered
+  // address, on click) can fill them; they render exactly as before.
+  const [picked, setPicked] = useState<PickedCustomer | null>(customer);
+  const [contactName, setContactName] = useState(customer?.name ?? "");
   const [contactEmail, setContactEmail] = useState(customer?.email ?? "");
   const [contactPhone, setContactPhone] = useState(customer?.phone ?? "");
+  const [companyName, setCompanyName] = useState(customer?.company ?? "");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [stateAbbr, setStateAbbr] = useState("OH");
+  const [zip, setZip] = useState("");
+  // The address fields hold an address offered for the picked customer, so
+  // "Not this customer" must clear them. A hand-typed address stays.
+  const [addressFromOffer, setAddressFromOffer] = useState(false);
   const [smsConsent, setSmsConsent] = useState(false);
+  const [search, setSearch] = useState<SearchState<CustomerHit>>({ status: "idle" });
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [pickError, setPickError] = useState(false);
+  const [emailOwner, setEmailOwner] = useState<string | null>(null);
+
+  const searcher = useRef<ReturnType<typeof createSearchController<CustomerHit>> | null>(null);
+  useEffect(() => {
+    searcher.current = createSearchController<CustomerHit>({
+      run: searchCustomersAction,
+      onState: (s) => {
+        setSearch(s);
+        setActiveIndex(-1);
+      },
+    });
+    return () => searcher.current?.cancel();
+  }, []);
+
+  // A picked customer's email changed to another customer's: name that customer.
+  const emailSeq = useRef(0);
+  useEffect(() => {
+    const e = contactEmail.trim().toLowerCase();
+    const mine = ++emailSeq.current;
+    if (!picked || !e.includes("@") || e === (picked.email ?? "").trim().toLowerCase()) {
+      setEmailOwner(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      emailOwnerAction(contactEmail, picked.id)
+        .then((r) => {
+          if (mine === emailSeq.current) setEmailOwner(r.ok ? r.name : null);
+        })
+        .catch(() => {
+          if (mine === emailSeq.current) setEmailOwner(null);
+        });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [contactEmail, picked]);
+
+  const typeToSearch = (term: string) => {
+    if (picked) return; // a picked customer is edited, not searched for
+    setPickError(false);
+    searcher.current?.type(term);
+  };
+
+  const pick = async (hit: CustomerHit) => {
+    searcher.current?.cancel();
+    setSearch({ status: "idle" });
+    const r = await pickCustomerAction(hit.id).catch(() => ({ ok: false as const }));
+    if (!r.ok || !r.customer) {
+      setPickError(true);
+      return;
+    }
+    const f = fillFromPick(r.customer);
+    setPicked(r.customer);
+    setContactName(f.name);
+    setContactPhone(f.phone);
+    setContactEmail(f.email);
+    setCompanyName(f.company);
+    setSmsConsent(f.smsConsent);
+  };
+
+  // Nothing of the picked customer may survive: a leftover email would match
+  // that customer again at booking time, and a ticked box would record consent
+  // for whoever is booked next.
+  const notThisCustomer = () => {
+    searcher.current?.cancel();
+    setSearch({ status: "idle" });
+    setPickError(false);
+    setPicked(null);
+    setEmailOwner(null);
+    setContactName("");
+    setContactPhone("");
+    setContactEmail("");
+    setCompanyName("");
+    setSmsConsent(false);
+    if (addressFromOffer) {
+      setStreet("");
+      setCity("");
+      setStateAbbr("OH");
+      setZip("");
+      setAddressFromOffer(false);
+    }
+  };
+
+  const onSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (search.status !== "results") return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => Math.min(i + 1, search.hits.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter" && activeIndex >= 0) {
+      e.preventDefault();
+      void pick(search.hits[activeIndex]);
+    } else if (e.key === "Escape") {
+      searcher.current?.cancel();
+      setSearch({ status: "idle" });
+    }
+  };
+
+  const open = search.status === "results";
+  const comboProps = {
+    autoComplete: "off",
+    role: "combobox",
+    "aria-autocomplete": "list" as const,
+    "aria-expanded": open,
+    "aria-controls": RESULTS_ID,
+    ...(open && activeIndex >= 0 ? { "aria-activedescendant": `${RESULTS_ID}-${activeIndex}` } : {}),
+    onKeyDown: onSearchKey,
+  };
+  const warnings = picked
+    ? editWarnings(picked, { name: contactName, phone: contactPhone, email: contactEmail, company: companyName }, emailOwner)
+    : [];
+
   const [size, setSize] = useState<DumpsterSize>("15yd");
   const [deliveryDate, setDeliveryDate] = useState<string | null>(null);
 
@@ -161,7 +300,7 @@ export function BookingFormLayout({
     <form action={action} className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
       <input type="hidden" name="size" value={size} />
       <input type="hidden" name="deliveryDate" value={deliveryDate ?? ""} />
-      {customer && <input type="hidden" name="customerId" value={customer.id} />}
+      {picked && <input type="hidden" name="customerId" value={picked.id} />}
 
       <div className="flex flex-col gap-4">
         <Section title="Size & delivery date">
@@ -194,18 +333,39 @@ export function BookingFormLayout({
         </Section>
 
         <Section title="Delivery address">
+          {picked && (
+            <AddressOptions
+              options={picked.addresses}
+              onUse={(o) => {
+                const a = fillAddress(o);
+                if (!a) return;
+                setStreet(a.street);
+                setCity(a.city);
+                setStateAbbr(a.state);
+                setZip(a.zip);
+                setAddressFromOffer(true);
+              }}
+              onNew={() => {
+                setStreet("");
+                setCity("");
+                setStateAbbr("OH");
+                setZip("");
+                setAddressFromOffer(false);
+              }}
+            />
+          )}
           <Field label="Street">
-            <input name="street" required className={inputCls} />
+            <input name="street" required value={street} onChange={(e) => setStreet(e.currentTarget.value)} className={inputCls} />
           </Field>
           <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
             <Field label="City">
-              <input name="city" required className={inputCls} />
+              <input name="city" required value={city} onChange={(e) => setCity(e.currentTarget.value)} className={inputCls} />
             </Field>
             <Field label="State">
-              <input name="state" required defaultValue="OH" className={inputCls} />
+              <input name="state" required value={stateAbbr} onChange={(e) => setStateAbbr(e.currentTarget.value)} className={inputCls} />
             </Field>
             <Field label="ZIP">
-              <input name="zip" required className={inputCls} />
+              <input name="zip" required value={zip} onChange={(e) => setZip(e.currentTarget.value)} className={inputCls} />
             </Field>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -232,12 +392,20 @@ export function BookingFormLayout({
       </div>
 
       <div className="flex flex-col gap-4">
-        <Section title={customer ? "Customer (existing)" : "Customer"}>
+        <Section title={picked ? "Customer (existing)" : "Customer"}>
+          {picked && (
+            <PickedBanner picked={picked} onClear={notThisCustomer} />
+          )}
           <Field label="Name">
             <input
               name="contactName"
               required
-              defaultValue={customer?.fullName ?? ""}
+              value={contactName}
+              onChange={(e) => {
+                setContactName(e.currentTarget.value);
+                typeToSearch(e.currentTarget.value);
+              }}
+              {...comboProps}
               className={inputCls}
             />
           </Field>
@@ -245,16 +413,24 @@ export function BookingFormLayout({
             <input
               name="contactPhone"
               type="tel"
-              defaultValue={customer?.phone ?? ""}
-              onChange={(e) => setContactPhone(e.currentTarget.value)}
+              value={contactPhone}
+              onChange={(e) => {
+                setContactPhone(e.currentTarget.value);
+                typeToSearch(e.currentTarget.value);
+              }}
+              {...comboProps}
               className={inputCls}
             />
           </Field>
+          <SearchResults state={search} activeIndex={activeIndex} onPick={(h) => void pick(h)} />
+          {pickError && (
+            <p className="text-[12px] font-semibold text-orange-tint-ink">Couldn&apos;t load that customer — type the details.</p>
+          )}
           <Field label="Email — needed for a QuickBooks pay link">
             <input
               name="contactEmail"
               type="email"
-              defaultValue={customer?.email ?? ""}
+              value={contactEmail}
               onChange={(e) => setContactEmail(e.currentTarget.value)}
               className={inputCls}
             />
@@ -262,14 +438,17 @@ export function BookingFormLayout({
           <Field label="Company (optional)">
             <input
               name="companyName"
-              defaultValue={customer?.companyName ?? ""}
+              value={companyName}
+              onChange={(e) => setCompanyName(e.currentTarget.value)}
               className={inputCls}
             />
           </Field>
+          {picked && <EditWarnings warnings={warnings} />}
           <label className="flex items-start gap-2.5 text-[13px] text-ink-2">
             <input
               type="checkbox"
               name="smsConsent"
+              checked={smsConsent}
               onChange={(e) => setSmsConsent(e.currentTarget.checked)}
               className="mt-0.5 h-4 w-4 flex-none accent-teal"
             />
@@ -279,6 +458,7 @@ export function BookingFormLayout({
               texts off for this customer.
             </span>
           </label>
+          {picked && <ConsentOnFile consent={picked.consent} />}
           {consentScript}
         </Section>
 

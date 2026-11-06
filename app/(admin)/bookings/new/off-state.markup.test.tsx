@@ -17,12 +17,19 @@ vi.mock("@/app/(customer)/book/_components/AvailabilityCalendar", () => ({
 vi.mock("../actions", () => ({ createStaffBookingAction: vi.fn() }));
 // Added with commit 2 (pay-link Book button): the switch reads OFF.
 vi.mock("./pay-link-actions", () => ({ createPayLinkBookingAction: vi.fn() }));
+// Changed with the customer autofill: the search actions, and ?customer= now
+// loads the customer the same way a pick does.
+vi.mock("./customer-actions", () => ({
+  searchCustomersAction: vi.fn(),
+  pickCustomerAction: vi.fn(),
+  emailOwnerAction: vi.fn(),
+}));
 vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled: false }) }));
 
 let pricing: PricingConfig;
 let customer: Record<string, unknown> | null = null;
 vi.mock("@/lib/bookings/pricing", () => ({ getPricingConfig: async () => pricing }));
-vi.mock("@/lib/customers/queries", () => ({ getCustomerDetail: async () => customer }));
+vi.mock("@/lib/customers/search", () => ({ pickCustomer: async () => customer }));
 
 const READY: PricingConfig = {
   sizes: (["10yd", "15yd", "20yd"] as const).map((size, i) => ({
@@ -60,13 +67,19 @@ describe("/bookings/new markup (pay links off)", () => {
   it("prefilled from an existing customer", async () => {
     pricing = READY;
     customer = {
-      id: "cust-1",
-      full_name: "Pat Example",
+      id: "11111111-1111-4111-8111-111111111111",
+      name: "Pat Example",
       email: "pat@crazylarrys.test",
       phone: "+16145550142",
-      company_name: "Example Roofing",
+      company: "Example Roofing",
+      bookings: 3,
+      addresses: [
+        { label: "1 Test St, Columbus, OH 43004", parts: { street: "1 Test St", city: "Columbus", state: "OH", zip: "43004" } },
+        { label: "Lot 4 behind the barn", parts: null },
+      ],
+      consent: { onFile: true, last: { granted: true, source: "phone_verbal", recordedAt: "2026-11-03T15:00:00Z" } },
     };
-    expect(await render({ customer: "cust-1" })).toMatchSnapshot();
+    expect(await render({ customer: "11111111-1111-4111-8111-111111111111" })).toMatchSnapshot();
   });
 
   it("the form posts to today's createStaffBookingAction and nothing else", async () => {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { getPricingConfig } from "@/lib/bookings/pricing";
-import { getCustomerDetail } from "@/lib/customers/queries";
+import { pickCustomer } from "@/lib/customers/search";
 import { NewBookingForm } from "./_components/NewBookingForm";
 import { PayLinkBookingForm } from "./_components/PayLinkBookingForm";
 import { getPayLinkSettings } from "@/lib/pay-links/settings";
@@ -18,19 +18,14 @@ export default async function NewBookingPage({
   const pricing = await getPricingConfig();
   // The pay-link switch (cl_pay_link_settings.enabled). Off = today's form, unchanged.
   const { enabled: payLinksOn } = await getPayLinkSettings();
-  const customer = searchParams.customer
-    ? await getCustomerDetail(searchParams.customer)
-    : null;
+  // ?customer=<id> (from a customer's page) starts the form as if staff had
+  // picked that customer: same details, address options and consent on file.
+  const customer =
+    searchParams.customer && /^[0-9a-f-]{36}$/i.test(searchParams.customer)
+      ? await pickCustomer(searchParams.customer)
+      : null;
 
-  const formCustomer = customer
-    ? {
-        id: customer.id,
-        fullName: customer.full_name,
-        email: customer.email,
-        phone: customer.phone,
-        companyName: customer.company_name,
-      }
-    : null;
+  const formCustomer = customer;
 
   return (
     <div className="cl-fade-in flex flex-col gap-4 p-4 md:p-7">
