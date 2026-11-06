@@ -62,6 +62,13 @@ export function PayLinkSettingsPanel({
 }) {
   const [state, action] = useFormState(savePayLinkSettingsAction, init);
   const s = settings;
+  // Chosen and still valid, but not someone this owner can see: keep the choice
+  // without naming them, or the dropdown would fall to "All visible owners" and
+  // the next save would silently clear it.
+  const keepCurrent =
+    s.staff_alert_user_id && recipient.chosenUsable && !candidates.some((c) => c.id === s.staff_alert_user_id)
+      ? s.staff_alert_user_id
+      : null;
 
   return (
     <section className="border-2 border-line-strong bg-surface">
@@ -92,7 +99,7 @@ export function PayLinkSettingsPanel({
             {s.staff_alert_user_id
               ? `${recipient.chosenName ?? "The chosen person"} is removed, hidden or no longer staff`
               : "No alert person is chosen"}
-            {` — unpaid-booking alerts go to all visible owners (${recipient.visibleOwners}).`}
+            {" — unpaid-booking alerts go to all visible owners."}
           </Warn>
         )}
 
@@ -159,6 +166,7 @@ export function PayLinkSettingsPanel({
             {canEdit ? (
               <select name="staff_alert_user_id" defaultValue={s.staff_alert_user_id ?? ""} className={`${input} max-w-sm`}>
                 <option value="">All visible owners</option>
+                {keepCurrent && <option value={keepCurrent}>Current recipient</option>}
                 {candidates.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.role})
@@ -167,7 +175,7 @@ export function PayLinkSettingsPanel({
               </select>
             ) : (
               <span className="text-[14px] font-bold normal-case tracking-normal text-ink">
-                {recipient.usingFallback ? "All visible owners" : recipient.chosenName}
+                {recipient.usingFallback ? "All visible owners" : (recipient.chosenName ?? "Current recipient")}
               </span>
             )}
           </label>

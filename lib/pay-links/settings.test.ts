@@ -46,6 +46,7 @@ import {
   getAlertRecipientStatus,
   getLiveCounts,
   getPayLinkSettings,
+  listAlertCandidates,
   savePayLinkSettings,
 } from "./settings";
 
@@ -133,30 +134,49 @@ describe("reads on the staff session", () => {
   });
 
   it("alert recipient: no one chosen -> fallback to visible owners", async () => {
-    results.profiles = { data: null, error: null, count: 3 };
     expect(await getAlertRecipientStatus(null)).toEqual({
       chosenName: null,
       chosenUsable: false,
       usingFallback: true,
-      visibleOwners: 3,
     });
+    expect(calls.some((c) => c.table === "profiles")).toBe(false); // no owner count is read
   });
 
   it("alert recipient: chosen but removed -> fallback; active -> no fallback", async () => {
     results.profiles = {
-      data: { full_name: "Alice", role: "staff", removed_at: "2026-11-01T00:00:00Z", hidden_from_users: false },
+      data: { id: ALICE, full_name: "Alice", role: "staff", removed_at: "2026-11-01T00:00:00Z", hidden_from_users: false, is_protected: false },
       error: null,
-      count: 3,
     };
     expect((await getAlertRecipientStatus(ALICE)).usingFallback).toBe(true);
     results.profiles = {
-      data: { full_name: "Alice", role: "staff", removed_at: null, hidden_from_users: false },
+      data: { id: ALICE, full_name: "Alice", role: "staff", removed_at: null, hidden_from_users: false, is_protected: false },
       error: null,
-      count: 3,
     };
     const ok = await getAlertRecipientStatus(ALICE);
     expect(ok.usingFallback).toBe(false);
     expect(ok.chosenName).toBe("Alice");
+  });
+
+  it("alert recipient: a protected person's name goes only to themself, and they stay usable", async () => {
+    const row = { full_name: "Pat", role: "owner", removed_at: null, hidden_from_users: false, is_protected: true };
+    results.profiles = { data: { id: ALICE, ...row }, error: null };
+    const other = await getAlertRecipientStatus(ALICE);
+    expect(other.chosenName).toBeNull();
+    expect(other.chosenUsable).toBe(true);
+    expect(other.usingFallback).toBe(false);
+    results.profiles = { data: { id: "u-owner", ...row }, error: null };
+    expect((await getAlertRecipientStatus("u-owner")).chosenName).toBe("Pat");
+  });
+});
+
+describe("listAlertCandidates", () => {
+  const row = { role: "owner", full_name: "Pat", is_protected: true };
+  it("leaves out a protected person, unless it's the viewer", async () => {
+    results["rpc:list_staff_users"] = {
+      data: [{ id: ALICE, ...row }, { id: "u-owner", ...row }, { id: "plain", role: "staff", full_name: "Sam", is_protected: false }],
+      error: null,
+    };
+    expect((await listAlertCandidates()).map((c) => c.id)).toEqual(["u-owner", "plain"]);
   });
 });
 
@@ -191,6 +211,21 @@ describe("savePayLinkSettings (owner session)", () => {
 
   it("an alert user outside the picker is refused before any write", async () => {
     results["rpc:list_staff_users"] = { data: [], error: null };
+    await expect(savePayLinkSettings({ ...value, staff_alert_user_id: ALICE })).rejects.toThrow(/active staff or owner/);
+    expect(calls.some((c) => c.op === "update")).toBe(false);
+  });
+
+  it("an unseen person can be kept: the value already saved passes without being in the picker", async () => {
+    results["rpc:list_staff_users"] = { data: [], error: null };
+    results.cl_pay_link_settings = { data: { staff_alert_user_id: ALICE }, error: null };
+    results["cl_pay_link_settings:update"] = { data: [{ enabled: true }], error: null };
+    await savePayLinkSettings({ ...value, staff_alert_user_id: ALICE });
+    expect((calls.find((c) => c.op === "update")?.arg as { staff_alert_user_id: string }).staff_alert_user_id).toBe(ALICE);
+  });
+
+  it("an unseen person can't be newly chosen: a different saved value is refused before any write", async () => {
+    results["rpc:list_staff_users"] = { data: [], error: null };
+    results.cl_pay_link_settings = { data: { staff_alert_user_id: "22222222-2222-4222-8222-222222222222" }, error: null };
     await expect(savePayLinkSettings({ ...value, staff_alert_user_id: ALICE })).rejects.toThrow(/active staff or owner/);
     expect(calls.some((c) => c.op === "update")).toBe(false);
   });

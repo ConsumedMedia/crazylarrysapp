@@ -60,42 +60,39 @@ export async function getLiveCounts(): Promise<{ live: number; withoutStoredLink
  * pay_link_staff_alert_recipients() (service_role only, so not called here):
  * the chosen person if they are an active, visible staff/owner, otherwise
  * every visible, active owner. "Removed" stands in for "banned", since Remove
- * is what bans an account.
+ * is what bans an account. A protected person's name is shown only to themself.
  */
 export async function getAlertRecipientStatus(alertUserId: string | null): Promise<AlertRecipientStatus> {
-  await assertStaff();
+  const me = await assertStaff();
   const supabase = createClient();
-  const [{ data: chosen, error: cErr }, { count, error: oErr }] = await Promise.all([
-    alertUserId
-      ? supabase
-          .from("profiles")
-          .select("id, full_name, role, removed_at, hidden_from_users")
-          .eq("id", alertUserId)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "owner")
-      .is("removed_at", null)
-      .eq("hidden_from_users", false),
-  ]);
+  const { data: chosen, error: cErr } = alertUserId
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, role, removed_at, hidden_from_users, is_protected")
+        .eq("id", alertUserId)
+        .maybeSingle()
+    : { data: null, error: null };
   if (cErr) throw new Error(`profiles: ${cErr.message}`);
-  if (oErr) throw new Error(`profiles: ${oErr.message}`);
-  const c = chosen as { full_name: string | null; role: string; removed_at: string | null; hidden_from_users: boolean } | null;
+  const c = chosen as {
+    id: string;
+    full_name: string | null;
+    role: string;
+    removed_at: string | null;
+    hidden_from_users: boolean;
+    is_protected: boolean;
+  } | null;
   const usable =
     !!c && (c.role === "staff" || c.role === "owner") && !c.removed_at && !c.hidden_from_users;
   return {
-    chosenName: c?.full_name ?? null,
+    chosenName: c && (!c.is_protected || c.id === me.userId) ? c.full_name : null,
     chosenUsable: usable,
     usingFallback: !usable,
-    visibleOwners: count ?? 0,
   };
 }
 
 /** The alert-user picker: active, visible staff and owners (owner-only RPC). */
 export async function listAlertCandidates(): Promise<AlertCandidate[]> {
-  await assertOwner();
+  const me = await assertOwner();
   const supabase = createClient();
   const { data, error } = await supabase.rpc("list_staff_users");
   if (error) throw new Error(`list_staff_users: ${error.message}`);
@@ -104,6 +101,7 @@ export async function listAlertCandidates(): Promise<AlertCandidate[]> {
       (r) =>
         (r.role === "staff" || r.role === "owner") &&
         !r.removed_at &&
+        (r.is_protected !== true || r.id === me.userId) &&
         // An invite nobody has accepted can't read an alert yet.
         !(r.invited_at && !r.email_confirmed_at),
     )
@@ -112,15 +110,26 @@ export async function listAlertCandidates(): Promise<AlertCandidate[]> {
 
 export async function savePayLinkSettings(input: PayLinkSettingsInput): Promise<void> {
   const owner = await assertOwner();
-  if (input.staff_alert_user_id) {
-    const ok = (await listAlertCandidates()).some((c) => c.id === input.staff_alert_user_id);
-    if (!ok) throw new Error("Pick an active staff or owner account for unpaid-booking alerts.");
-  }
   for (const [k, [lo, hi]] of Object.entries(PAY_LINK_LIMITS)) {
     const v = input[k as keyof typeof PAY_LINK_LIMITS];
     if (!Number.isInteger(v) || v < lo || v > hi) throw new Error(`${k} must be a whole number from ${lo} to ${hi}.`);
   }
   const supabase = createClient();
+  if (input.staff_alert_user_id) {
+    const ok = (await listAlertCandidates()).some((c) => c.id === input.staff_alert_user_id);
+    if (!ok) {
+      // "Current recipient": someone this owner can't see, kept unchanged.
+      const { data: current, error: curErr } = await supabase
+        .from("cl_pay_link_settings")
+        .select("staff_alert_user_id")
+        .eq("id", true)
+        .maybeSingle();
+      if (curErr) throw new Error(`cl_pay_link_settings: ${curErr.message}`);
+      if ((current as { staff_alert_user_id?: string | null } | null)?.staff_alert_user_id !== input.staff_alert_user_id) {
+        throw new Error("Pick an active staff or owner account for unpaid-booking alerts.");
+      }
+    }
+  }
   const { data, error } = await supabase
     .from("cl_pay_link_settings")
     .update({

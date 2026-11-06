@@ -36,7 +36,6 @@ export interface AlertRecipientStatus {
   chosenUsable: boolean;
   /** Alerts go to every visible, active owner instead. */
   usingFallback: boolean;
-  visibleOwners: number;
 }
 
 type FormLike = { get(name: string): FormDataEntryValue | null };

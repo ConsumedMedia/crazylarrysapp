@@ -23,16 +23,20 @@ export interface ProfileOption {
  * existing staff/owner/driver/customer account can gain additional access,
  * not just brand-new signups. Owner-only: this feeds the privilege-grant
  * screen, so the candidate list itself is gated the same as the grant.
+ * Protected accounts are left out unless it's the viewer's own: the database
+ * refuses any change to them anyway.
  */
 export async function listAllProfiles(): Promise<ProfileOption[]> {
-  await assertOwner();
+  const me = await assertOwner();
   const supabase = createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role")
+    .select("id, full_name, role, is_protected")
     .order("full_name", { ascending: true, nullsFirst: false });
   if (error) throw new CreateUserError(error.message);
-  return (data ?? []) as ProfileOption[];
+  return (data ?? [])
+    .filter((p) => !p.is_protected || p.id === me.userId)
+    .map((p) => ({ id: p.id as string, full_name: (p.full_name as string | null) ?? null, role: p.role as string }));
 }
 
 export interface CreateUserInput {

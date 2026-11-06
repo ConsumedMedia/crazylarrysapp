@@ -71,19 +71,23 @@ export async function listTrucks(): Promise<TruckOption[]> {
   return (data ?? []) as TruckOption[];
 }
 
-/** Profiles not yet linked to a drivers row — candidates for "Add driver". */
+/**
+ * Profiles not yet linked to a drivers row — candidates for "Add driver".
+ * Protected accounts are left out unless it's the viewer's own: the database
+ * refuses another person's edit to them anyway.
+ */
 export async function listCandidateProfiles(): Promise<CandidateProfile[]> {
-  await assertStaff();
+  const me = await assertStaff();
   const supabase = createClient();
   const { data: drivers } = await supabase.from("drivers").select("profile_id");
   const taken = new Set((drivers ?? []).map((d) => d.profile_id as string));
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role")
+    .select("id, full_name, role, is_protected")
     .order("full_name");
   if (error) throw new DriverManageError(error.message);
   return (data ?? [])
-    .filter((p) => !taken.has(p.id as string))
+    .filter((p) => !taken.has(p.id as string) && (!p.is_protected || p.id === me.userId))
     .map((p) => ({
       id: p.id as string,
       full_name: (p.full_name as string | null) ?? null,

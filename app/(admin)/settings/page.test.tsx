@@ -66,7 +66,7 @@ async function render() {
 beforeEach(() => {
   role = "owner";
   settings = OFF;
-  recipient = { chosenName: null, chosenUsable: false, usingFallback: true, visibleOwners: 3 };
+  recipient = { chosenName: null, chosenUsable: false, usingFallback: true };
   live = { live: 0, withoutStoredLink: 0 };
   listAlertCandidates.mockClear();
   delete process.env.CL_NOTIFICATIONS_TEST_TO;
@@ -82,7 +82,8 @@ describe("/settings — Customer pay links", () => {
     expect(html).toContain('name="staff_alert_user_id"');
     expect(html).toContain("Larry (owner)");
     expect(html).toContain("All visible owners");
-    expect(html).toContain("No alert person is chosen — unpaid-booking alerts go to all visible owners (3).");
+    expect(html).toContain("No alert person is chosen — unpaid-booking alerts go to all visible owners.");
+    expect(html).not.toMatch(/visible owners \(\d/);
     expect(html).toContain("Save pay-link settings");
     expect(html).not.toMatch(/name="enabled"[^>]*disabled/);
     // Inputs carry the database's limits.
@@ -109,10 +110,49 @@ describe("/settings — Customer pay links", () => {
 
   it("chosen person removed -> fallback warning names them; usable -> no warning", async () => {
     settings = { ...OFF, staff_alert_user_id: "22222222-2222-4222-8222-222222222222" };
-    recipient = { chosenName: "Alice", chosenUsable: false, usingFallback: true, visibleOwners: 2 };
-    expect(await render()).toContain("Alice is removed, hidden or no longer staff — unpaid-booking alerts go to all visible owners (2).");
-    recipient = { chosenName: "Alice", chosenUsable: true, usingFallback: false, visibleOwners: 2 };
+    recipient = { chosenName: "Alice", chosenUsable: false, usingFallback: true };
+    expect(await render()).toContain("Alice is removed, hidden or no longer staff — unpaid-booking alerts go to all visible owners.");
+    recipient = { chosenName: "Alice", chosenUsable: true, usingFallback: false };
     expect(await render()).not.toContain("unpaid-booking alerts go to all visible owners");
+  });
+
+  describe("a chosen person this owner can't see", () => {
+    const UNSEEN = "33333333-3333-4333-8333-333333333333";
+    const unseen = () => {
+      settings = { ...OFF, staff_alert_user_id: UNSEEN };
+      recipient = { chosenName: null, chosenUsable: true, usingFallback: false };
+    };
+
+    it("owner: the choice stays selected as Current recipient, with no name and no warning", async () => {
+      unseen();
+      const html = await render();
+      expect(html).toMatch(new RegExp(`<option value="${UNSEEN}" selected="">Current recipient</option>`));
+      expect(html).not.toContain("alerts go to all visible owners");
+    });
+
+    it("staff: reads Current recipient, not a blank", async () => {
+      unseen();
+      role = "staff";
+      const html = await render();
+      expect(html).toContain(">Current recipient<");
+      expect(html).not.toContain(UNSEEN);
+    });
+
+    it("no extra option when the chosen person is in the picker", async () => {
+      settings = { ...OFF, staff_alert_user_id: "11111111-1111-4111-8111-111111111111" };
+      recipient = { chosenName: "Larry", chosenUsable: true, usingFallback: false };
+      const html = await render();
+      expect(html).not.toContain("Current recipient");
+      expect(html).toMatch(/selected="">Larry \(owner\)/);
+    });
+
+    it("no extra option when the chosen person is no longer usable: the fallback warning shows instead", async () => {
+      settings = { ...OFF, staff_alert_user_id: UNSEEN };
+      recipient = { chosenName: "Alice", chosenUsable: false, usingFallback: true };
+      const html = await render();
+      expect(html).not.toContain("Current recipient");
+      expect(html).toContain("Alice is removed, hidden or no longer staff");
+    });
   });
 
   it("environment warnings: token key, test redirect, notifications off", async () => {

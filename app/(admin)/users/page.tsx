@@ -13,7 +13,9 @@ export default async function UsersPage() {
   const me = await requireOwner();
   const [users, trucks] = await Promise.all([listStaffUsers(), listTrucks()]);
 
-  const protectedUsers = users.filter((u) => u.isProtected);
+  // A protected account is shown to itself only. list_staff_users enforces the
+  // same rule once 20261106000000 is applied.
+  const protectedUsers = users.filter((u) => u.isProtected && u.id === me.userId);
   const rest = users.filter((u) => !u.isProtected);
   const active = rest.filter((u) => u.status === "active");
   const pending = rest.filter((u) => u.status === "invite_pending");
