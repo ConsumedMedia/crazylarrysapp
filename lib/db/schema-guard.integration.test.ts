@@ -208,6 +208,36 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     }
   });
 
+  it("driver access requires drivers.active (every policy and helper that matches a driver by auth.uid())", async () => {
+    // Before migration 20261109010000 is applied there is nothing to check.
+    const [applied] = await q<{ n: number }>(
+      `select count(*)::int as n from supabase_migrations.schema_migrations where version = '20261109010000'`,
+    );
+    if (applied.n === 0) return;
+    // Any policy outside the drivers table that joins drivers on the caller
+    // must also require d.active. "drivers: driver reads own record" is left
+    // without it on purpose (the inactive banner needs that row).
+    const policies = await q<{ name: string; expr: string }>(
+      `select schemaname || '.' || tablename || ': ' || policyname as name, coalesce(qual, '') || ' ' || coalesce(with_check, '') as expr
+       from pg_policies
+       where not (schemaname = 'public' and tablename = 'drivers')
+         and (coalesce(qual, '') || coalesce(with_check, '')) ~ 'drivers d'
+       order by 1`,
+    );
+    expect(policies.length).toBeGreaterThanOrEqual(7);
+    for (const p of policies) expect(p.expr, p.name).toContain("(d.profile_id = auth.uid()) AND d.active");
+    // Helpers and RPCs that let a driver through on d.profile_id = auth.uid().
+    const fns = await q<{ fn: string; src: string }>(
+      `select p.oid::regprocedure::text as fn, p.prosrc as src from pg_proc p
+       where p.pronamespace = 'public'::regnamespace and p.prosrc ~ 'd\\.profile_id = auth\\.uid\\(\\)'
+       order by 1`,
+    );
+    expect(fns.map((f) => f.fn)).toEqual(
+      expect.arrayContaining(["complete_job(uuid)", "driver_can_see_customer(uuid)", "driver_can_see_dumpster(uuid)"]),
+    );
+    for (const f of fns) expect(f.src, f.fn).toMatch(/d\.profile_id = auth\.uid\(\)\s+and d\.active/);
+  });
+
   it("no un-reviewed SECURITY DEFINER function is executable by anon", async () => {
     const rows = await q<{ fn: string }>(
       `select p.oid::regprocedure::text as fn from pg_proc p
