@@ -140,16 +140,32 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     expect(rows).toEqual([{ evtenabled: "O", evtevent: "ddl_command_end" }]);
   });
 
-  it("ingest_quo_call_event (public webhook writer) is callable by service_role only", async () => {
-    const rows = await q<{ anon_x: boolean; auth_x: boolean; svc_x: boolean }>(
-      `select has_function_privilege('anon', p, 'execute') as anon_x,
-              has_function_privilege('authenticated', p, 'execute') as auth_x,
-              has_function_privilege('service_role', p, 'execute') as svc_x
-       from to_regprocedure('public.ingest_quo_call_event(text,text,jsonb)') p
-       where p is not null`,
+  it("call-log functions (webhook writer, purge, redaction and segment helpers) are INVOKER and callable by service_role only", async () => {
+    // Matched by NAME, so every overload is covered whatever its arguments
+    // (20261110010000 replaced the 3-argument ingest with a 4-argument one).
+    const rows = await q<{ fn: string; definer: boolean; anon_x: boolean; auth_x: boolean; svc_x: boolean }>(
+      `select p.oid::regprocedure::text as fn, p.prosecdef as definer,
+              has_function_privilege('anon', p.oid, 'execute') as anon_x,
+              has_function_privilege('authenticated', p.oid, 'execute') as auth_x,
+              has_function_privilege('service_role', p.oid, 'execute') as svc_x
+       from pg_proc p
+       where p.pronamespace = 'public'::regnamespace
+         and p.proname in ('ingest_quo_call_event', 'purge_call_transcripts', '_redact_card_numbers',
+                           '_quo_segment', '_quo_merge_segments')
+       order by 1`,
     );
-    // Before migration 20261028000000 is applied there is nothing to check.
-    for (const r of rows) expect(r).toEqual({ anon_x: false, auth_x: false, svc_x: true });
+    // Before 20261028000000 is applied there is nothing to check.
+    for (const r of rows) {
+      expect({ fn: r.fn, definer: r.definer, anon_x: r.anon_x, auth_x: r.auth_x, svc_x: r.svc_x }).toEqual({
+        fn: r.fn,
+        definer: false,
+        anon_x: false,
+        auth_x: false,
+        svc_x: true,
+      });
+    }
+    // Two overloads would make the webhook's 3-argument call ambiguous.
+    expect(rows.filter((r) => r.fn.startsWith("ingest_quo_call_event(")).length).toBeLessThanOrEqual(1);
   });
 
   it("pay-link tables: staff read through RLS only; the lookup counter has no API access", async () => {
