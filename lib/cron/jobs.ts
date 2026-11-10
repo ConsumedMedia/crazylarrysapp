@@ -17,6 +17,7 @@ import {
   type ReconcileResult,
 } from "@/lib/quickbooks/invoice-payments";
 import { quickBooksConfigured, missingQuickBooksEnv } from "@/lib/quickbooks/config";
+import { runTranscriptPurge, type PurgeResult } from "@/lib/call-log/purge";
 
 /**
  * The actual work behind each /api/cron/* route, pulled into plain functions
@@ -374,4 +375,17 @@ export async function runQuickbooksSync(): Promise<{
     results,
     invoicePayments,
   };
+}
+
+// --- call transcript purge ------------------------------------------------
+//
+// Off unless CL_CALL_TRANSCRIPT_PURGE_ENABLED=1 (lib/call-log/purge.ts). Blanks
+// transcript text older than TRANSCRIPT_RETENTION_DAYS; never throws.
+
+export async function runCallTranscriptPurge(): Promise<PurgeResult> {
+  const service = createServiceClient();
+  return runTranscriptPurge(async (name, args) => {
+    const { data, error } = await service.rpc(name, args);
+    return { data, error };
+  });
 }

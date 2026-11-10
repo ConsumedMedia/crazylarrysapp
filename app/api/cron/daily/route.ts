@@ -5,6 +5,7 @@ import {
   runPayLinks,
   runQuickbooksRefresh,
   runQuickbooksSync,
+  runCallTranscriptPurge,
 } from "@/lib/cron/jobs";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +16,10 @@ export const dynamic = "force-dynamic";
  * one failing job (e.g. QuickBooks down) doesn't stop the customer-facing
  * ones (overdue notices, reminders) from running.
  *
- * Order: overdue -> reminders -> pay_links -> quickbooks-refresh -> quickbooks-sync.
+ * Order: overdue -> reminders -> pay_links -> quickbooks-refresh -> quickbooks-sync
+ *        -> call_transcript_purge.
  * pay_links does nothing but purge old rate-limit rows while the feature is off.
+ * call_transcript_purge does nothing unless CL_CALL_TRANSCRIPT_PURGE_ENABLED=1.
  * Customer-facing jobs run first so they're not starved by a slow QB call.
  *
  * The individual /api/cron/{overdue,reminders,quickbooks-refresh,quickbooks-sync}
@@ -41,6 +44,7 @@ export async function GET(request: NextRequest) {
     ["pay_links", runPayLinks],
     ["quickbooks_refresh", runQuickbooksRefresh],
     ["quickbooks_sync", runQuickbooksSync],
+    ["call_transcript_purge", runCallTranscriptPurge],
   ];
 
   const results: Record<string, { ok: boolean; result?: unknown; error?: string }> = {};
