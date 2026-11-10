@@ -11,6 +11,51 @@
  */
 export const TRANSCRIPT_RETENTION_DAYS = 180;
 
+/**
+ * The database refuses a purge shorter than this (purge_call_transcripts), so
+ * a typo in TRANSCRIPT_RETENTION_DAYS can't wipe recent transcripts.
+ */
+export const MIN_TRANSCRIPT_RETENTION_DAYS = 30;
+
+/** The yard's Quo line. The backfill reads calls on this number only. Not a secret. */
+export const QUO_YARD_PHONE_NUMBER_ID = "PNXYakN6nP";
+
+/**
+ * How far back the daily backfill looks. Covers Quo's ~27.5 h of webhook
+ * retries plus one missed cron run. Never reaches past retention.
+ */
+export const QUO_BACKFILL_LOOKBACK_DAYS = 3;
+
+/** Calls newer than this are left for the next run, so Quo has finished processing them. */
+export const QUO_BACKFILL_SETTLE_MINUTES = 30;
+
+/**
+ * Stage-2 switches. Each is on only when its variable is exactly "1".
+ *   backfill  CL_QUO_BACKFILL_ENABLED             daily read of recent calls from Quo's API
+ *   purge     CL_CALL_TRANSCRIPT_PURGE_ENABLED    daily removal of transcript text past retention
+ *   segments  CL_QUO_TRANSCRIPT_SEGMENTS_ENABLED  paused-call transcript segments merged, not replaced
+ */
+export interface CallLogStage2Flags {
+  backfill: boolean;
+  purge: boolean;
+  segments: boolean;
+}
+
+export function readCallLogStage2Flags(
+  env: Record<string, string | undefined> = process.env,
+): CallLogStage2Flags {
+  return {
+    backfill: env.CL_QUO_BACKFILL_ENABLED === "1",
+    purge: env.CL_CALL_TRANSCRIPT_PURGE_ENABLED === "1",
+    segments: env.CL_QUO_TRANSCRIPT_SEGMENTS_ENABLED === "1",
+  };
+}
+
+/** The Quo API key (the same one SMS uses). Never logged. */
+export function readQuoApiKey(env: Record<string, string | undefined> = process.env): string | null {
+  return env.QUO_API_KEY?.trim() || null;
+}
+
 /** Quo payloads are a few KB; anything this large is refused unread. */
 export const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
