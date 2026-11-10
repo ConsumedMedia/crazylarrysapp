@@ -39,11 +39,36 @@ export interface NormalizedBookingParams {
 }
 
 /**
+ * Type-only brand: `declare` emits nothing, and the class isn't exported, so
+ * no other module can name or build one. A private member makes it nominal:
+ * an object with a same-named key, or another class with the same private
+ * name, doesn't match. Not a unique symbol, on purpose: TypeScript keeps
+ * symbol-keyed members through an object spread (so
+ * `{ ...params, p_delivery_date: "…" }` would still pass), but drops private
+ * members. (Object.assign keeps it; its return type is the intersection.)
+ */
+declare class ValidatedBookingBrand {
+  private readonly validatedByNormalizeBookingInput: true;
+}
+
+/**
+ * Params that came out of normalizeBookingInput unchanged. The only producer
+ * is normalizeBookingInput; a hand-built object or a spread copy is rejected
+ * by the compiler. Identical to NormalizedBookingParams at runtime.
+ */
+export type ValidatedBookingParams = NormalizedBookingParams & ValidatedBookingBrand;
+
+/**
  * Server-side validation for every booking entry point (online /book and the
  * staff manual-booking form). The RPC re-checks the parts that matter for
  * double-booking (date floor, availability) under its lock; this is for
  * clean, specific error messages.
+ *
+ * Callers see only the first signature, which returns the branded type. The
+ * implementation signature below it is the one place the brand is granted:
+ * no cast, and nothing at runtime.
  */
+export function normalizeBookingInput(input: CreateBookingInput): ValidatedBookingParams;
 export function normalizeBookingInput(
   input: CreateBookingInput,
 ): NormalizedBookingParams {
@@ -138,12 +163,12 @@ export function bookingRpcError(
 
 /**
  * Create a booking from already-normalized params (payAndBook validates
- * before charging). Resolves the caller's session for profile linkage, then
- * calls the atomic create_booking RPC via the service-role client. Returns
- * the new booking id.
+ * before charging). Accepts only the output of normalizeBookingInput.
+ * Resolves the caller's session for profile linkage, then calls the atomic
+ * create_booking RPC via the service-role client. Returns the new booking id.
  */
 export async function createBooking(
-  params: NormalizedBookingParams,
+  params: ValidatedBookingParams,
 ): Promise<{ bookingId: string }> {
   // ---- session -> profile linkage --------------------------------------
   let profileId: string | null = null;
