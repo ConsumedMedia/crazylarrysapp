@@ -39,7 +39,7 @@ try {
   ok("exactly one ingest_quo_call_event",
     (await q(`select count(*)::int as n from pg_proc where proname = 'ingest_quo_call_event' and pronamespace = 'public'::regnamespace`))[0].n === 1);
   for (const [sig, md5] of Object.entries(EXPECTED)) {
-    const a = (await q(`select md5(pg_get_functiondef(p.oid)) as md5, p.prosecdef as definer, p.proconfig::text as config, p.proacl::text as acl
+    const a = (await q(`select md5(replace(pg_get_functiondef(p.oid), chr(13), '')) as md5, p.prosecdef as definer, p.proconfig::text as config, p.proacl::text as acl
         from pg_proc p where p.oid = to_regprocedure($1)`, [sig]))[0];
     const name = sig.split("(")[0].replace("public.", "");
     ok(`${name}: definition as probed`, a?.md5 === md5, a?.md5);
