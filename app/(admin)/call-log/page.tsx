@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireStaff } from "@/lib/auth/requireStaff";
 import { listCallTranscripts, type CallTranscriptRow } from "@/lib/call-log/queries";
-import { callLabel, isMissedCall, summaryLines } from "@/lib/call-log/display";
+import { callLabel, isMissedCall, summaryLines, transcriptRemovedText } from "@/lib/call-log/display";
 import { prettyPhone } from "@/lib/notifications/phone";
 import { formatYardDateTime } from "@/lib/time/yard";
 import { BRAND_BADGE_CLASS } from "@/lib/design/tokens";
@@ -89,6 +89,7 @@ export default async function CallLogPage() {
               const isMissed = isMissedCall(c.direction, c.call_status);
               const lines = summaryLines(c.summary);
               const hasTranscript = c.transcript_dialogue.length > 0 || !!c.transcript;
+              const transcriptRemoved = !hasTranscript && !c.voicemail_transcript && c.transcript_purged_at !== null;
               return (
                 <li
                   key={c.id}
@@ -139,6 +140,10 @@ export default async function CallLogPage() {
                       </span>
                       {c.voicemail_transcript}
                     </p>
+                  )}
+
+                  {transcriptRemoved && (
+                    <p className="mt-2 text-[12px] italic text-ink-3">{transcriptRemovedText()}</p>
                   )}
 
                   {hasTranscript && (

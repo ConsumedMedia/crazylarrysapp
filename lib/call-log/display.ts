@@ -1,5 +1,12 @@
 /** Display helpers for the call log. Pure, so the page logic is testable. */
 
+import { TRANSCRIPT_RETENTION_DAYS } from "./config";
+
+/** Shown where a transcript was, once the purge has removed its text. */
+export function transcriptRemovedText(days: number = TRANSCRIPT_RETENTION_DAYS): string {
+  return `Transcript removed after ${days} days`;
+}
+
 /** Quo statuses that mean an incoming call nobody picked up. */
 const MISSED_STATUSES = new Set(["missed", "unanswered", "abandoned", "no-answer"]);
 

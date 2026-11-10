@@ -26,6 +26,7 @@ const base: CallTranscriptRow = {
   transcript: null,
   transcript_dialogue: [],
   voicemail_transcript: null,
+  transcript_purged_at: null,
   received_at: "2026-10-28T14:01:00.000Z",
 };
 
@@ -59,6 +60,14 @@ const ROWS: CallTranscriptRow[] = [
     voicemail_transcript: "Call me back about a pickup.",
   },
   { ...base, id: "r3", direction: "outgoing", caller_number: null, match_status: null },
+  // Purged: text gone, summary kept.
+  {
+    ...base,
+    id: "r4",
+    caller_number: "+16145550177",
+    summary: "Asked about a 10 yard.",
+    transcript_purged_at: "2027-04-27T12:00:00.000Z",
+  },
 ];
 
 vi.mock("@/lib/auth/requireStaff", () => ({ requireStaff: async () => ({}) }));
@@ -69,7 +78,7 @@ describe("/call-log page", () => {
     const { default: CallLogPage } = await import("./page");
     const html = renderToStaticMarkup(await CallLogPage());
 
-    expect(html).toContain("3 on file, 1 missed");
+    expect(html).toContain("4 on file, 1 missed");
     // Linked customer, with the number alongside.
     expect(html).toContain('href="/customers/c1"');
     expect(html).toContain("Pat Example");
@@ -97,5 +106,16 @@ describe("/call-log page", () => {
     expect(html).toContain("Unknown caller");
     // Only the missed row is highlighted.
     expect(html.match(/border-l-orange/g)).toHaveLength(1);
+  });
+
+  it("a purged call says its transcript was removed after 180 days, once, and keeps its summary", async () => {
+    const { default: CallLogPage } = await import("./page");
+    const html = renderToStaticMarkup(await CallLogPage());
+    expect(html.match(/Transcript removed after 180 days/g)).toHaveLength(1);
+    const r4 = html.slice(html.indexOf("(614) 555-0177"));
+    expect(r4).toContain("Transcript removed after 180 days");
+    expect(r4).toContain("<li>Asked about a 10 yard.</li>");
+    // Rows that were never purged don't say it, including r3 which simply has no transcript.
+    expect(html.slice(0, html.indexOf("(614) 555-0177"))).not.toContain("Transcript removed");
   });
 });

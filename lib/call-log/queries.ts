@@ -31,13 +31,16 @@ export interface CallTranscriptRow {
   transcript: string | null;
   transcript_dialogue: CallDialogueLine[];
   voicemail_transcript: string | null;
+  /** Set when the transcript text was removed after the retention period. */
+  transcript_purged_at: string | null;
   received_at: string;
 }
 
 /**
  * Reads public.call_transcripts, filled by the Quo webhook
- * (app/api/webhooks/quo). Staff only, here and in RLS. Needs migration
- * 20261028000000_quo_call_log for the new columns.
+ * (app/api/webhooks/quo). Staff only, here and in RLS. Needs migrations
+ * 20261028000000_quo_call_log and 20261110000000_call_transcript_purge
+ * (transcript_purged_at) for the columns it selects.
  */
 export async function listCallTranscripts(): Promise<CallTranscriptRow[]> {
   await requireStaff();
@@ -47,7 +50,7 @@ export async function listCallTranscripts(): Promise<CallTranscriptRow[]> {
     .select(
       "id, quo_call_id, caller_number, customer_id, duration_seconds, summary, transcript, received_at, " +
         "direction, call_status, call_started_at, has_voicemail, next_steps, transcript_dialogue, " +
-        "voicemail_transcript, matched_customer_ids, match_status, customers(full_name)",
+        "voicemail_transcript, transcript_purged_at, matched_customer_ids, match_status, customers(full_name)",
     )
     .order("received_at", { ascending: false })
     .limit(200);
@@ -95,6 +98,7 @@ export async function listCallTranscripts(): Promise<CallTranscriptRow[]> {
     transcript: (r.transcript as string | null) ?? null,
     transcript_dialogue: (r.transcript_dialogue as CallDialogueLine[] | null) ?? [],
     voicemail_transcript: (r.voicemail_transcript as string | null) ?? null,
+    transcript_purged_at: (r.transcript_purged_at as string | null) ?? null,
     received_at: r.received_at as string,
   }));
 }

@@ -27,3 +27,13 @@ describe("call-log display helpers", () => {
     expect(summaryLines(null)).toEqual([]);
   });
 });
+
+describe("transcriptRemovedText", () => {
+  it("names the retention period from the single config value", async () => {
+    const { transcriptRemovedText } = await import("./display");
+    const { TRANSCRIPT_RETENTION_DAYS } = await import("./config");
+    expect(transcriptRemovedText()).toBe(`Transcript removed after ${TRANSCRIPT_RETENTION_DAYS} days`);
+    expect(transcriptRemovedText()).toBe("Transcript removed after 180 days");
+    expect(transcriptRemovedText(90)).toBe("Transcript removed after 90 days");
+  });
+});
