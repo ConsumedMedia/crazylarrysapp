@@ -44,6 +44,8 @@ export interface SendResult {
    */
   sentTo?: string;
   redirected?: boolean;
+  /** When redirected: the variable whose value it went to (a name, never the value). */
+  redirectedVia?: string;
 }
 
 export function smsEnabled(): boolean {
@@ -119,7 +121,11 @@ export async function sendSms(
     };
   }
   const to = redirect.mode === "redirect" ? redirect.to : toE164;
-  const delivery = { sentTo: to, redirected: redirect.mode === "redirect" };
+  const delivery = {
+    sentTo: to,
+    redirected: redirect.mode === "redirect",
+    ...(redirect.mode === "redirect" ? { redirectedVia: redirect.via } : {}),
+  };
 
   try {
     const ctrl = new AbortController();

@@ -17,9 +17,17 @@ const WHY: Record<FailureCategory, string> = {
   transient: "the provider had a temporary problem",
 };
 
+/**
+ * A redirected send names the variable that redirected it when the outcome
+ * knows it (a send made just now). Outcomes read back from notifications_log
+ * don't, so they say only "the test address".
+ */
 export function outcomeLine(o: ChannelOutcome): string {
   const what = CHANNEL[o.channel];
-  if (o.status === "sent") return `${what} sent${o.redirected ? " — to the test address (CL_NOTIFICATIONS_TEST_TO)" : ""}`;
+  if (o.status === "sent") {
+    if (!o.redirected) return `${what} sent`;
+    return `${what} sent — to the test address${o.redirectedVia ? ` (${o.redirectedVia})` : ""}`;
+  }
   const why = o.category ? WHY[o.category as FailureCategory] ?? o.category.replace(/_/g, " ") : null;
   return `${what} ${o.status === "skipped" ? "not sent" : "failed"}${why ? `: ${why}` : ""}`;
 }

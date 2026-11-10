@@ -33,7 +33,7 @@ export interface PayLinkDelivery {
   status: "sent" | "failed" | "skipped";
   category: string | null;
   at: string;
-  /** Went to CL_NOTIFICATIONS_TEST_TO instead of the customer. */
+  /** Went to a test target instead of the customer (which variable isn't logged). */
   redirected: boolean;
 }
 

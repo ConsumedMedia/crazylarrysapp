@@ -134,11 +134,41 @@ describe("after Book: what was sent, and the link only when nothing went out", (
     expect(html).not.toContain("Copy");
   });
 
-  it("redirected by CL_NOTIFICATIONS_TEST_TO: says so", () => {
+  // Changed 2026-11-10: the label used to name CL_NOTIFICATIONS_TEST_TO for every
+  // redirect. Since the split into CL_NOTIFICATIONS_TEST_PHONE / _EMAIL it names
+  // the variable that actually redirected (outcome.redirectedVia), or says only
+  // "the test address" when that isn't known.
+  it("redirected: names the variable that redirected it", () => {
+    for (const via of ["CL_NOTIFICATIONS_TEST_EMAIL", "CL_NOTIFICATIONS_TEST_TO"]) {
+      const html = renderToStaticMarkup(
+        <PayLinkResult title="Booked" sent={[{ channel: "email", status: "sent", category: null, redirected: true, redirectedVia: via }]} url={null} />,
+      );
+      expect(html).toContain(`Email sent — to the test address (${via})`);
+    }
+    const sms = renderToStaticMarkup(
+      <PayLinkResult
+        title="Booked"
+        sent={[{ channel: "sms", status: "sent", category: null, redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_PHONE" }]}
+        url={null}
+      />,
+    );
+    expect(sms).toContain("Text sent — to the test address (CL_NOTIFICATIONS_TEST_PHONE)");
+  });
+
+  it("redirected, variable unknown: says the test address and names no variable", () => {
     const html = renderToStaticMarkup(
       <PayLinkResult title="Booked" sent={[{ channel: "email", status: "sent", category: null, redirected: true }]} url={null} />,
     );
-    expect(html).toContain("Email sent — to the test address (CL_NOTIFICATIONS_TEST_TO)");
+    expect(html).toContain("Email sent — to the test address</li>");
+    expect(html).not.toContain("CL_NOTIFICATIONS_");
+  });
+
+  it("not redirected: no test-address wording", () => {
+    const html = renderToStaticMarkup(
+      <PayLinkResult title="Booked" sent={[{ channel: "email", status: "sent", category: null, redirected: false }]} url={null} />,
+    );
+    expect(html).toContain("Email sent</li>");
+    expect(html).not.toContain("test address");
   });
 
   it("nothing sent: the link once, with Copy and the warning", () => {

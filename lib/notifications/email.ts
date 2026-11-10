@@ -79,7 +79,11 @@ export async function sendEmail(opts: {
     };
   }
   const to = redirect.mode === "redirect" ? redirect.to : opts.to;
-  const delivery = { sentTo: to, redirected: redirect.mode === "redirect" };
+  const delivery = {
+    sentTo: to,
+    redirected: redirect.mode === "redirect",
+    ...(redirect.mode === "redirect" ? { redirectedVia: redirect.via } : {}),
+  };
 
   try {
     const ctrl = new AbortController();

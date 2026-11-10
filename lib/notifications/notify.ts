@@ -25,6 +25,12 @@ export interface ChannelOutcome {
   category: string | null;
   /** Test mode (CL_NOTIFICATIONS_TEST_PHONE / _EMAIL / _TO) sent it to the test target instead. */
   redirected: boolean;
+  /**
+   * Which of those variables it went to (a name, never the value). Known only
+   * for a send made just now: notifications_log doesn't keep it, so outcomes
+   * read back from the log leave it out.
+   */
+  redirectedVia?: string;
 }
 
 interface LogRow {
@@ -101,12 +107,14 @@ async function dispatch(opts: {
   const base = { type: opts.type, bookingId: opts.bookingId, driverId: opts.driverId };
   const jobs: Promise<void>[] = [];
   const outcomes: ChannelOutcome[] = [];
-  const log = (row: LogRow) => {
+  const log = (row: LogRow, result?: SendResult) => {
+    const redirected = row.original_recipient !== null;
     outcomes.push({
       channel: row.channel,
       status: row.delivery_status,
       category: row.failure_category,
-      redirected: row.original_recipient !== null,
+      redirected,
+      ...(redirected && result?.redirectedVia ? { redirectedVia: result.redirectedVia } : {}),
     });
     return writeLog(row);
   };
@@ -138,7 +146,7 @@ async function dispatch(opts: {
       } else {
         jobs.push(
           sendSms(e164, opts.rendered.sms).then((r) =>
-            log(logRowFrom(base, "sms", e164, opts.rendered.sms, r)),
+            log(logRowFrom(base, "sms", e164, opts.rendered.sms, r), r),
           ),
         );
       }
@@ -164,7 +172,7 @@ async function dispatch(opts: {
           text: opts.rendered.email.text,
           html: opts.rendered.email.html,
         }).then((r) =>
-          log(logRowFrom(base, "email", opts.email as string, opts.rendered.email.text, r)),
+          log(logRowFrom(base, "email", opts.email as string, opts.rendered.email.text, r), r),
         ),
       );
     }

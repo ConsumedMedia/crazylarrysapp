@@ -131,7 +131,12 @@ describe("live link, pay links ON", () => {
     expect(html).toMatch(/>Live</);
     expect(html).toContain("Nov 3, 10:00 AM by Office Owner");
     expect(html).toContain("1 sent · last Nov 4, 7:05 AM");
-    expect(html).toContain("Reminder · Email sent — to the test address (CL_NOTIFICATIONS_TEST_TO)");
+    // Changed 2026-11-10: this line comes from notifications_log, which records
+    // that a send was redirected but not which test variable did it, so the
+    // label no longer names CL_NOTIFICATIONS_TEST_TO (it may have been
+    // CL_NOTIFICATIONS_TEST_EMAIL). It says only "the test address".
+    expect(html).toContain("Reminder · Email sent — to the test address · ");
+    expect(html).not.toContain("(CL_NOTIFICATIONS_");
     expect(html).toContain("Text not sent: the customer hasn&#x27;t agreed to texts");
     expect(html).toContain("Replaced by a newer link");
     expect(html).toContain(">Resend pay link</button>");

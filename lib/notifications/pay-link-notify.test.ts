@@ -125,6 +125,40 @@ describe("notifyPayLink", () => {
   });
 });
 
+describe("notifyPayLink: the outcome names the variable that redirected it", () => {
+  const NEW = ["CL_NOTIFICATIONS_TEST_PHONE", "CL_NOTIFICATIONS_TEST_EMAIL"] as const;
+  async function outcomes(env: Partial<Record<(typeof NEW)[number] | "CL_NOTIFICATIONS_TEST_TO", string>>) {
+    const before = Object.fromEntries(NEW.map((k) => [k, process.env[k]]));
+    for (const k of NEW) delete process.env[k];
+    Object.assign(process.env, env);
+    try {
+      const { notifyPayLink } = await import("./notify");
+      return await notifyPayLink("b", TOKEN, "pay_link");
+    } finally {
+      for (const k of NEW) {
+        if (before[k] === undefined) delete process.env[k];
+        else process.env[k] = before[k];
+      }
+    }
+  }
+  it("the new variables: each channel names its own", async () => {
+    const out = await outcomes({ CL_NOTIFICATIONS_TEST_PHONE: "6145559999", CL_NOTIFICATIONS_TEST_EMAIL: "tester@crazylarrys.test" });
+    expect(out.find((o) => o.channel === "sms")).toMatchObject({ status: "sent", redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_PHONE" });
+    expect(out.find((o) => o.channel === "email")).toMatchObject({ status: "sent", redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_EMAIL" });
+  });
+  it("only the old variable: names CL_NOTIFICATIONS_TEST_TO", async () => {
+    const out = await outcomes({ CL_NOTIFICATIONS_TEST_TO: "tester@crazylarrys.test" });
+    expect(out.find((o) => o.channel === "email")).toMatchObject({ redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_TO" });
+  });
+  it("not redirected: no variable on the outcome", async () => {
+    const out = await outcomes({});
+    for (const o of out) {
+      expect(o.redirected).toBe(false);
+      expect(o).not.toHaveProperty("redirectedVia");
+    }
+  });
+});
+
 describe("notifyStaffUnpaidAlert", () => {
   it("emails each recipient only, with the staff booking URL, days unpaid, escaped name", async () => {
     const { notifyStaffUnpaidAlert } = await import("./notify");
