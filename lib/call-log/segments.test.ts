@@ -2,6 +2,7 @@
  * Unit test for paused-call segment merging. Pure; fictional values.
  */
 import { describe, it, expect } from "vitest";
+import { createHash } from "node:crypto";
 import type { DialogueLine } from "./quo-events";
 import { REDACTED_CARD } from "./redact";
 import { makeSegment, mergeSegments, segmentKey, sortSegments, SEGMENT_DIVIDER_TEXT, type TranscriptSegment } from "./segments";
@@ -29,6 +30,12 @@ describe("segment keys", () => {
     const b = makeSegment([{ ...line("caller", "Hello", 9), end: 99 }], { order_at: "2026-11-09T14:01:00Z" });
     expect(a.key).toBe(b.key);
     expect(a.key).not.toBe(makeSegment([line("caller", "Hello!")]).key);
+  });
+
+  it("the key is 'seg_' + md5 of the line texts joined by newlines (the database computes the same)", () => {
+    const expected = "seg_" + createHash("md5").update("a\nb", "utf8").digest("hex");
+    expect(segmentKey([line("staff", "a"), line("caller", "b", 1)])).toBe(expected);
+    expect(segmentKey([line("staff", "a")])).toBe("seg_0cc175b9c0f1b6a831c399e269772661");
   });
 
   it("the key is built from redacted text, so a raw and a redacted copy match", () => {

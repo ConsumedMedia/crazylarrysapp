@@ -153,19 +153,25 @@ export default async function CallLogPage() {
                       </summary>
                       {c.transcript_dialogue.length > 0 ? (
                         <ol className="mt-2 flex flex-col gap-1 border-l-2 border-line pl-3">
-                          {c.transcript_dialogue.map((d, i) => (
-                            <li key={i} className="flex gap-2">
-                              <span className="cl-nums w-10 flex-none text-ink-3">{fmtOffset(d.start)}</span>
-                              <span
-                                className={`w-14 flex-none text-[11px] font-extrabold uppercase ${
-                                  d.speaker === "staff" ? "text-teal-tint-ink" : d.speaker === "unknown" ? "text-ink-3" : "text-ink-2"
-                                }`}
-                              >
-                                {d.speaker === "staff" ? "Staff" : d.speaker === "unknown" ? "Unknown" : "Caller"}
-                              </span>
-                              <span className="min-w-0 break-words">{d.content}</span>
-                            </li>
-                          ))}
+                          {c.transcript_dialogue.map((d, i) =>
+                            d.speaker === "divider" ? (
+                              <li key={i} className="py-1 text-[11px] italic text-ink-3" data-divider="">
+                                — {d.content} —
+                              </li>
+                            ) : (
+                              <li key={i} className="flex gap-2">
+                                <span className="cl-nums w-10 flex-none text-ink-3">{fmtOffset(d.start)}</span>
+                                <span
+                                  className={`w-14 flex-none text-[11px] font-extrabold uppercase ${
+                                    d.speaker === "staff" ? "text-teal-tint-ink" : d.speaker === "unknown" ? "text-ink-3" : "text-ink-2"
+                                  }`}
+                                >
+                                  {d.speaker === "staff" ? "Staff" : d.speaker === "unknown" ? "Unknown" : "Caller"}
+                                </span>
+                                <span className="min-w-0 break-words">{d.content}</span>
+                              </li>
+                            ),
+                          )}
                         </ol>
                       ) : (
                         <p className="mt-2 whitespace-pre-wrap text-ink-2">{c.transcript}</p>

@@ -46,10 +46,14 @@ export interface TranscriptSegment {
 
 const speakerLabel = { staff: "Staff", caller: "Caller", unknown: "Unknown" } as const;
 
-/** Stable key for a segment: sha256 over the redacted line text, nothing else. */
+/**
+ * Stable key for a segment: md5 over the redacted line texts joined by
+ * newlines, nothing else. The database computes the same key
+ * (public._quo_segment, migration 20261110010000) and ignores any key sent.
+ */
 export function segmentKey(lines: DialogueLine[]): string {
   const text = lines.map((l) => redactCardNumbers(l.content)).join("\n");
-  return "seg_" + createHash("sha256").update(text, "utf8").digest("hex").slice(0, 32);
+  return "seg_" + createHash("md5").update(text, "utf8").digest("hex");
 }
 
 export function makeSegment(

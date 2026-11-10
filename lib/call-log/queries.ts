@@ -2,9 +2,12 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/auth/requireStaff";
 
-/** Rows stored before 2026-11-04 have only speaker (staff|caller), content and start (whole seconds). */
+/**
+ * Rows stored before 2026-11-04 have only speaker (staff|caller), content and start (whole seconds).
+ * A "divider" line (migration 20261110010000) marks where a paused call resumed: nobody said it.
+ */
 export interface CallDialogueLine {
-  speaker: "staff" | "caller" | "unknown";
+  speaker: "staff" | "caller" | "unknown" | "divider";
   content: string;
   start: number | null;
   end?: number | null;

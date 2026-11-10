@@ -60,6 +60,18 @@ const ROWS: CallTranscriptRow[] = [
     voicemail_transcript: "Call me back about a pickup.",
   },
   { ...base, id: "r3", direction: "outgoing", caller_number: null, match_status: null },
+  // Paused and resumed: two segments with a divider between them.
+  {
+    ...base,
+    id: "r5",
+    caller_number: "+16145550188",
+    transcript: "Staff: First part\n— Call resumed —\nCaller: Second part",
+    transcript_dialogue: [
+      { speaker: "staff", content: "First part", start: 0 },
+      { speaker: "divider", content: "Call resumed", start: null, end: null, user_id: null, has_identifier: false },
+      { speaker: "caller", content: "Second part", start: 0 },
+    ],
+  },
   // Purged: text gone, summary kept.
   {
     ...base,
@@ -78,7 +90,7 @@ describe("/call-log page", () => {
     const { default: CallLogPage } = await import("./page");
     const html = renderToStaticMarkup(await CallLogPage());
 
-    expect(html).toContain("4 on file, 1 missed");
+    expect(html).toContain("5 on file, 1 missed");
     // Linked customer, with the number alongside.
     expect(html).toContain('href="/customers/c1"');
     expect(html).toContain("Pat Example");
@@ -106,6 +118,19 @@ describe("/call-log page", () => {
     expect(html).toContain("Unknown caller");
     // Only the missed row is highlighted.
     expect(html.match(/border-l-orange/g)).toHaveLength(1);
+  });
+
+  it("a divider line shows as a plain marker: no Staff, Caller or Unknown label and no time", async () => {
+    const { default: CallLogPage } = await import("./page");
+    const html = renderToStaticMarkup(await CallLogPage());
+    const divider = html.match(/<li[^>]*data-divider=""[^>]*>([\s\S]*?)<\/li>/);
+    expect(divider).not.toBeNull();
+    expect(divider![1].replace(/<!-- -->/g, "").trim()).toBe("— Call resumed —");
+    expect(divider![0]).not.toMatch(/Staff|Caller|Unknown|0:00/);
+    // Exactly one divider, and the two spoken lines around it keep their labels.
+    expect(html.match(/data-divider/g)).toHaveLength(1);
+    expect(html).toMatch(/>Staff<\/span><span[^>]*>First part</);
+    expect(html).toMatch(/>Caller<\/span><span[^>]*>Second part</);
   });
 
   it("a purged call says its transcript was removed after 180 days, once, and keeps its summary", async () => {
