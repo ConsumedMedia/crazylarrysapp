@@ -23,7 +23,7 @@ export interface ChannelOutcome {
   channel: Channel;
   status: "sent" | "failed" | "skipped";
   category: string | null;
-  /** CL_NOTIFICATIONS_TEST_TO sent it to the test address instead. */
+  /** Test mode (CL_NOTIFICATIONS_TEST_PHONE / _EMAIL / _TO) sent it to the test target instead. */
   redirected: boolean;
 }
 
@@ -34,7 +34,7 @@ interface LogRow {
   channel: Channel;
   /** Who was actually sent to (the test address when redirected). */
   recipient: string;
-  /** The intended recipient, set only when CL_NOTIFICATIONS_TEST_TO redirected the send. */
+  /** The intended recipient, set only when test mode redirected the send. */
   original_recipient: string | null;
   delivery_status: "sent" | "failed" | "skipped";
   sent_at: string | null;

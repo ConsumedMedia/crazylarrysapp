@@ -3,6 +3,7 @@
  * environment warnings. Pure (reads process.env only in envWarnings), so the
  * Settings form and tests can use it.
  */
+import { TEST_EMAIL_VAR, TEST_PHONE_VAR, TEST_TO_VAR, testVarSet, testVarUsable } from "@/lib/notifications/test-mode";
 
 export interface PayLinkSettings {
   enabled: boolean;
@@ -74,13 +75,30 @@ export function parsePayLinkSettingsForm(
   };
 }
 
-export type EnvWarning = "token_key_missing" | "test_redirect_on" | "notifications_disabled";
+export type EnvWarning =
+  | "token_key_missing"
+  /** The old CL_NOTIFICATIONS_TEST_TO is still set. */
+  | "test_redirect_on"
+  /** CL_NOTIFICATIONS_TEST_PHONE and/or _EMAIL is set: test mode is on. */
+  | "test_split_on"
+  /** Half-configured pair: the test email is usable but the test phone isn't (missing, wrong shape or reserved). */
+  | "test_phone_unusable"
+  /** Half-configured pair: the test phone is usable but the test email isn't. */
+  | "test_email_unusable"
+  | "notifications_disabled";
 
 /** Server environment problems that change what pay links actually do. Never returns values. */
 export function envWarnings(env: NodeJS.ProcessEnv = process.env): EnvWarning[] {
   const out: EnvWarning[] = [];
   if ((env.CL_PAY_LINK_TOKEN_KEY ?? "").trim().length < 32) out.push("token_key_missing");
-  if ((env.CL_NOTIFICATIONS_TEST_TO ?? "").trim()) out.push("test_redirect_on");
+  if (testVarSet(TEST_TO_VAR, env)) out.push("test_redirect_on");
+  if (testVarSet(TEST_PHONE_VAR, env) || testVarSet(TEST_EMAIL_VAR, env)) {
+    out.push("test_split_on");
+    const phone = testVarUsable(TEST_PHONE_VAR, env);
+    const email = testVarUsable(TEST_EMAIL_VAR, env);
+    if (!phone) out.push("test_phone_unusable");
+    if (!email) out.push("test_email_unusable");
+  }
   if (env.CL_NOTIFICATIONS_ENABLED !== "1") out.push("notifications_disabled");
   return out;
 }

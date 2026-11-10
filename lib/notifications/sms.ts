@@ -1,6 +1,7 @@
 import "server-only";
 import { toE164US } from "./phone";
 import { isReservedPhone } from "./reserved";
+import { resolveTestRedirect } from "./test-mode";
 
 /**
  * Quo (formerly OpenPhone) SMS. POST https://api.quo.com/v1/messages
@@ -38,8 +39,8 @@ export interface SendResult {
   category?: FailureCategory;
   /**
    * Set once a provider call is attempted: the address/number actually sent
-   * to, and whether CL_NOTIFICATIONS_TEST_TO redirected it away from the
-   * intended recipient. notify.ts logs the real destination from these.
+   * to, and whether test mode (CL_NOTIFICATIONS_TEST_PHONE / _EMAIL / _TO)
+   * redirected it away from the intended recipient. notify.ts logs the real destination from these.
    */
   sentTo?: string;
   redirected?: boolean;
@@ -96,7 +97,7 @@ export async function sendSms(
   }
 
   // A reserved fictional number is never sent to, redirected or not, so test
-  // mode behaves the way production will once TEST_TO is cleared.
+  // mode behaves the way production will once the test variables are cleared.
   if (isReservedPhone(toE164)) {
     return {
       ok: false,
@@ -106,35 +107,19 @@ export async function sendSms(
     };
   }
 
-  let to = toE164;
-  const testTo = process.env.CL_NOTIFICATIONS_TEST_TO?.trim();
-  if (testTo) {
-    if (testTo.includes("@")) {
-      return {
-        ok: false,
-        skipped: true,
-        category: "test_mode",
-        error: "CL_NOTIFICATIONS_TEST_TO is an email address — SMS skipped in test mode",
-      };
-    }
-    const t = toE164US(testTo);
-    if (!t) {
-      return {
-        ok: false,
-        category: "not_configured",
-        error: `CL_NOTIFICATIONS_TEST_TO is not a valid US number: "${testTo}"`,
-      };
-    }
-    if (isReservedPhone(t)) {
-      return {
-        ok: false,
-        category: "not_configured",
-        error: `CL_NOTIFICATIONS_TEST_TO is a reserved test number (555-01xx): "${testTo}" — not sent`,
-      };
-    }
-    to = t;
+  // Test mode (any of CL_NOTIFICATIONS_TEST_PHONE / _EMAIL / _TO set): only the
+  // test phone, never the customer. See test-mode.ts for the rules.
+  const redirect = resolveTestRedirect("sms");
+  if (redirect.mode === "skip") {
+    return {
+      ok: false,
+      skipped: redirect.category === "test_mode",
+      category: redirect.category,
+      error: redirect.reason,
+    };
   }
-  const delivery = { sentTo: to, redirected: !!testTo };
+  const to = redirect.mode === "redirect" ? redirect.to : toE164;
+  const delivery = { sentTo: to, redirected: redirect.mode === "redirect" };
 
   try {
     const ctrl = new AbortController();

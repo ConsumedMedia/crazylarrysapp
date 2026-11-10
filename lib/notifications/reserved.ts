@@ -1,7 +1,8 @@
 /**
  * Reserved, fictional contacts that must never be sent to: the seed and test
- * data are full of them, and once CL_NOTIFICATIONS_TEST_TO is cleared at
- * go-live any that are still in the database would be sent to for real.
+ * data are full of them, and once the test variables (CL_NOTIFICATIONS_TEST_PHONE
+ * / _EMAIL / _TO) are cleared at go-live any that are still in the database
+ * would be sent to for real.
  *
  *  - email: example.com / example.net / example.org and their subdomains
  *    (RFC 2606 documentation domains)
@@ -9,7 +10,7 @@
  *    set aside for fiction)
  *
  * Pure — sendEmail / sendSms call these before the provider call, for the
- * intended recipient and for the TEST_TO redirect target alike.
+ * intended recipient, and test-mode.ts for every redirect target.
  */
 import { toE164US } from "./phone";
 

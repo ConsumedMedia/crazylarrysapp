@@ -1,6 +1,7 @@
 import "server-only";
 import type { FailureCategory, SendResult } from "./sms";
 import { isReservedEmail } from "./reserved";
+import { resolveTestRedirect } from "./test-mode";
 
 /**
  * Resend transactional email. POST https://api.resend.com/emails
@@ -56,7 +57,7 @@ export async function sendEmail(opts: {
   }
 
   // A reserved fictional address is never sent to, redirected or not, so test
-  // mode behaves the way production will once TEST_TO is cleared.
+  // mode behaves the way production will once the test variables are cleared.
   if (isReservedEmail(opts.to)) {
     return {
       ok: false,
@@ -66,30 +67,19 @@ export async function sendEmail(opts: {
     };
   }
 
-  // CL_NOTIFICATIONS_TEST_TO redirects only when it's an email; a phone number
-  // there is meant for the SMS channel, so ignore it here and skip rather than
-  // mail a real customer during testing.
-  const testTo = process.env.CL_NOTIFICATIONS_TEST_TO?.trim();
-  let to = opts.to;
-  if (testTo) {
-    if (!testTo.includes("@")) {
-      return {
-        ok: false,
-        skipped: true,
-        category: "test_mode",
-        error: "CL_NOTIFICATIONS_TEST_TO is a phone number — email skipped in test mode",
-      };
-    }
-    if (isReservedEmail(testTo)) {
-      return {
-        ok: false,
-        category: "not_configured",
-        error: `CL_NOTIFICATIONS_TEST_TO is a reserved test address: "${testTo}" — not sent`,
-      };
-    }
-    to = testTo;
+  // Test mode (any of CL_NOTIFICATIONS_TEST_PHONE / _EMAIL / _TO set): only the
+  // test address, never the customer. See test-mode.ts for the rules.
+  const redirect = resolveTestRedirect("email");
+  if (redirect.mode === "skip") {
+    return {
+      ok: false,
+      skipped: redirect.category === "test_mode",
+      category: redirect.category,
+      error: redirect.reason,
+    };
   }
-  const delivery = { sentTo: to, redirected: !!testTo };
+  const to = redirect.mode === "redirect" ? redirect.to : opts.to;
+  const delivery = { sentTo: to, redirected: redirect.mode === "redirect" };
 
   try {
     const ctrl = new AbortController();

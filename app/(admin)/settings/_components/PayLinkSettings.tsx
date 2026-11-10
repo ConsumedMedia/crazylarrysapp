@@ -18,7 +18,13 @@ const ENV_TEXT: Record<EnvWarning, string> = {
   token_key_missing:
     "CL_PAY_LINK_TOKEN_KEY isn't set on this server, so reminders can't include the link. New links work; reminders for them can't send until the key is set and staff press Resend.",
   test_redirect_on:
-    "CL_NOTIFICATIONS_TEST_TO is set: pay-link messages go to the test address, not the customer.",
+    "CL_NOTIFICATIONS_TEST_TO is set: pay-link messages go to the test address, not the customer. It's the old single variable and redirects only one channel (a number redirects texts, an address redirects emails). Use CL_NOTIFICATIONS_TEST_PHONE and CL_NOTIFICATIONS_TEST_EMAIL instead, then remove it.",
+  test_split_on:
+    "Test mode is on (CL_NOTIFICATIONS_TEST_PHONE / CL_NOTIFICATIONS_TEST_EMAIL): texts go only to the test phone and emails only to the test email, never to the customer.",
+  test_phone_unusable:
+    "CL_NOTIFICATIONS_TEST_PHONE is missing or not a usable US number: texts are not sent to anyone in test mode (unless CL_NOTIFICATIONS_TEST_TO holds a usable number).",
+  test_email_unusable:
+    "CL_NOTIFICATIONS_TEST_EMAIL is missing or not a usable address: emails are not sent to anyone in test mode (unless CL_NOTIFICATIONS_TEST_TO holds a usable address).",
   notifications_disabled:
     "CL_NOTIFICATIONS_ENABLED isn't 1: no pay-link texts or emails are actually sent.",
 };
