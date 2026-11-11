@@ -1,6 +1,7 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createBooking, normalizeBookingInput, BookingCreateError } from "./create";
+import { cutoffClosedMessage, getDeliveryFloor, isClosedByCutoff } from "./cutoff";
 import { createCharge, refundCharge, PaymentError } from "@/lib/quickbooks/payments";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
 import { notifyBookingConfirmation } from "@/lib/notifications/notify";
@@ -34,6 +35,10 @@ export function compensationMessage(reason: string, refundOk: boolean): string {
       return refundOk
         ? `Delivery must be tomorrow or later, so the booking didn't go through — ${NOT_CHARGED} Please pick another day.`
         : `Delivery must be tomorrow or later, so the booking didn't go through. ${REFUND_PENDING}`;
+    case "after_cutoff":
+      return refundOk
+        ? `Orders placed after the cutoff can't be delivered tomorrow, so the booking didn't go through — ${NOT_CHARGED} Please pick another day.`
+        : `Orders placed after the cutoff can't be delivered tomorrow, so the booking didn't go through. ${REFUND_PENDING}`;
     case "blocked":
       return refundOk
         ? `That date is no longer available, so the booking didn't go through — ${NOT_CHARGED} Please pick another day.`
@@ -49,8 +54,12 @@ export function compensationMessage(reason: string, refundOk: boolean): string {
  * The real Review & Pay pipeline — replaces the Phase 4 dev stub.
  *
  *   0. validate everything that needs no database (size, date format, the
- *      yard's tomorrow, rental length, address, contact) — refused before
- *      any charge; the normalized params are used from here on
+ *      yard's tomorrow, rental length, address, contact) and the order
+ *      cutoff (booking_delivery_floor, the database's own rule; unreadable =
+ *      today's rule) — all refused before any charge; the normalized params
+ *      are used from here on. The database enforces the cutoff again with a
+ *      10-minute grace, so it never refuses after the charge a day this
+ *      check approved moments earlier.
  *   1. authoritative quote (server-side, never trust the client amount)
  *   2. charge the tokenized card
  *      └─ declined  -> record_payment_attempt('declined'), no booking, stop
@@ -73,6 +82,10 @@ export async function payAndBook(
       return { ok: false, code: e.code, error: e.message };
     }
     throw e;
+  }
+  const floor = await getDeliveryFloor();
+  if (isClosedByCutoff(params.p_delivery_date, floor)) {
+    return { ok: false, code: "after_cutoff", error: cutoffClosedMessage(floor) };
   }
 
   const service = createServiceClient();

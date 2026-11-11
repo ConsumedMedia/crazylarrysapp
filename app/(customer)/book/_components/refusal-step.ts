@@ -16,6 +16,7 @@ export function refusalStep(
       return { step: 1, clearDate: false };
     case "bad_date":
     case "past_date":
+    case "after_cutoff":
     case "blocked":
     case "unavailable":
       return { step: 2, clearDate: true };

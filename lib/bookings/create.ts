@@ -153,6 +153,13 @@ export function bookingRpcError(
   if (hint === "pricing_not_configured" || hint === "tax_not_configured") {
     return new BookingCreateError(pricingMessage, "pricing_not_configured");
   }
+  if (hint === "after_cutoff") {
+    // The order cutoff (create_booking / staff_create_pay_link_booking, migration 20261111000000).
+    return new BookingCreateError(
+      "Orders placed after the cutoff can't be delivered tomorrow. Pick a later day.",
+      "after_cutoff",
+    );
+  }
   if (hint === "unavailable") {
     const match = DATE_REFUSALS.find(([re]) => re.test(error.message));
     if (match) return new BookingCreateError(match[2], match[1]);

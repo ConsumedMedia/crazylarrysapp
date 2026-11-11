@@ -6,6 +6,7 @@ import {
   bookingRpcError,
   normalizeBookingInput,
 } from "@/lib/bookings/create";
+import { getDeliveryFloor, isClosedByCutoff, payLinkCutoffMessage } from "@/lib/bookings/cutoff";
 import { notifyPayLink, type ChannelOutcome } from "@/lib/notifications/notify";
 import { payLinkTokenKey, payLinkUrl } from "./token";
 import { NO_REACHABLE_CONTACT, reachable, scrubPayTokens } from "./contact";
@@ -81,6 +82,12 @@ export async function createPayLinkBooking(
   await assertStaff();
   if (!reachable(input)) throw new PayLinkError(HINTS.no_reachable_contact, "no_reachable_contact");
   const params = normalizeBookingInput(input);
+  // The order cutoff applies to pay-link bookings; the database enforces it
+  // again. "Create unpaid without a pay link" is a phone booking and doesn't.
+  const floor = await getDeliveryFloor();
+  if (isClosedByCutoff(params.p_delivery_date, floor)) {
+    throw new BookingCreateError(payLinkCutoffMessage(floor), "after_cutoff");
+  }
 
   const supabase = createClient();
   const { data, error } = await supabase.rpc("staff_create_pay_link_booking", {
