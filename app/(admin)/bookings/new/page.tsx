@@ -5,6 +5,7 @@ import { pickCustomer } from "@/lib/customers/search";
 import { NewBookingForm } from "./_components/NewBookingForm";
 import { PayLinkBookingForm } from "./_components/PayLinkBookingForm";
 import { getPayLinkSettings } from "@/lib/pay-links/settings";
+import { getDeliveryFloor } from "@/lib/bookings/cutoff";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "New booking · Crazy Larry's" };
@@ -18,6 +19,8 @@ export default async function NewBookingPage({
   const pricing = await getPricingConfig();
   // The pay-link switch (cl_pay_link_settings.enabled). Off = today's form, unchanged.
   const { enabled: payLinksOn } = await getPayLinkSettings();
+  // The order cutoff matters only to the pay-link button; the phone form never reads it.
+  const floor = payLinksOn ? await getDeliveryFloor() : null;
   // ?customer=<id> (from a customer's page) starts the form as if staff had
   // picked that customer: same details, address options and consent on file.
   const customer =
@@ -53,7 +56,7 @@ export default async function NewBookingPage({
         )}
       </div>
       {payLinksOn ? (
-        <PayLinkBookingForm pricing={pricing} customer={formCustomer} />
+        <PayLinkBookingForm pricing={pricing} customer={formCustomer} floor={floor} />
       ) : (
         <NewBookingForm pricing={pricing} customer={formCustomer} />
       )}

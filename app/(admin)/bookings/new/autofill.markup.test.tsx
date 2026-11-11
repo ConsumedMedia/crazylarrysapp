@@ -19,6 +19,11 @@ vi.mock("./pay-link-actions", () => ({ createPayLinkBookingAction: vi.fn() }));
 vi.mock("./customer-actions", () => ({ searchCustomersAction: vi.fn(), pickCustomerAction: vi.fn(), emailOwnerAction: vi.fn() }));
 let enabled = false;
 vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled }) }));
+// The order cutoff (pay-link button only): a fake, so no test reaches the database.
+vi.mock("@/lib/bookings/cutoff", async () => {
+  const shared = await import("@/lib/bookings/cutoff-shared");
+  return { ...shared, getDeliveryFloor: async () => shared.fallbackFloor() };
+});
 vi.mock("@/lib/bookings/pricing", () => ({
   getPricingConfig: async () => ({
     sizes: [{ size: "15yd", base_price: 350, included_days: 7, included_tons: 2, is_active: true }],

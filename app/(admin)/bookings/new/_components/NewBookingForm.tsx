@@ -93,6 +93,8 @@ export type FormCustomer = PickedCustomer;
 export interface FormReadiness {
   /** A delivery date is picked and the size has a price. */
   ready: boolean;
+  /** The picked delivery date (yyyy-mm-dd), or null. The pay-link button checks it against the order cutoff. */
+  deliveryDate: string | null;
   contactEmail: string;
   contactPhone: string;
   smsConsent: boolean;
@@ -490,7 +492,7 @@ export function BookingFormLayout({
             )}
           </div>
           {summaryNote}
-          {renderSubmit({ ready: !!deliveryDate && !!quote, contactEmail, contactPhone, smsConsent })}
+          {renderSubmit({ ready: !!deliveryDate && !!quote, deliveryDate, contactEmail, contactPhone, smsConsent })}
         </Section>
       </div>
     </form>

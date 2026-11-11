@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 import type { PricingConfig } from "@/lib/bookings/pricing";
 import { NO_REACHABLE_CONTACT, reachable } from "@/lib/pay-links/contact";
+import { isClosedByCutoff, payLinkCutoffMessage, type DeliveryFloor } from "@/lib/bookings/cutoff-shared";
 import { createStaffBookingAction, type BookingActionState } from "../../actions";
 import { createPayLinkBookingAction, type PayLinkBookingState } from "../pay-link-actions";
 import { PayLinkResult } from "../../_components/PayLinkResult";
@@ -44,23 +45,38 @@ function PlainButton({ disabled, formAction }: { disabled: boolean; formAction: 
 /**
  * The submit area with pay links on. Pure apart from the pending flag, so its
  * states can be rendered in tests.
+ *
+ * The order cutoff applies to "Book and send pay link" only: after the cutoff
+ * that button is disabled for tomorrow, with the reason. "Create unpaid
+ * without a pay link" is a phone booking and keeps tomorrow. The calendar
+ * above stays the staff calendar. The server action and the database check
+ * the cutoff again (a page left open past the cutoff is refused there).
  */
 export function PayLinkSubmitArea({
   readiness,
   error,
   plainError,
   plainAction,
+  floor,
 }: {
   readiness: FormReadiness;
   error?: string;
   plainError?: string;
   plainAction: (fd: FormData) => void;
+  /** The delivery floor when the page loaded; absent = no cutoff check here. */
+  floor?: DeliveryFloor | null;
 }) {
   const canReach = reachable(readiness);
+  const closedByCutoff = !!floor && !!readiness.deliveryDate && isClosedByCutoff(readiness.deliveryDate, floor);
   return (
     <div className="flex flex-col gap-2">
       {error && <p className="text-[12px] font-semibold text-orange-tint-ink">{error}</p>}
-      <BookButton disabled={!readiness.ready || !canReach} />
+      <BookButton disabled={!readiness.ready || !canReach || closedByCutoff} />
+      {readiness.ready && closedByCutoff && floor && (
+        <p className="text-[12px] font-semibold text-orange-tint-ink" data-testid="book-cutoff-reason">
+          {payLinkCutoffMessage(floor)}
+        </p>
+      )}
       {readiness.ready && !canReach && (
         <p className="text-[12px] font-semibold text-orange-tint-ink" data-testid="book-disabled-reason">
           {NO_REACHABLE_CONTACT}
@@ -81,9 +97,12 @@ export function PayLinkSubmitArea({
 export function PayLinkBookingForm({
   pricing,
   customer,
+  floor = null,
 }: {
   pricing: PricingConfig;
   customer: FormCustomer | null;
+  /** The delivery floor (order cutoff) when the page loaded. */
+  floor?: DeliveryFloor | null;
 }) {
   const [state, action] = useFormState(createPayLinkBookingAction, payInit);
   const [plainState, plainAction] = useFormState(createStaffBookingAction, plainInit);
@@ -117,7 +136,7 @@ export function PayLinkBookingForm({
         </p>
       }
       renderSubmit={(r) => (
-        <PayLinkSubmitArea readiness={r} error={state.error} plainError={plainState.error} plainAction={plainAction} />
+        <PayLinkSubmitArea readiness={r} error={state.error} plainError={plainState.error} plainAction={plainAction} floor={floor} />
       )}
     />
   );

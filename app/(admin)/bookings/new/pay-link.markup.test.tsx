@@ -26,6 +26,11 @@ vi.mock("./customer-actions", () => ({
 }));
 let enabled = true;
 vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled }) }));
+// The order cutoff (pay-link button only): a fake, so no test reaches the database.
+vi.mock("@/lib/bookings/cutoff", async () => {
+  const shared = await import("@/lib/bookings/cutoff-shared");
+  return { ...shared, getDeliveryFloor: async () => shared.fallbackFloor() };
+});
 vi.mock("@/lib/customers/search", () => ({ pickCustomer: async () => null }));
 vi.mock("@/lib/bookings/pricing", () => ({
   getPricingConfig: async () => ({
@@ -45,7 +50,7 @@ async function renderPage() {
 const area = (r: Partial<FormReadiness>, extra: { error?: string } = {}) =>
   renderToStaticMarkup(
     <PayLinkSubmitArea
-      readiness={{ ready: true, contactEmail: "", contactPhone: "", smsConsent: false, ...r }}
+      readiness={{ ready: true, deliveryDate: null, contactEmail: "", contactPhone: "", smsConsent: false, ...r }}
       plainAction={() => {}}
       {...extra}
     />,

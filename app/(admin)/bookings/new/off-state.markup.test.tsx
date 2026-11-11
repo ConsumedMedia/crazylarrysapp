@@ -25,6 +25,9 @@ vi.mock("./customer-actions", () => ({
   emailOwnerAction: vi.fn(),
 }));
 vi.mock("@/lib/pay-links/settings", () => ({ getPayLinkSettings: async () => ({ enabled: false }) }));
+// Pay links off = the phone form: the order cutoff is never read.
+const getDeliveryFloor = vi.fn();
+vi.mock("@/lib/bookings/cutoff", () => ({ getDeliveryFloor: () => getDeliveryFloor() }));
 
 let pricing: PricingConfig;
 let customer: Record<string, unknown> | null = null;
@@ -98,5 +101,13 @@ describe("/bookings/new markup (pay links off)", () => {
     };
     customer = null;
     expect(await render({})).toMatchSnapshot();
+  });
+});
+
+describe("/bookings/new with pay links off and the order cutoff", () => {
+  it("the phone form never reads the cutoff (staff phone path unchanged)", async () => {
+    getDeliveryFloor.mockClear();
+    await render({});
+    expect(getDeliveryFloor).not.toHaveBeenCalled();
   });
 });
