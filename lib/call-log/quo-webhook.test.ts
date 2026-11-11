@@ -130,7 +130,7 @@ describe("handleQuoWebhook — refusals happen before anything is read or stored
 
   it("config reader: unset or blank env counts as missing, and only '1' enables", () => {
     expect(readQuoWebhookConfig({ CL_QUO_WEBHOOK_ENABLED: "1", QUO_WEBHOOK_KEY: "  ", QUO_ORG_ID: "" }))
-      .toEqual({ enabled: true, key: null, orgId: null });
+      .toEqual({ enabled: true, key: null, orgId: null, segments: false });
     expect(readQuoWebhookConfig({ CL_QUO_WEBHOOK_ENABLED: "true" }).enabled).toBe(false);
     expect(readQuoWebhookConfig({}).enabled).toBe(false);
   });

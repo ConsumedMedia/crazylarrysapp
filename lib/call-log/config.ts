@@ -65,6 +65,12 @@ export interface QuoWebhookConfig {
   key: string | null;
   /** Quo workspace id (OR...); events for any other workspace are dropped. */
   orgId: string | null;
+  /**
+   * CL_QUO_TRANSCRIPT_SEGMENTS_ENABLED=1: a transcript is sent as one segment
+   * (merged with the call's other segments by the database, migration
+   * 20261110010000) instead of replacing the stored transcript.
+   */
+  segments?: boolean;
 }
 
 export function readQuoWebhookConfig(
@@ -74,5 +80,6 @@ export function readQuoWebhookConfig(
     enabled: env.CL_QUO_WEBHOOK_ENABLED === "1",
     key: env.QUO_WEBHOOK_KEY?.trim() || null,
     orgId: env.QUO_ORG_ID?.trim() || null,
+    segments: readCallLogStage2Flags(env).segments,
   };
 }

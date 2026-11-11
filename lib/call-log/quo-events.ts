@@ -60,6 +60,26 @@ export interface IngestFields {
   transcript?: string;
   transcript_dialogue?: DialogueLine[];
   voicemail_transcript?: string;
+  /**
+   * Segments mode only (CL_QUO_TRANSCRIPT_SEGMENTS_ENABLED=1): this transcript
+   * as one segment, sent INSTEAD of transcript / transcript_dialogue. The
+   * database keys it by its text and merges it with the call's other segments.
+   */
+  transcript_segment?: TranscriptSegmentInput;
+}
+
+/** One segment as ingest_quo_call_event takes it (p_event.transcript_segment / transcript_segments[]). */
+export interface TranscriptSegmentInput {
+  lines: DialogueLine[];
+  /** Orders segments: REST startTime, else the transcript's createdAt. */
+  order_at: string | null;
+  recording_id?: string | null;
+  duration: number | null;
+}
+
+export interface MapOptions {
+  /** Send a completed transcript as transcript_segment (segments mode). */
+  segments?: boolean;
 }
 
 export type MappedEvent =
@@ -99,7 +119,7 @@ function contextFields(context: Obj | undefined): IngestFields {
   return out;
 }
 
-export function mapQuoEvent(envelope: unknown): MappedEvent {
+export function mapQuoEvent(envelope: unknown, opts: MapOptions = {}): MappedEvent {
   if (!isObj(envelope) || !isObj(envelope.data)) {
     return { kind: "ignore", type: null, orgId: null, reason: "malformed" };
   }
@@ -179,7 +199,13 @@ export function mapQuoEvent(envelope: unknown): MappedEvent {
             };
           });
         dialogueShape.emptyDropped = resource.dialogue.length - dialogue.length;
-        if (dialogue.length) {
+        if (dialogue.length && opts.segments === true) {
+          fields.transcript_segment = {
+            lines: dialogue,
+            order_at: str(resource.createdAt) ?? null,
+            duration: rawNum(resource.duration),
+          };
+        } else if (dialogue.length) {
           fields.transcript_dialogue = dialogue;
           fields.transcript = dialogue.map((d) => `${speakerLabel[d.speaker]}: ${d.content}`).join("\n");
         }

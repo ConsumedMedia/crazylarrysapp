@@ -106,7 +106,7 @@ export async function handleQuoWebhook(
     return { status: 400, body: { error: "bad_json" }, log: { outcome: "bad_json", deliveryId } };
   }
 
-  const mapped = mapQuoEvent(envelope);
+  const mapped = mapQuoEvent(envelope, { segments: config.segments === true });
   if (mapped.orgId !== config.orgId) {
     // Signed with our key, so it came from Quo — but not for Larry's
     // workspace (or with no workspace at all). Acknowledge so Quo stops
