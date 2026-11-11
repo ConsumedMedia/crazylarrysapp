@@ -163,7 +163,7 @@ export function transcriptEnvelope(call: QuoRestCall, t: QuoRestTranscript, orgI
 
 /** The mapped events for one REST call (no transcripts), through the webhook's mapper. */
 export function mapRestCall(call: QuoRestCall, orgId: string): MappedEvent[] {
-  return callEnvelopes(call, orgId).map(mapQuoEvent);
+  return callEnvelopes(call, orgId).map((e) => mapQuoEvent(e));
 }
 
 /** The mapped event for one REST transcript, through the webhook's mapper. */
