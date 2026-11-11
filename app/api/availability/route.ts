@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getRangeAvailability } from "@/lib/availability/queries";
+import { getDeliveryFloor } from "@/lib/bookings/cutoff";
 import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { isDumpsterSize } from "@/lib/dumpsters/state-machine";
 
@@ -11,7 +12,9 @@ const MAX_RANGE_DAYS = 62;
 /**
  * GET /api/availability?size=15yd&from=2026-10-01&to=2026-11-08
  *
- * Public (no auth) — the customer calendar is viewable without login. Reads
+ * Public (no auth) — the customer calendar is viewable without login. The
+ * response also carries `floor`, the order cutoff from the database
+ * (getDeliveryFloor never throws; it falls back to tomorrow). Reads
  * happen through the service-role client server-side; the key never leaves
  * the server. Input is capped as light abuse protection; real rate limiting
  * is a later concern.
@@ -64,8 +67,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await getRangeAvailability(size, from, to, rentalDays);
-    return NextResponse.json(result, {
+    const [result, floor] = await Promise.all([
+      getRangeAvailability(size, from, to, rentalDays),
+      getDeliveryFloor(),
+    ]);
+    return NextResponse.json({ ...result, floor }, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (e) {

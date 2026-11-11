@@ -9,12 +9,23 @@ import {
   rentalWindow,
 } from "@/lib/availability/dates";
 import { yardTomorrow } from "@/lib/time/yard";
-import { DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
+import { applyOnlineFloor, DEFAULT_RENTAL_DAYS } from "@/lib/availability/compute";
 import { DUMPSTER_SIZES, type DumpsterSize } from "@/lib/dumpsters/state-machine";
 import type { AvailabilityDay, RangeAvailability } from "@/lib/availability/types";
+import {
+  cutoffClosedMessage,
+  cutoffNote,
+  isClosedByCutoff,
+  type DeliveryFloor,
+} from "@/lib/bookings/cutoff-shared";
 import { Skeleton } from "@/lib/design/Skeleton";
 
 type DayMap = Record<string, AvailabilityDay>;
+
+/** Never wait longer than this for the next refresh (the floor moves at least daily). */
+const MAX_REFRESH_DELAY_MS = 24 * 60 * 60 * 1000;
+/** Refresh just after the floor changes, not on the edge. */
+const REFRESH_SLACK_MS = 1500;
 
 export interface AvailabilityCalendarProps {
   rentalDays?: number;
@@ -24,6 +35,14 @@ export interface AvailabilityCalendarProps {
   /** Controlled selected delivery date (yyyy-mm-dd). */
   selectedDate?: string | null;
   onSelectDate?: (date: string) => void;
+  /**
+   * Apply the online order cutoff (the /book calendar). Off by default, so the
+   * staff calendar keeps today's rule. When on, the calendar refreshes the
+   * moment the floor changes and clears a picked day the cutoff just closed.
+   */
+  applyCutoff?: boolean;
+  /** Called when the picked day was closed by the cutoff (controlled use: clear it). */
+  onDateClosed?: () => void;
 }
 
 export function AvailabilityCalendar({
@@ -32,6 +51,8 @@ export function AvailabilityCalendar({
   onSizeChange,
   selectedDate: controlledSelected,
   onSelectDate,
+  applyCutoff = false,
+  onDateClosed,
 }: AvailabilityCalendarProps) {
   const [internalSize, setInternalSize] = useState<DumpsterSize>("15yd");
   const size = controlledSize ?? internalSize;
@@ -43,6 +64,7 @@ export function AvailabilityCalendar({
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
   const selected = controlledSelected ?? internalSelected;
   const selectDate = (d: string) => {
+    setClosedNotice(null);
     if (onSelectDate) onSelectDate(d);
     else setInternalSelected(d);
   };
@@ -55,6 +77,9 @@ export function AvailabilityCalendar({
   const [data, setData] = useState<DayMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [floor, setFloor] = useState<DeliveryFloor | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [closedNotice, setClosedNotice] = useState<string | null>(null);
 
   const grid = useMemo(() => monthGrid(anchor), [anchor]);
 
@@ -70,8 +95,10 @@ export function AvailabilityCalendar({
       })
       .then((res) => {
         if (cancelled) return;
+        const f = applyCutoff ? res.floor ?? null : null;
         const map: DayMap = {};
-        for (const d of res.days) map[d.date] = d;
+        for (const d of res.days) map[d.date] = f ? applyOnlineFloor(d, f) : d;
+        setFloor(f);
         setData(map);
         setLoading(false);
       })
@@ -83,7 +110,24 @@ export function AvailabilityCalendar({
     return () => {
       cancelled = true;
     };
-  }, [size, grid.from, grid.to, rentalDays]);
+  }, [size, grid.from, grid.to, rentalDays, applyCutoff, refreshKey]);
+
+  // Refetch the moment the floor changes (the cutoff, or the yard's midnight).
+  useEffect(() => {
+    if (!applyCutoff || !floor) return;
+    const due = Date.parse(floor.nextChangeAt) - Date.now() + REFRESH_SLACK_MS;
+    const delay = Math.min(Math.max(due, REFRESH_SLACK_MS), MAX_REFRESH_DELAY_MS);
+    const t = setTimeout(() => setRefreshKey((k) => k + 1), delay);
+    return () => clearTimeout(t);
+  }, [applyCutoff, floor]);
+
+  // A picked day the cutoff has closed is cleared, with the reason.
+  useEffect(() => {
+    if (!applyCutoff || !floor || !selected || !isClosedByCutoff(selected, floor)) return;
+    setClosedNotice(cutoffClosedMessage(floor));
+    if (onDateClosed) onDateClosed();
+    else setInternalSelected(null);
+  }, [applyCutoff, floor, selected, onDateClosed]);
 
   const windowDays = useMemo(
     () =>
@@ -189,6 +233,22 @@ export function AvailabilityCalendar({
           })}
         </div>
       </div>
+
+      {applyCutoff && floor && cutoffNote(floor) && (
+        <p className="text-[11px] text-ink-3" data-testid="cutoff-note">
+          {cutoffNote(floor)}
+        </p>
+      )}
+
+      {applyCutoff && closedNotice && (
+        <p
+          role="status"
+          data-testid="cutoff-closed"
+          className="border-l-4 border-orange bg-orange-tint px-3 py-2 text-[12px] font-semibold text-orange-tint-ink"
+        >
+          {closedNotice}
+        </p>
+      )}
 
       {error && (
         <p className="border-l-4 border-orange bg-orange-tint px-3 py-2 text-[12px] font-semibold text-orange-tint-ink">

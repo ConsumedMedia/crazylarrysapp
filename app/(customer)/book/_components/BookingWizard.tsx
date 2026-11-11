@@ -294,6 +294,8 @@ export function BookingWizard({
                 size={size}
                 selectedDate={deliveryDate}
                 onSelectDate={setDeliveryDate}
+                applyCutoff
+                onDateClosed={() => setDeliveryDate(null)}
               />
               <div className="flex flex-col gap-4">
                 {deliveryDate && (

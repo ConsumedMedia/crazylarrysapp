@@ -3,6 +3,7 @@ import type {
   AvailabilityDay,
   AvailabilityState,
 } from "./types";
+import { isClosedByCutoff, type DeliveryFloor } from "@/lib/bookings/cutoff-shared";
 
 /** Standard rental length, in days on site. "Five days on site" per the brand. */
 export const DEFAULT_RENTAL_DAYS = 5;
@@ -39,6 +40,15 @@ export function deriveDay(row: AvailabilityRow): AvailabilityDay {
   else state = "open";
 
   return { ...base, available, state };
+}
+
+/**
+ * For calendars that take online orders: a day the order cutoff has closed
+ * shows as past (not selectable). Other days are returned unchanged.
+ */
+export function applyOnlineFloor(day: AvailabilityDay, floor: DeliveryFloor): AvailabilityDay {
+  if (day.state === "past" || !isClosedByCutoff(day.date, floor)) return day;
+  return { ...day, available: 0, state: "past" };
 }
 
 /** True when a customer can start a rental delivered on this day. */
