@@ -191,6 +191,39 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     ]);
   });
 
+  it("order cutoff: settings readable by staff, the two setting columns writable through RLS only, nothing for anon; the floor and create_booking for service_role only; the clock and assert for no API role", async () => {
+    const tbl = await q<{ rls: boolean; anon_sel: boolean; sel: boolean; ins: boolean; del: boolean; upd_on: boolean; upd_time: boolean; upd_other: boolean }>(
+      `select c.relrowsecurity as rls,
+              has_table_privilege('anon', c.oid, 'SELECT') as anon_sel,
+              has_table_privilege('authenticated', c.oid, 'SELECT') as sel,
+              has_table_privilege('authenticated', c.oid, 'INSERT') as ins,
+              has_table_privilege('authenticated', c.oid, 'DELETE') as del,
+              has_column_privilege('authenticated', c.oid, 'cutoff_enabled', 'UPDATE') as upd_on,
+              has_column_privilege('authenticated', c.oid, 'cutoff_time', 'UPDATE') as upd_time,
+              (has_column_privilege('authenticated', c.oid, 'updated_by', 'UPDATE')
+               or has_column_privilege('authenticated', c.oid, 'id', 'UPDATE')) as upd_other
+       from pg_class c where c.oid = to_regclass('public.cl_booking_settings')`,
+    );
+    // Before migration 20261111000000 is applied there is nothing to check.
+    for (const r of tbl) {
+      expect(r).toEqual({ rls: true, anon_sel: false, sel: true, ins: false, del: false, upd_on: true, upd_time: true, upd_other: false });
+    }
+    const fns = await q<{ fn: string; anon_x: boolean; auth_x: boolean; svc_x: boolean }>(
+      `select p.oid::regprocedure::text as fn,
+              has_function_privilege('anon', p.oid, 'execute') as anon_x,
+              has_function_privilege('authenticated', p.oid, 'execute') as auth_x,
+              has_function_privilege('service_role', p.oid, 'execute') as svc_x
+       from pg_proc p
+       where p.pronamespace = 'public'::regnamespace
+         and p.proname in ('booking_delivery_floor', '_booking_clock', '_assert_online_delivery_floor', '_stamp_booking_settings', 'create_booking')
+       order by 1`,
+    );
+    const ownerOnly = new Set(["_booking_clock", "_assert_online_delivery_floor", "_stamp_booking_settings"]);
+    for (const r of fns) {
+      expect({ ...r }).toEqual({ fn: r.fn, anon_x: false, auth_x: false, svc_x: !ownerOnly.has(r.fn.split("(")[0]) });
+    }
+  });
+
   it("pay_links.token_encrypted (once it exists) is readable by service_role only", async () => {
     const rows = await q<{ auth_x: boolean; anon_x: boolean; svc_x: boolean }>(
       `select has_column_privilege('authenticated', 'public.pay_links', 'token_encrypted', 'SELECT') as auth_x,
