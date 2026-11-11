@@ -8,6 +8,16 @@ vi.mock("./actions", () => ({
   saveSizePricingAction: vi.fn(),
   saveGlobalSettingsAction: vi.fn(),
   savePayLinkSettingsAction: vi.fn(),
+  saveBookingCutoffAction: vi.fn(),
+}));
+let cutoff: { cutoff_enabled: boolean; cutoff_time: string; updated_at: string | null } | null = {
+  cutoff_enabled: false,
+  cutoff_time: "15:00",
+  updated_at: null,
+};
+vi.mock("@/lib/bookings/cutoff-settings", async () => ({
+  ...(await import("@/lib/bookings/cutoff-settings-shared")),
+  getBookingCutoffSettings: async () => cutoff,
 }));
 vi.mock("./_components/QuickBooksPanel", () => ({ QuickBooksPanel: () => <div data-stub="qbo" /> }));
 
@@ -175,5 +185,38 @@ describe("/settings — Customer pay links", () => {
   it("On badge when enabled", async () => {
     settings = { ...OFF, enabled: true };
     expect(await render()).toMatch(/>On</);
+  });
+});
+
+describe("/settings — Order cutoff", () => {
+  const panel = (html: string) => html.slice(html.indexOf('data-testid="booking-cutoff-panel"'));
+  beforeEach(() => {
+    cutoff = { cutoff_enabled: false, cutoff_time: "15:00", updated_at: null };
+  });
+
+  it("owner: the panel with the on/off box and the time picker, off by default", async () => {
+    const p = panel(await render());
+    expect(p).toContain("Order cutoff");
+    expect(p).toMatch(/>Off</);
+    expect(p).toContain('name="cutoff_enabled"');
+    expect(p).toContain('name="cutoff_time"');
+    expect(p).toContain("Save order cutoff");
+  });
+
+  it("staff: read-only, no inputs", async () => {
+    role = "staff";
+    cutoff = { cutoff_enabled: true, cutoff_time: "15:00", updated_at: null };
+    const p = panel(await render());
+    expect(p).not.toContain('name="cutoff_time"');
+    expect(p).not.toContain("Save order cutoff");
+    expect(p).toContain("On — online and pay-link orders after 3:00 PM Eastern deliver from the day after tomorrow.");
+    expect(p).toContain("only an owner can change it");
+  });
+
+  it("unreadable: says so and that bookings follow the usual rule; no form", async () => {
+    cutoff = null;
+    const p = panel(await render());
+    expect(p).toContain("couldn&#x27;t be read just now");
+    expect(p).not.toContain('name="cutoff_time"');
   });
 });

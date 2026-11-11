@@ -8,6 +8,8 @@ import {
 import { isDumpsterSize } from "@/lib/dumpsters/state-machine";
 import { NotAuthorizedError } from "@/lib/auth/requireStaff";
 import { parsePayLinkSettingsForm, savePayLinkSettings } from "@/lib/pay-links/settings";
+import { parseCutoffSettingsForm, saveBookingCutoffSettings } from "@/lib/bookings/cutoff-settings";
+import { formatCutoffTime } from "@/lib/bookings/cutoff-shared";
 
 export interface SettingsState {
   ok: boolean;
@@ -38,6 +40,27 @@ export async function savePayLinkSettingsAction(
     return {
       ok: true,
       message: parsed.value.enabled ? "Pay links saved — they are ON." : "Pay links saved — they are off.",
+    };
+  } catch (e) {
+    return toState(e);
+  }
+}
+
+export async function saveBookingCutoffAction(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
+  const parsed = parseCutoffSettingsForm(formData);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
+  try {
+    await saveBookingCutoffSettings(parsed.value);
+    revalidatePath("/settings");
+    const t = formatCutoffTime(parsed.value.cutoff_time);
+    return {
+      ok: true,
+      message: parsed.value.cutoff_enabled
+        ? `Order cutoff saved — ON at ${t} Eastern.`
+        : `Order cutoff saved — off (time set to ${t}).`,
     };
   } catch (e) {
     return toState(e);

@@ -6,6 +6,8 @@ import {
 } from "./_components/PricingForms";
 import { QuickBooksPanel } from "./_components/QuickBooksPanel";
 import { PayLinkSettingsPanel } from "./_components/PayLinkSettings";
+import { BookingCutoffPanel } from "./_components/BookingCutoffSettings";
+import { getBookingCutoffSettings } from "@/lib/bookings/cutoff-settings";
 import {
   envWarnings,
   getAlertRecipientStatus,
@@ -26,6 +28,7 @@ export default async function SettingsPage({
   const canEdit = staff.role === "owner";
   const config = await getPricingConfig();
   const payLinks = await getPayLinkSettings();
+  const cutoff = await getBookingCutoffSettings();
   const [live, recipient, candidates] = await Promise.all([
     getLiveCounts(),
     getAlertRecipientStatus(payLinks.staff_alert_user_id),
@@ -75,6 +78,8 @@ export default async function SettingsPage({
         live={live}
         warnings={envWarnings()}
       />
+
+      <BookingCutoffPanel settings={cutoff} canEdit={canEdit} />
 
       {canEdit && <QuickBooksPanel notice={searchParams.qb} />}
     </div>
