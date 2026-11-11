@@ -18,6 +18,15 @@ import {
 } from "@/lib/quickbooks/invoice-payments";
 import { quickBooksConfigured, missingQuickBooksEnv } from "@/lib/quickbooks/config";
 import { runTranscriptPurge, type PurgeResult } from "@/lib/call-log/purge";
+import {
+  runBackfill,
+  existingRowsFrom,
+  BackfillDbError,
+  BACKFILL_MAX_REQUESTS,
+  EXISTING_ROW_COLUMNS,
+  type BackfillResult,
+} from "@/lib/call-log/backfill";
+import { createQuoClient } from "@/lib/call-log/quo-api";
 
 /**
  * The actual work behind each /api/cron/* route, pulled into plain functions
@@ -387,5 +396,36 @@ export async function runCallTranscriptPurge(): Promise<PurgeResult> {
   return runTranscriptPurge(async (name, args) => {
     const { data, error } = await service.rpc(name, args);
     return { data, error };
+  });
+}
+
+// --- Quo call-log backfill ------------------------------------------------
+//
+// Off unless CL_QUO_BACKFILL_ENABLED=1 (lib/call-log/backfill.ts). Reads recent
+// yard-line calls from Quo (read-only) and fills what the webhook missed, one
+// ingest_quo_call_event(..., 'backfill') per call. Never throws; the result
+// holds counts and error codes only.
+
+export async function runQuoBackfill(): Promise<BackfillResult> {
+  return runBackfill((key) => {
+    const service = createServiceClient();
+    return {
+      client: createQuoClient({ key, maxRequests: BACKFILL_MAX_REQUESTS, minIntervalMs: 200 }),
+      now: () => Date.now(),
+      readRows: async (ids) => {
+        const { data, error } = await service.from("call_transcripts").select(EXISTING_ROW_COLUMNS).in("quo_call_id", ids);
+        if (error) throw new BackfillDbError(error.code ?? "select_failed");
+        return existingRowsFrom((data ?? []) as unknown as Array<Record<string, unknown>>);
+      },
+      ingest: async (callId, runId, event) => {
+        const { error } = await service.rpc("ingest_quo_call_event", {
+          p_call_id: callId,
+          p_webhook_id: runId,
+          p_event: event,
+          p_source: "backfill",
+        });
+        if (error) throw new BackfillDbError(error.code ?? "ingest_failed");
+      },
+    };
   });
 }

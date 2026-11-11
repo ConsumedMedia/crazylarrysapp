@@ -6,6 +6,7 @@ import {
   runQuickbooksRefresh,
   runQuickbooksSync,
   runCallTranscriptPurge,
+  runQuoBackfill,
 } from "@/lib/cron/jobs";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +18,11 @@ export const dynamic = "force-dynamic";
  * ones (overdue notices, reminders) from running.
  *
  * Order: overdue -> reminders -> pay_links -> quickbooks-refresh -> quickbooks-sync
- *        -> call_transcript_purge.
+ *        -> call_transcript_purge -> quo_backfill.
  * pay_links does nothing but purge old rate-limit rows while the feature is off.
  * call_transcript_purge does nothing unless CL_CALL_TRANSCRIPT_PURGE_ENABLED=1.
+ * quo_backfill does nothing unless CL_QUO_BACKFILL_ENABLED=1; it runs last because it
+ * is the slowest (up to 60 s of throttled Quo reads) and nothing waits on it.
  * Customer-facing jobs run first so they're not starved by a slow QB call.
  *
  * The individual /api/cron/{overdue,reminders,quickbooks-refresh,quickbooks-sync}
@@ -45,6 +48,7 @@ export async function GET(request: NextRequest) {
     ["quickbooks_refresh", runQuickbooksRefresh],
     ["quickbooks_sync", runQuickbooksSync],
     ["call_transcript_purge", runCallTranscriptPurge],
+    ["quo_backfill", runQuoBackfill],
   ];
 
   const results: Record<string, { ok: boolean; result?: unknown; error?: string }> = {};

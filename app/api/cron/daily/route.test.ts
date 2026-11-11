@@ -22,9 +22,10 @@ vi.mock("@/lib/cron/jobs", () => ({
   runQuickbooksRefresh: job("quickbooks_refresh"),
   runQuickbooksSync: job("quickbooks_sync"),
   runCallTranscriptPurge: job("call_transcript_purge"),
+  runQuoBackfill: job("quo_backfill"),
 }));
 
-const ALL = ["overdue", "reminders", "pay_links", "quickbooks_refresh", "quickbooks_sync", "call_transcript_purge"];
+const ALL = ["overdue", "reminders", "pay_links", "quickbooks_refresh", "quickbooks_sync", "call_transcript_purge", "quo_backfill"];
 let saved: string | undefined;
 
 beforeEach(() => {
@@ -52,20 +53,20 @@ describe("/api/cron/daily", () => {
     expect(ran).toEqual([]);
   });
 
-  it("runs every job in order, the transcript purge last", async () => {
+  it("runs every job in order, the Quo backfill last", async () => {
     const r = await run();
     expect(ran).toEqual(ALL);
     expect(r.body.ok).toBe(true);
     expect(Object.keys(r.body.jobs)).toEqual(ALL);
   });
 
-  it("the purge reporting ok:false fails only its own entry", async () => {
-    behaviour.call_transcript_purge = "not_ok";
+  it.each(["call_transcript_purge", "quo_backfill"])("%s reporting ok:false fails only its own entry", async (name) => {
+    behaviour[name] = "not_ok";
     const r = await run();
     expect(ran).toEqual(ALL);
     expect(r.body.ok).toBe(false);
-    expect(r.body.jobs.call_transcript_purge).toMatchObject({ ok: false, error: "call_transcript_purge_failed" });
-    for (const name of ALL.slice(0, -1)) expect(r.body.jobs[name].ok).toBe(true);
+    expect(r.body.jobs[name]).toMatchObject({ ok: false, error: `${name}_failed` });
+    for (const other of ALL.filter((n) => n !== name)) expect(r.body.jobs[other].ok).toBe(true);
   });
 
   it.each(ALL)("%s throwing: recorded as ok:false, every other job still runs", async (name) => {
