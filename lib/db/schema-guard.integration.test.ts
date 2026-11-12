@@ -236,6 +236,21 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     for (const r of rows) expect(r).toEqual({ auth_x: false, anon_x: false, svc_x: true });
   });
 
+  it("notifications_log.redirected_via (once it exists): staff can read it, anon can't, and it is checked against the three test variables", async () => {
+    const rows = await q<{ auth_sel: boolean; anon_sel: boolean; svc_ins: boolean; checked: boolean }>(
+      `select has_column_privilege('authenticated', 'public.notifications_log', 'redirected_via', 'SELECT') as auth_sel,
+              has_column_privilege('anon', 'public.notifications_log', 'redirected_via', 'SELECT') as anon_sel,
+              has_column_privilege('service_role', 'public.notifications_log', 'redirected_via', 'INSERT') as svc_ins,
+              exists (select 1 from pg_constraint
+                      where conrelid = 'public.notifications_log'::regclass
+                        and conname = 'notifications_log_redirected_via_check' and convalidated) as checked
+       from information_schema.columns
+       where table_schema = 'public' and table_name = 'notifications_log' and column_name = 'redirected_via'`,
+    );
+    // Before migration 20261112000000 is applied there is nothing to check.
+    for (const r of rows) expect(r).toEqual({ auth_sel: true, anon_sel: false, svc_ins: true, checked: true });
+  });
+
   it("pay-link functions: staff RPCs for authenticated, the public page's RPCs for service_role only", async () => {
     const rows = await q<{ fn: string; auth_x: boolean; svc_x: boolean }>(
       `select p.oid::regprocedure::text as fn,
