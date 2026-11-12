@@ -1,9 +1,16 @@
 /**
  * Every piece of customer- and driver-facing notification copy, in one place.
  * One function per notification_type. Each returns SMS text and an email
- * {subject,text,html}. No templating engine — plain template literals, so
+ * {subject,text,html}. No templating engine — tagged template literals, so
  * TypeScript checks each template only touches data the caller actually has.
+ *
+ * Escaping (Plan B.2): every string here is built with the html`` or text``
+ * tag from ./escape, so every interpolated value is cleaned (and, in HTML,
+ * escaped) without anyone deciding a field is safe. templates.scan.test.ts
+ * fails on an untagged interpolation; templates.hostile.test.ts renders every
+ * field with hostile values.
  */
+import { html, href, joinHtml, multiline, text, type SafeHtml } from "./escape";
 
 const YARD_PHONE = process.env.CL_YARD_PHONE || "the yard";
 
@@ -25,22 +32,25 @@ function money(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
-/** Wrap plain lines in a minimal, client-safe HTML email. */
-function renderEmail(heading: string, lines: string[]): string {
-  const body = lines
-    .map((l) =>
-      l === ""
-        ? "<tr><td style=\"height:12px\"></td></tr>"
-        : `<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">${l}</td></tr>`,
-    )
-    .join("");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+/** An empty line: a spacer row in HTML. */
+const BLANK = html``;
+
+/** Wrap lines in a minimal, client-safe HTML email. Lines must be SafeHtml. */
+function renderEmail(heading: SafeHtml, lines: SafeHtml[]): string {
+  const body = joinHtml(
+    lines.map((l) =>
+      l.value === ""
+        ? html`<tr><td style="height:12px"></td></tr>`
+        : html`<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">${l}</td></tr>`,
+    ),
+  );
+  return html`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
 <tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
 <tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">${heading}</td></tr>
 ${body}
 <tr><td style="height:16px"></td></tr>
 <tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call ${YARD_PHONE}.</td></tr>
-</table>`;
+</table>`.value;
 }
 
 // --- customer events -------------------------------------------------------
@@ -58,40 +68,40 @@ export interface BookingCtx {
 
 export function bookingConfirmation(c: BookingCtx): Rendered {
   const size = c.size.replace("yd", " yd");
-  const amountLine = c.paid ? `Paid ${money(c.total)}.` : `Amount due ${money(c.total)}.`;
+  const amountLine = c.paid ? text`Paid ${money(c.total)}.` : text`Amount due ${money(c.total)}.`;
   return {
-    sms: `Crazy Larry's: booking confirmed. ${size} dumpster to ${c.address} on ${fmtDate(c.deliveryDate)}, pickup ${fmtDate(c.pickupDate)}. ${amountLine} Questions? Call ${YARD_PHONE}.`,
+    sms: text`Crazy Larry's: booking confirmed. ${size} dumpster to ${c.address} on ${fmtDate(c.deliveryDate)}, pickup ${fmtDate(c.pickupDate)}. ${amountLine} Questions? Call ${YARD_PHONE}.`,
     email: {
-      subject: `Your dumpster is booked — ${fmtDate(c.deliveryDate)}`,
+      subject: text`Your dumpster is booked — ${fmtDate(c.deliveryDate)}`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Your ${size} dumpster rental is confirmed.`,
-        `Delivery: ${fmtDate(c.deliveryDate)}`,
-        `Pickup:   ${fmtDate(c.pickupDate)}`,
-        `Address:  ${c.address}`,
-        c.paid ? `Paid:     ${money(c.total)}` : `Due:      ${money(c.total)}`,
+        text`Your ${size} dumpster rental is confirmed.`,
+        text`Delivery: ${fmtDate(c.deliveryDate)}`,
+        text`Pickup:   ${fmtDate(c.pickupDate)}`,
+        text`Address:  ${c.address}`,
+        c.paid ? text`Paid:     ${money(c.total)}` : text`Due:      ${money(c.total)}`,
         ...(c.paid
           ? []
           : [``, `Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.`]),
         ``,
         `We'll text you the morning before delivery and again before pickup.`,
       ].join("\n"),
-      html: renderEmail("Your dumpster is booked", [
-        `Hi ${c.contactName},`,
-        `Your <strong>${size}</strong> dumpster rental is confirmed.`,
-        ``,
-        `<strong>Delivery:</strong> ${fmtDate(c.deliveryDate)}`,
-        `<strong>Pickup:</strong> ${fmtDate(c.pickupDate)}`,
-        `<strong>Address:</strong> ${c.address}`,
+      html: renderEmail(html`Your dumpster is booked`, [
+        html`Hi ${c.contactName},`,
+        html`Your <strong>${size}</strong> dumpster rental is confirmed.`,
+        BLANK,
+        html`<strong>Delivery:</strong> ${fmtDate(c.deliveryDate)}`,
+        html`<strong>Pickup:</strong> ${fmtDate(c.pickupDate)}`,
+        html`<strong>Address:</strong> ${c.address}`,
         c.paid
-          ? `<strong>Paid:</strong> ${money(c.total)}`
-          : `<strong>Due:</strong> ${money(c.total)}`,
+          ? html`<strong>Paid:</strong> ${money(c.total)}`
+          : html`<strong>Due:</strong> ${money(c.total)}`,
         ...(c.paid
           ? []
-          : [``, `Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.`]),
-        ``,
-        `We'll text you the day before delivery and again before pickup.`,
+          : [BLANK, html`Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.`]),
+        BLANK,
+        html`We'll text you the day before delivery and again before pickup.`,
       ]),
     },
   };
@@ -100,23 +110,23 @@ export function bookingConfirmation(c: BookingCtx): Rendered {
 export function deliveryReminder(c: BookingCtx): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's: your ${size} dumpster arrives tomorrow (${fmtDate(c.deliveryDate)}) at ${c.address}. Please keep the drop spot clear. Call ${YARD_PHONE} with changes.`,
+    sms: text`Crazy Larry's: your ${size} dumpster arrives tomorrow (${fmtDate(c.deliveryDate)}) at ${c.address}. Please keep the drop spot clear. Call ${YARD_PHONE} with changes.`,
     email: {
-      subject: `Dumpster delivery tomorrow — ${fmtDate(c.deliveryDate)}`,
+      subject: text`Dumpster delivery tomorrow — ${fmtDate(c.deliveryDate)}`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Reminder: your ${size} dumpster is scheduled for delivery tomorrow, ${fmtDate(c.deliveryDate)}, at ${c.address}.`,
+        text`Reminder: your ${size} dumpster is scheduled for delivery tomorrow, ${fmtDate(c.deliveryDate)}, at ${c.address}.`,
         ``,
         `Please make sure the drop spot is clear and accessible for the truck.`,
-        `Need to reschedule? Call ${YARD_PHONE}.`,
+        text`Need to reschedule? Call ${YARD_PHONE}.`,
       ].join("\n"),
-      html: renderEmail("Delivery tomorrow", [
-        `Hi ${c.contactName},`,
-        `Your <strong>${size}</strong> dumpster is scheduled for delivery <strong>tomorrow, ${fmtDate(c.deliveryDate)}</strong>, at ${c.address}.`,
-        ``,
-        `Please make sure the drop spot is clear and accessible for the truck.`,
-        `Need to reschedule? Call ${YARD_PHONE}.`,
+      html: renderEmail(html`Delivery tomorrow`, [
+        html`Hi ${c.contactName},`,
+        html`Your <strong>${size}</strong> dumpster is scheduled for delivery <strong>tomorrow, ${fmtDate(c.deliveryDate)}</strong>, at ${c.address}.`,
+        BLANK,
+        html`Please make sure the drop spot is clear and accessible for the truck.`,
+        html`Need to reschedule? Call ${YARD_PHONE}.`,
       ]),
     },
   };
@@ -125,23 +135,23 @@ export function deliveryReminder(c: BookingCtx): Rendered {
 export function pickupReminder(c: BookingCtx): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's: pickup for your ${size} dumpster is tomorrow (${fmtDate(c.pickupDate)}). Please make sure it's accessible and not overloaded. Call ${YARD_PHONE} if you need another day.`,
+    sms: text`Crazy Larry's: pickup for your ${size} dumpster is tomorrow (${fmtDate(c.pickupDate)}). Please make sure it's accessible and not overloaded. Call ${YARD_PHONE} if you need another day.`,
     email: {
-      subject: `Dumpster pickup tomorrow — ${fmtDate(c.pickupDate)}`,
+      subject: text`Dumpster pickup tomorrow — ${fmtDate(c.pickupDate)}`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Reminder: we're scheduled to pick up your ${size} dumpster tomorrow, ${fmtDate(c.pickupDate)}, from ${c.address}.`,
+        text`Reminder: we're scheduled to pick up your ${size} dumpster tomorrow, ${fmtDate(c.pickupDate)}, from ${c.address}.`,
         ``,
         `Please make sure it's clear for the truck and loaded no higher than the top rail.`,
-        `Need more time? Call ${YARD_PHONE} — extra days are billed at the daily rate.`,
+        text`Need more time? Call ${YARD_PHONE} — extra days are billed at the daily rate.`,
       ].join("\n"),
-      html: renderEmail("Pickup tomorrow", [
-        `Hi ${c.contactName},`,
-        `We're scheduled to pick up your <strong>${size}</strong> dumpster <strong>tomorrow, ${fmtDate(c.pickupDate)}</strong>, from ${c.address}.`,
-        ``,
-        `Please make sure it's clear for the truck and loaded no higher than the top rail.`,
-        `Need more time? Call ${YARD_PHONE}.`,
+      html: renderEmail(html`Pickup tomorrow`, [
+        html`Hi ${c.contactName},`,
+        html`We're scheduled to pick up your <strong>${size}</strong> dumpster <strong>tomorrow, ${fmtDate(c.pickupDate)}</strong>, from ${c.address}.`,
+        BLANK,
+        html`Please make sure it's clear for the truck and loaded no higher than the top rail.`,
+        html`Need more time? Call ${YARD_PHONE}.`,
       ]),
     },
   };
@@ -155,23 +165,23 @@ export function deliveryComplete(c: {
 }): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's: your ${size} dumpster has been delivered to ${c.address}. Scheduled pickup is ${fmtDate(c.pickupDate)}. Call ${YARD_PHONE} if anything's off.`,
+    sms: text`Crazy Larry's: your ${size} dumpster has been delivered to ${c.address}. Scheduled pickup is ${fmtDate(c.pickupDate)}. Call ${YARD_PHONE} if anything's off.`,
     email: {
       subject: `Delivered — your dumpster is on site`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Your ${size} dumpster has been dropped at ${c.address}.`,
-        `Scheduled pickup: ${fmtDate(c.pickupDate)}.`,
+        text`Your ${size} dumpster has been dropped at ${c.address}.`,
+        text`Scheduled pickup: ${fmtDate(c.pickupDate)}.`,
         ``,
-        `If the placement isn't right, call ${YARD_PHONE} today.`,
+        text`If the placement isn't right, call ${YARD_PHONE} today.`,
       ].join("\n"),
-      html: renderEmail("Your dumpster is on site", [
-        `Hi ${c.contactName},`,
-        `Your <strong>${size}</strong> dumpster has been dropped at ${c.address}.`,
-        `<strong>Scheduled pickup:</strong> ${fmtDate(c.pickupDate)}`,
-        ``,
-        `If the placement isn't right, call ${YARD_PHONE} today.`,
+      html: renderEmail(html`Your dumpster is on site`, [
+        html`Hi ${c.contactName},`,
+        html`Your <strong>${size}</strong> dumpster has been dropped at ${c.address}.`,
+        html`<strong>Scheduled pickup:</strong> ${fmtDate(c.pickupDate)}`,
+        BLANK,
+        html`If the placement isn't right, call ${YARD_PHONE} today.`,
       ]),
     },
   };
@@ -184,25 +194,25 @@ export function pickupComplete(c: {
 }): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's: we've picked up the ${size} dumpster from ${c.address}. Thanks for renting with us! Final weight/overage charges, if any, will follow.`,
+    sms: text`Crazy Larry's: we've picked up the ${size} dumpster from ${c.address}. Thanks for renting with us! Final weight/overage charges, if any, will follow.`,
     email: {
       subject: `Picked up — thanks for renting with Crazy Larry's`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `We've hauled off the ${size} dumpster from ${c.address}.`,
+        text`We've hauled off the ${size} dumpster from ${c.address}.`,
         ``,
         `If the load was over the included weight, a separate overage charge will follow. Otherwise you're all set.`,
         ``,
         `Thanks for the business.`,
       ].join("\n"),
-      html: renderEmail("Picked up — thanks!", [
-        `Hi ${c.contactName},`,
-        `We've hauled off the <strong>${size}</strong> dumpster from ${c.address}.`,
-        ``,
-        `If the load was over the included weight, a separate overage charge will follow. Otherwise you're all set.`,
-        ``,
-        `Thanks for the business.`,
+      html: renderEmail(html`Picked up — thanks!`, [
+        html`Hi ${c.contactName},`,
+        html`We've hauled off the <strong>${size}</strong> dumpster from ${c.address}.`,
+        BLANK,
+        html`If the load was over the included weight, a separate overage charge will follow. Otherwise you're all set.`,
+        BLANK,
+        html`Thanks for the business.`,
       ]),
     },
   };
@@ -211,21 +221,21 @@ export function pickupComplete(c: {
 export function overdueNotice(c: BookingCtx): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's: the ${size} dumpster at ${c.address} is past its pickup date (${fmtDate(c.pickupDate)}). Daily rental charges are now accruing. Call ${YARD_PHONE} to schedule pickup.`,
+    sms: text`Crazy Larry's: the ${size} dumpster at ${c.address} is past its pickup date (${fmtDate(c.pickupDate)}). Daily rental charges are now accruing. Call ${YARD_PHONE} to schedule pickup.`,
     email: {
       subject: `Action needed: dumpster past pickup date`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Our records show the ${size} dumpster at ${c.address} is still on site past its scheduled pickup of ${fmtDate(c.pickupDate)}.`,
+        text`Our records show the ${size} dumpster at ${c.address} is still on site past its scheduled pickup of ${fmtDate(c.pickupDate)}.`,
         ``,
-        `Daily rental charges apply until it's picked up. Call ${YARD_PHONE} to get on the schedule.`,
+        text`Daily rental charges apply until it's picked up. Call ${YARD_PHONE} to get on the schedule.`,
       ].join("\n"),
-      html: renderEmail("Dumpster past pickup date", [
-        `Hi ${c.contactName},`,
-        `The <strong>${size}</strong> dumpster at ${c.address} is still on site past its scheduled pickup of <strong>${fmtDate(c.pickupDate)}</strong>.`,
-        ``,
-        `Daily rental charges apply until it's picked up. Call ${YARD_PHONE} to get on the schedule.`,
+      html: renderEmail(html`Dumpster past pickup date`, [
+        html`Hi ${c.contactName},`,
+        html`The <strong>${size}</strong> dumpster at ${c.address} is still on site past its scheduled pickup of <strong>${fmtDate(c.pickupDate)}</strong>.`,
+        BLANK,
+        html`Daily rental charges apply until it's picked up. Call ${YARD_PHONE} to get on the schedule.`,
       ]),
     },
   };
@@ -239,55 +249,52 @@ export function jobAssigned(c: {
   size: string;
   address: string;
   scheduledDate: string;
+  /** Multi-line on purpose (a textarea on /book): its line breaks are kept. */
   placementNotes: string | null;
 }): Rendered {
   const size = c.size.replace("yd", " yd");
   const verb = c.jobType === "delivery" ? "Drop" : "Pickup";
   return {
-    sms: `Crazy Larry's dispatch: ${verb} — ${size} @ ${c.address}, ${fmtDate(c.scheduledDate)}.${c.placementNotes ? ` Notes: ${c.placementNotes}` : ""} Open the driver app for the route.`,
+    sms: [
+      text`Crazy Larry's dispatch: ${verb} — ${size} @ ${c.address}, ${fmtDate(c.scheduledDate)}.`,
+      c.placementNotes ? text` Notes: ${multiline(c.placementNotes)}` : "",
+      ` Open the driver app for the route.`,
+    ].join(""),
     email: {
-      subject: `New ${c.jobType} assigned — ${fmtDate(c.scheduledDate)}`,
+      subject: text`New ${c.jobType} assigned — ${fmtDate(c.scheduledDate)}`,
       text: [
-        `${c.driverName},`,
+        text`${c.driverName},`,
         ``,
-        `You've been assigned a ${c.jobType}:`,
-        `${size} dumpster`,
-        `${c.address}`,
-        `${fmtDate(c.scheduledDate)}`,
-        c.placementNotes ? `Notes: ${c.placementNotes}` : "",
+        text`You've been assigned a ${c.jobType}:`,
+        text`${size} dumpster`,
+        text`${c.address}`,
+        text`${fmtDate(c.scheduledDate)}`,
+        c.placementNotes ? text`Notes: ${multiline(c.placementNotes)}` : "",
         ``,
         `Full route is in the driver app.`,
       ]
         .filter((l) => l !== "")
         .join("\n"),
-      html: renderEmail(`New ${c.jobType} assigned`, [
-        `${c.driverName}, you've been assigned a ${c.jobType}:`,
-        `<strong>${size} dumpster</strong>`,
-        `${c.address}`,
-        `${fmtDate(c.scheduledDate)}`,
-        c.placementNotes ? `Notes: ${c.placementNotes}` : "",
-        ``,
-        `Full route is in the driver app.`,
+      html: renderEmail(html`New ${c.jobType} assigned`, [
+        html`${c.driverName}, you've been assigned a ${c.jobType}:`,
+        html`<strong>${size} dumpster</strong>`,
+        html`${c.address}`,
+        html`${fmtDate(c.scheduledDate)}`,
+        c.placementNotes ? html`Notes: ${multiline(c.placementNotes)}` : BLANK,
+        BLANK,
+        html`Full route is in the driver app.`,
       ]),
     },
   };
 }
 
 // --- pay links -------------------------------------------------------------
-// Customer- and staff-entered text (names, addresses) is escaped in the HTML
-// part of these templates.
 
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function button(url: string, label: string): string {
-  return `<a href="${esc(url)}" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">${label}</a>`;
+/** A link button. A URL href() refuses (not absolute http/https) shows the label without a link. */
+function button(url: string, label: SafeHtml): SafeHtml {
+  const target = href(url);
+  if (!target) return label;
+  return html`<a href="${target}" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">${label}</a>`;
 }
 
 export interface PayLinkCtx extends BookingCtx {
@@ -298,35 +305,35 @@ export interface PayLinkCtx extends BookingCtx {
 export function payLink(c: PayLinkCtx): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's: your ${size} dumpster for ${fmtDate(c.deliveryDate)} is reserved. Total ${money(c.total)}. Review the agreement and pay here: ${c.url} Questions? Call ${YARD_PHONE}. Reply STOP to opt out.`,
+    sms: text`Crazy Larry's: your ${size} dumpster for ${fmtDate(c.deliveryDate)} is reserved. Total ${money(c.total)}. Review the agreement and pay here: ${c.url} Questions? Call ${YARD_PHONE}. Reply STOP to opt out.`,
     email: {
-      subject: `Pay for your dumpster — delivery ${fmtDate(c.deliveryDate)}`,
+      subject: text`Pay for your dumpster — delivery ${fmtDate(c.deliveryDate)}`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Your ${size} dumpster is reserved.`,
-        `Delivery: ${fmtDate(c.deliveryDate)}`,
-        `Pickup:   ${fmtDate(c.pickupDate)}`,
-        `Address:  ${c.address}`,
-        `Total:    ${money(c.total)}`,
+        text`Your ${size} dumpster is reserved.`,
+        text`Delivery: ${fmtDate(c.deliveryDate)}`,
+        text`Pickup:   ${fmtDate(c.pickupDate)}`,
+        text`Address:  ${c.address}`,
+        text`Total:    ${money(c.total)}`,
         ``,
         `Review the rental agreement and pay by card here:`,
-        c.url,
+        text`${c.url}`,
         ``,
         `No cash or check needed. This link works until the booking is paid or cancelled.`,
       ].join("\n"),
-      html: renderEmail("Pay for your dumpster", [
-        `Hi ${esc(c.contactName)},`,
-        `Your <strong>${size}</strong> dumpster is reserved.`,
-        ``,
-        `<strong>Delivery:</strong> ${fmtDate(c.deliveryDate)}`,
-        `<strong>Pickup:</strong> ${fmtDate(c.pickupDate)}`,
-        `<strong>Address:</strong> ${esc(c.address)}`,
-        `<strong>Total:</strong> ${money(c.total)}`,
-        ``,
-        button(c.url, "Review &amp; pay"),
-        ``,
-        `No cash or check needed. This link works until the booking is paid or cancelled.`,
+      html: renderEmail(html`Pay for your dumpster`, [
+        html`Hi ${c.contactName},`,
+        html`Your <strong>${size}</strong> dumpster is reserved.`,
+        BLANK,
+        html`<strong>Delivery:</strong> ${fmtDate(c.deliveryDate)}`,
+        html`<strong>Pickup:</strong> ${fmtDate(c.pickupDate)}`,
+        html`<strong>Address:</strong> ${c.address}`,
+        html`<strong>Total:</strong> ${money(c.total)}`,
+        BLANK,
+        button(c.url, html`Review &amp; pay`),
+        BLANK,
+        html`No cash or check needed. This link works until the booking is paid or cancelled.`,
       ]),
     },
   };
@@ -335,26 +342,26 @@ export function payLink(c: PayLinkCtx): Rendered {
 export function payLinkReminder(c: PayLinkCtx): Rendered {
   const size = c.size.replace("yd", " yd");
   return {
-    sms: `Crazy Larry's reminder: your ${size} dumpster for ${fmtDate(c.deliveryDate)} isn't paid yet (${money(c.total)}). Pay here: ${c.url} Questions? Call ${YARD_PHONE}. Reply STOP to opt out.`,
+    sms: text`Crazy Larry's reminder: your ${size} dumpster for ${fmtDate(c.deliveryDate)} isn't paid yet (${money(c.total)}). Pay here: ${c.url} Questions? Call ${YARD_PHONE}. Reply STOP to opt out.`,
     email: {
-      subject: `Reminder: your dumpster for ${fmtDate(c.deliveryDate)} isn't paid yet`,
+      subject: text`Reminder: your dumpster for ${fmtDate(c.deliveryDate)} isn't paid yet`,
       text: [
-        `Hi ${c.contactName},`,
+        text`Hi ${c.contactName},`,
         ``,
-        `Your ${size} dumpster for ${fmtDate(c.deliveryDate)} at ${c.address} isn't paid yet (${money(c.total)}).`,
+        text`Your ${size} dumpster for ${fmtDate(c.deliveryDate)} at ${c.address} isn't paid yet (${money(c.total)}).`,
         ``,
         `Pay by card here:`,
-        c.url,
+        text`${c.url}`,
         ``,
-        `Questions or changes? Call ${YARD_PHONE}.`,
+        text`Questions or changes? Call ${YARD_PHONE}.`,
       ].join("\n"),
-      html: renderEmail("Your dumpster isn't paid yet", [
-        `Hi ${esc(c.contactName)},`,
-        `Your <strong>${size}</strong> dumpster for <strong>${fmtDate(c.deliveryDate)}</strong> at ${esc(c.address)} isn't paid yet (${money(c.total)}).`,
-        ``,
-        button(c.url, "Pay now"),
-        ``,
-        `Questions or changes? Call ${YARD_PHONE}.`,
+      html: renderEmail(html`Your dumpster isn't paid yet`, [
+        html`Hi ${c.contactName},`,
+        html`Your <strong>${size}</strong> dumpster for <strong>${fmtDate(c.deliveryDate)}</strong> at ${c.address} isn't paid yet (${money(c.total)}).`,
+        BLANK,
+        button(c.url, html`Pay now`),
+        BLANK,
+        html`Questions or changes? Call ${YARD_PHONE}.`,
       ]),
     },
   };
@@ -375,32 +382,32 @@ export function staffUnpaidAlert(c: {
   const size = c.size.replace("yd", " yd");
   const why =
     c.reason === "reminder_sent"
-      ? `A payment reminder was just sent (${c.remindersSent} so far).`
-      : `It has been unpaid for ${c.daysUnpaid} days (${c.remindersSent} reminder${c.remindersSent === 1 ? "" : "s"} sent).`;
-  const subject = `Unpaid booking: ${c.contactName} — delivery ${fmtDate(c.deliveryDate)} (${c.daysUnpaid} days)`;
+      ? text`A payment reminder was just sent (${c.remindersSent} so far).`
+      : text`It has been unpaid for ${c.daysUnpaid} days (${c.remindersSent} reminder${c.remindersSent === 1 ? "" : "s"} sent).`;
+  const subject = text`Unpaid booking: ${c.contactName} — delivery ${fmtDate(c.deliveryDate)} (${c.daysUnpaid} days)`;
   return {
-    sms: `${subject}. ${c.bookingUrl}`,
+    sms: text`${subject}. ${c.bookingUrl}`,
     email: {
       subject,
       text: [
-        `${c.contactName}${c.phone ? ` · ${c.phone}` : ""}`,
-        `${size} dumpster, delivery ${fmtDate(c.deliveryDate)}, total ${money(c.total)}`,
+        c.phone ? text`${c.contactName} · ${c.phone}` : text`${c.contactName}`,
+        text`${size} dumpster, delivery ${fmtDate(c.deliveryDate)}, total ${money(c.total)}`,
         ``,
         why,
         `The unit stays held until the booking is paid or cancelled.`,
         ``,
         `Open the booking (call the customer, resend the link, or cancel it there):`,
-        c.bookingUrl,
+        text`${c.bookingUrl}`,
       ].join("\n"),
-      html: renderEmail("Unpaid booking", [
-        `<strong>${esc(c.contactName)}</strong>${c.phone ? ` · ${esc(c.phone)}` : ""}`,
-        `${size} dumpster, delivery <strong>${fmtDate(c.deliveryDate)}</strong>, total ${money(c.total)}`,
-        ``,
-        why,
-        `The unit stays held until the booking is paid or cancelled.`,
-        ``,
-        button(c.bookingUrl, "Open booking"),
-        `Call the customer, resend the link, or cancel it from the booking page.`,
+      html: renderEmail(html`Unpaid booking`, [
+        c.phone ? html`<strong>${c.contactName}</strong> · ${c.phone}` : html`<strong>${c.contactName}</strong>`,
+        html`${size} dumpster, delivery <strong>${fmtDate(c.deliveryDate)}</strong>, total ${money(c.total)}`,
+        BLANK,
+        html`${why}`,
+        html`The unit stays held until the booking is paid or cancelled.`,
+        BLANK,
+        button(c.bookingUrl, html`Open booking`),
+        html`Call the customer, resend the link, or cancel it from the booking page.`,
       ]),
     },
   };

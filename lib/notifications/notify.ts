@@ -464,7 +464,7 @@ export async function notifyStaffUnpaidAlert(opts: {
       total: Number(d.total),
       daysUnpaid,
       remindersSent: opts.remindersSent,
-      bookingUrl: `${siteUrl()}/bookings/${opts.bookingId}`,
+      bookingUrl: `${siteUrl()}/bookings/${encodeURIComponent(opts.bookingId)}`,
       reason: opts.reason,
     });
     await Promise.allSettled(
