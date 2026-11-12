@@ -1,0 +1,308 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`notification templates: golden output for ordinary values > bookingConfirmation paid 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Your dumpster is booked</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Your <strong>20 yd</strong> dumpster rental is confirmed.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Delivery:</strong> Thu, Nov 12</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Pickup:</strong> Thu, Nov 19</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Address:</strong> 1 Test St, Columbus, OH 43004</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Paid:</strong> $401.05</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">We'll text you the day before delivery and again before pickup.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Your dumpster is booked — Thu, Nov 12",
+    "text": "Hi Pat Smith,
+
+Your 20 yd dumpster rental is confirmed.
+Delivery: Thu, Nov 12
+Pickup:   Thu, Nov 19
+Address:  1 Test St, Columbus, OH 43004
+Paid:     $401.05
+
+We'll text you the morning before delivery and again before pickup.",
+  },
+  "sms": "Crazy Larry's: booking confirmed. 20 yd dumpster to 1 Test St, Columbus, OH 43004 on Thu, Nov 12, pickup Thu, Nov 19. Paid $401.05. Questions? Call (614) 555-0142.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > bookingConfirmation unpaid 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Your dumpster is booked</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Your <strong>10 yd</strong> dumpster rental is confirmed.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Delivery:</strong> Thu, Nov 12</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Pickup:</strong> Thu, Nov 19</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Address:</strong> 1 Test St, Columbus, OH 43004</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Due:</strong> $401.05</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">We'll text you the day before delivery and again before pickup.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Your dumpster is booked — Thu, Nov 12",
+    "text": "Hi Pat Smith,
+
+Your 10 yd dumpster rental is confirmed.
+Delivery: Thu, Nov 12
+Pickup:   Thu, Nov 19
+Address:  1 Test St, Columbus, OH 43004
+Due:      $401.05
+
+Payment isn't collected yet — we'll send you an invoice, or you can pay the yard by cash or check.
+
+We'll text you the morning before delivery and again before pickup.",
+  },
+  "sms": "Crazy Larry's: booking confirmed. 10 yd dumpster to 1 Test St, Columbus, OH 43004 on Thu, Nov 12, pickup Thu, Nov 19. Amount due $401.05. Questions? Call (614) 555-0142.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > deliveryComplete 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Your dumpster is on site</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Your <strong>20 yd</strong> dumpster has been dropped at 1 Test St, Columbus, OH 43004.</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Scheduled pickup:</strong> Thu, Nov 19</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">If the placement isn't right, call (614) 555-0142 today.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Delivered — your dumpster is on site",
+    "text": "Hi Pat Smith,
+
+Your 20 yd dumpster has been dropped at 1 Test St, Columbus, OH 43004.
+Scheduled pickup: Thu, Nov 19.
+
+If the placement isn't right, call (614) 555-0142 today.",
+  },
+  "sms": "Crazy Larry's: your 20 yd dumpster has been delivered to 1 Test St, Columbus, OH 43004. Scheduled pickup is Thu, Nov 19. Call (614) 555-0142 if anything's off.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > deliveryReminder 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Delivery tomorrow</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Your <strong>20 yd</strong> dumpster is scheduled for delivery <strong>tomorrow, Thu, Nov 12</strong>, at 1 Test St, Columbus, OH 43004.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Please make sure the drop spot is clear and accessible for the truck.</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Need to reschedule? Call (614) 555-0142.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Dumpster delivery tomorrow — Thu, Nov 12",
+    "text": "Hi Pat Smith,
+
+Reminder: your 20 yd dumpster is scheduled for delivery tomorrow, Thu, Nov 12, at 1 Test St, Columbus, OH 43004.
+
+Please make sure the drop spot is clear and accessible for the truck.
+Need to reschedule? Call (614) 555-0142.",
+  },
+  "sms": "Crazy Larry's: your 20 yd dumpster arrives tomorrow (Thu, Nov 12) at 1 Test St, Columbus, OH 43004. Please keep the drop spot clear. Call (614) 555-0142 with changes.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > jobAssigned delivery with notes 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">New delivery assigned</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Marcus Lee, you've been assigned a delivery:</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>20 yd dumpster</strong></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">1 Test St, Columbus, OH 43004</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Thu, Nov 12</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Notes: Left side of the driveway, by the garage</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Full route is in the driver app.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "New delivery assigned — Thu, Nov 12",
+    "text": "Marcus Lee,
+You've been assigned a delivery:
+20 yd dumpster
+1 Test St, Columbus, OH 43004
+Thu, Nov 12
+Notes: Left side of the driveway, by the garage
+Full route is in the driver app.",
+  },
+  "sms": "Crazy Larry's dispatch: Drop — 20 yd @ 1 Test St, Columbus, OH 43004, Thu, Nov 12. Notes: Left side of the driveway, by the garage Open the driver app for the route.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > jobAssigned pickup without notes 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">New pickup assigned</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Marcus Lee, you've been assigned a pickup:</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>15 yd dumpster</strong></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">1 Test St, Columbus, OH 43004</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Thu, Nov 19</td></tr><tr><td style="height:12px"></td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Full route is in the driver app.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "New pickup assigned — Thu, Nov 19",
+    "text": "Marcus Lee,
+You've been assigned a pickup:
+15 yd dumpster
+1 Test St, Columbus, OH 43004
+Thu, Nov 19
+Full route is in the driver app.",
+  },
+  "sms": "Crazy Larry's dispatch: Pickup — 15 yd @ 1 Test St, Columbus, OH 43004, Thu, Nov 19. Open the driver app for the route.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > overdueNotice 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Dumpster past pickup date</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">The <strong>20 yd</strong> dumpster at 1 Test St, Columbus, OH 43004 is still on site past its scheduled pickup of <strong>Thu, Nov 19</strong>.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Daily rental charges apply until it's picked up. Call (614) 555-0142 to get on the schedule.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Action needed: dumpster past pickup date",
+    "text": "Hi Pat Smith,
+
+Our records show the 20 yd dumpster at 1 Test St, Columbus, OH 43004 is still on site past its scheduled pickup of Thu, Nov 19.
+
+Daily rental charges apply until it's picked up. Call (614) 555-0142 to get on the schedule.",
+  },
+  "sms": "Crazy Larry's: the 20 yd dumpster at 1 Test St, Columbus, OH 43004 is past its pickup date (Thu, Nov 19). Daily rental charges are now accruing. Call (614) 555-0142 to schedule pickup.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > payLink 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Pay for your dumpster</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat O&#39;Neil &amp; Co,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Your <strong>20 yd</strong> dumpster is reserved.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Delivery:</strong> Thu, Nov 12</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Pickup:</strong> Thu, Nov 19</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Address:</strong> 1 Test St, Columbus, OH 43004</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Total:</strong> $401.05</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><a href="https://app.crazylarrysdumpsters.com/pay/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">Review &amp; pay</a></td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">No cash or check needed. This link works until the booking is paid or cancelled.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Pay for your dumpster — delivery Thu, Nov 12",
+    "text": "Hi Pat O'Neil & Co,
+
+Your 20 yd dumpster is reserved.
+Delivery: Thu, Nov 12
+Pickup:   Thu, Nov 19
+Address:  1 Test St, Columbus, OH 43004
+Total:    $401.05
+
+Review the rental agreement and pay by card here:
+https://app.crazylarrysdumpsters.com/pay/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE
+
+No cash or check needed. This link works until the booking is paid or cancelled.",
+  },
+  "sms": "Crazy Larry's: your 20 yd dumpster for Thu, Nov 12 is reserved. Total $401.05. Review the agreement and pay here: https://app.crazylarrysdumpsters.com/pay/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE Questions? Call (614) 555-0142. Reply STOP to opt out.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > payLinkReminder 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Your dumpster isn't paid yet</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Your <strong>20 yd</strong> dumpster for <strong>Thu, Nov 12</strong> at 1 O&#39;Hara Rd &amp; 2nd, Columbus, OH 43004 isn't paid yet ($401.05).</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><a href="https://app.crazylarrysdumpsters.com/pay/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">Pay now</a></td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Questions or changes? Call (614) 555-0142.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Reminder: your dumpster for Thu, Nov 12 isn't paid yet",
+    "text": "Hi Pat Smith,
+
+Your 20 yd dumpster for Thu, Nov 12 at 1 O'Hara Rd & 2nd, Columbus, OH 43004 isn't paid yet ($401.05).
+
+Pay by card here:
+https://app.crazylarrysdumpsters.com/pay/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE
+
+Questions or changes? Call (614) 555-0142.",
+  },
+  "sms": "Crazy Larry's reminder: your 20 yd dumpster for Thu, Nov 12 isn't paid yet ($401.05). Pay here: https://app.crazylarrysdumpsters.com/pay/AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE Questions? Call (614) 555-0142. Reply STOP to opt out.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > pickupComplete 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Picked up — thanks!</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">We've hauled off the <strong>20 yd</strong> dumpster from 1 Test St, Columbus, OH 43004.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">If the load was over the included weight, a separate overage charge will follow. Otherwise you're all set.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Thanks for the business.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Picked up — thanks for renting with Crazy Larry's",
+    "text": "Hi Pat Smith,
+
+We've hauled off the 20 yd dumpster from 1 Test St, Columbus, OH 43004.
+
+If the load was over the included weight, a separate overage charge will follow. Otherwise you're all set.
+
+Thanks for the business.",
+  },
+  "sms": "Crazy Larry's: we've picked up the 20 yd dumpster from 1 Test St, Columbus, OH 43004. Thanks for renting with us! Final weight/overage charges, if any, will follow.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > pickupReminder 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Pickup tomorrow</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Hi Pat Smith,</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">We're scheduled to pick up your <strong>15 yd</strong> dumpster <strong>tomorrow, Thu, Nov 19</strong>, from 1 Test St, Columbus, OH 43004.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Please make sure it's clear for the truck and loaded no higher than the top rail.</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Need more time? Call (614) 555-0142.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Dumpster pickup tomorrow — Thu, Nov 19",
+    "text": "Hi Pat Smith,
+
+Reminder: we're scheduled to pick up your 15 yd dumpster tomorrow, Thu, Nov 19, from 1 Test St, Columbus, OH 43004.
+
+Please make sure it's clear for the truck and loaded no higher than the top rail.
+Need more time? Call (614) 555-0142 — extra days are billed at the daily rate.",
+  },
+  "sms": "Crazy Larry's: pickup for your 15 yd dumpster is tomorrow (Thu, Nov 19). Please make sure it's accessible and not overloaded. Call (614) 555-0142 if you need another day.",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > staffUnpaidAlert after_days 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Unpaid booking</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Pat O&#39;Neil &amp; Co</strong> · 614-555-0200</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">20 yd dumpster, delivery <strong>Thu, Nov 12</strong>, total $401.05</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">It has been unpaid for 3 days (1 reminder sent).</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">The unit stays held until the booking is paid or cancelled.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><a href="https://app.crazylarrysdumpsters.com/bookings/00000000-0000-0000-0000-0000000000b2" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">Open booking</a></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Call the customer, resend the link, or cancel it from the booking page.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Unpaid booking: Pat O'Neil & Co — delivery Thu, Nov 12 (3 days)",
+    "text": "Pat O'Neil & Co · 614-555-0200
+20 yd dumpster, delivery Thu, Nov 12, total $401.05
+
+It has been unpaid for 3 days (1 reminder sent).
+The unit stays held until the booking is paid or cancelled.
+
+Open the booking (call the customer, resend the link, or cancel it there):
+https://app.crazylarrysdumpsters.com/bookings/00000000-0000-0000-0000-0000000000b2",
+  },
+  "sms": "Unpaid booking: Pat O'Neil & Co — delivery Thu, Nov 12 (3 days). https://app.crazylarrysdumpsters.com/bookings/00000000-0000-0000-0000-0000000000b2",
+}
+`;
+
+exports[`notification templates: golden output for ordinary values > staffUnpaidAlert reminder_sent, no phone 1`] = `
+{
+  "email": {
+    "html": "<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;padding:24px">
+<tr><td style="font:800 18px/1.2 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e5006d;padding-bottom:12px">Crazy Larry's Dumpsters</td></tr>
+<tr><td style="font:700 16px/1.3 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;padding-bottom:8px">Unpaid booking</td></tr>
+<tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><strong>Pat Smith</strong></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">10 yd dumpster, delivery <strong>Thu, Nov 12</strong>, total $300.00</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">A payment reminder was just sent (2 so far).</td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">The unit stays held until the booking is paid or cancelled.</td></tr><tr><td style="height:12px"></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a"><a href="https://app.crazylarrysdumpsters.com/bookings/00000000-0000-0000-0000-0000000000b2" style="display:inline-block;background:#0f766e;color:#ffffff;font-weight:800;text-decoration:none;padding:10px 16px">Open booking</a></td></tr><tr><td style="padding:2px 0;font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">Call the customer, resend the link, or cancel it from the booking page.</td></tr>
+<tr><td style="height:16px"></td></tr>
+<tr><td style="font:12px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#8a8a8a">Questions? Call (614) 555-0142.</td></tr>
+</table>",
+    "subject": "Unpaid booking: Pat Smith — delivery Thu, Nov 12 (0 days)",
+    "text": "Pat Smith
+10 yd dumpster, delivery Thu, Nov 12, total $300.00
+
+A payment reminder was just sent (2 so far).
+The unit stays held until the booking is paid or cancelled.
+
+Open the booking (call the customer, resend the link, or cancel it there):
+https://app.crazylarrysdumpsters.com/bookings/00000000-0000-0000-0000-0000000000b2",
+  },
+  "sms": "Unpaid booking: Pat Smith — delivery Thu, Nov 12 (0 days). https://app.crazylarrysdumpsters.com/bookings/00000000-0000-0000-0000-0000000000b2",
+}
+`;
