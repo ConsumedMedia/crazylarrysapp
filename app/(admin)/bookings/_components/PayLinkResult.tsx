@@ -15,6 +15,7 @@ const WHY: Record<FailureCategory, string> = {
   provider_rejected: "the provider rejected it",
   rate_limited: "the provider is rate-limiting — try Resend later",
   transient: "the provider had a temporary problem",
+  opted_out: "the number replied STOP (or a reply is waiting for staff to check)",
 };
 
 /**

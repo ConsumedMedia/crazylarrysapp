@@ -29,7 +29,9 @@ export type FailureCategory =
   | "rate_limited"
   | "transient"
   | "recipient_missing"
-  | "no_consent";
+  | "no_consent"
+  /** The number replied STOP, or a reply that may be one awaits staff review (Plan B.4); or Quo itself says the number opted out. */
+  | "opted_out";
 
 export interface SendResult {
   ok: boolean;
@@ -60,6 +62,8 @@ export function smsEnabled(): boolean {
 function categorizeQuoError(status: number, detail: string): FailureCategory {
   if (status === 429) return "rate_limited";
   if (status >= 500) return "transient";
+  // Quo's 400 "User Opted Out" / "User has opted out of receiving messages".
+  if (/opted[\s_-]?out/i.test(detail)) return "opted_out";
   if (/a2p|10dlc|not approved|registration|carrier/i.test(detail)) {
     return "account_blocked";
   }

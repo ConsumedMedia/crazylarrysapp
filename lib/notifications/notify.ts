@@ -7,6 +7,7 @@ import * as T from "./templates";
 import { payLinkUrl, redactPayLinks, siteUrl } from "@/lib/pay-links/token";
 import { yardDateOf } from "@/lib/time/yard";
 import { TEST_EMAIL_VAR, TEST_PHONE_VAR, TEST_TO_VAR } from "./test-mode";
+import { smsBlockStatus } from "./opt-out";
 
 /**
  * Notification orchestrator. Every export here is guaranteed not to throw —
@@ -183,9 +184,37 @@ async function dispatch(opts: {
         );
       } else {
         jobs.push(
-          sendSms(e164, opts.rendered.sms).then((r) =>
-            log(logRowFrom(base, "sms", e164, opts.rendered.sms, r), r),
-          ),
+          (async () => {
+            // Opt-outs first (Plan B.4): the number, not the customer row, so a
+            // STOP survives a later booking that sets sms_consent again.
+            // Checked on the intended number, so test mode behaves as
+            // production will.
+            const check = await smsBlockStatus(e164);
+            if (!check.ok) {
+              return log(
+                logRowFrom(base, "sms", e164, opts.rendered.sms, {
+                  ok: false,
+                  category: "transient",
+                  error: `opt-out list unreadable, not sent (${check.error})`,
+                }),
+              );
+            }
+            if (check.block) {
+              return log(
+                logRowFrom(base, "sms", e164, opts.rendered.sms, {
+                  ok: false,
+                  skipped: true,
+                  category: "opted_out",
+                  error:
+                    check.block === "opted_out"
+                      ? "the number replied STOP"
+                      : "a reply that may be an opt-out is waiting for staff review",
+                }),
+              );
+            }
+            const r = await sendSms(e164, opts.rendered.sms);
+            return log(logRowFrom(base, "sms", e164, opts.rendered.sms, r), r);
+          })(),
         );
       }
     }

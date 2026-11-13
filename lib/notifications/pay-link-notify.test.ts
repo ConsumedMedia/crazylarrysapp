@@ -24,6 +24,9 @@ const BOOKING = () => ({
 
 vi.mock("@/lib/supabase/service", () => ({
   createServiceClient: () => ({
+    // Plan B.4: every SMS first asks sms_block_status; nothing is blocked here.
+    rpc: async (name: string) =>
+      name === "sms_block_status" ? { data: null, error: null } : { data: null, error: { code: "unexpected_rpc", message: name } },
     from: (table: string) => {
       if (table === "notifications_log") {
         return {
