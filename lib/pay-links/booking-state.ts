@@ -33,8 +33,24 @@ export interface PayLinkDelivery {
   status: "sent" | "failed" | "skipped";
   category: string | null;
   at: string;
-  /** Went to a test target instead of the customer (which variable isn't logged). */
+  /** Went to a test target instead of the customer. */
   redirected: boolean;
+  /**
+   * The test variable it went to (a name, never the value). Present only when
+   * the log row recorded it (rows from migration 20261112000000 on).
+   */
+  redirectedVia?: string;
+}
+
+const DELIVERY_COLUMNS = "type, channel, delivery_status, failure_category, sent_at, created_at, original_recipient";
+
+/**
+ * The column isn't there yet (code deployed before migration 20261112000000):
+ * Postgres/PostgREST say 42703 "column notifications_log.redirected_via does
+ * not exist". Only this exact case falls back.
+ */
+function missingRedirectedVia(error: { code?: string; message?: string } | null): boolean {
+  return !!error && (error.code === "42703" || error.code === "PGRST204") && (error.message ?? "").includes("redirected_via");
 }
 
 export interface PayLinkState {
@@ -63,7 +79,15 @@ export async function getPayLinkState(bookingId: string): Promise<PayLinkState> 
   }
 
   const creatorIds = Array.from(new Set(raw.map((r) => r.created_by).filter((x): x is string => !!x)));
-  const [{ data: people }, { data: events, error: evErr }, { data: log, error: logErr }] = await Promise.all([
+  const readLog = (columns: string) =>
+    supabase
+      .from("notifications_log")
+      .select(columns)
+      .eq("booking_id", bookingId)
+      .in("type", ["pay_link", "pay_link_reminder"])
+      .order("created_at", { ascending: false })
+      .limit(30);
+  const [{ data: people }, { data: events, error: evErr }, firstLog] = await Promise.all([
     creatorIds.length
       ? supabase.from("profiles").select("id, full_name").in("id", creatorIds)
       : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null }> }),
@@ -72,14 +96,11 @@ export async function getPayLinkState(bookingId: string): Promise<PayLinkState> 
       .select("kind, seq, status, yard_date, completed_at")
       .eq("booking_id", bookingId)
       .eq("kind", "customer_reminder"),
-    supabase
-      .from("notifications_log")
-      .select("type, channel, delivery_status, failure_category, sent_at, created_at, original_recipient")
-      .eq("booking_id", bookingId)
-      .in("type", ["pay_link", "pay_link_reminder"])
-      .order("created_at", { ascending: false })
-      .limit(30),
+    readLog(`${DELIVERY_COLUMNS}, redirected_via`),
   ]);
+  // Before the migration the column doesn't exist: read without it, and the
+  // page says "the test address" without naming the variable, as it did before.
+  const { data: log, error: logErr } = missingRedirectedVia(firstLog.error) ? await readLog(DELIVERY_COLUMNS) : firstLog;
   if (evErr) throw new Error(`pay_link_events: ${evErr.message}`);
   if (logErr) throw new Error(`notifications_log: ${logErr.message}`);
 
@@ -108,16 +129,20 @@ export async function getPayLinkState(bookingId: string): Promise<PayLinkState> 
       .sort()
       .at(-1) ?? null;
 
-  const deliveries: PayLinkDelivery[] = ((log ?? []) as Array<Record<string, string | null>>)
+  const deliveries: PayLinkDelivery[] = ((log ?? []) as unknown as Array<Record<string, string | null>>)
     .filter((d) => (d.created_at as string) >= current.createdAt)
-    .map((d) => ({
-      type: d.type as PayLinkDelivery["type"],
-      channel: d.channel as PayLinkDelivery["channel"],
-      status: d.delivery_status as PayLinkDelivery["status"],
-      category: d.failure_category,
-      at: (d.sent_at ?? d.created_at) as string,
-      redirected: d.original_recipient !== null && d.original_recipient !== undefined,
-    }));
+    .map((d) => {
+      const redirected = d.original_recipient !== null && d.original_recipient !== undefined;
+      return {
+        type: d.type as PayLinkDelivery["type"],
+        channel: d.channel as PayLinkDelivery["channel"],
+        status: d.delivery_status as PayLinkDelivery["status"],
+        category: d.failure_category,
+        at: (d.sent_at ?? d.created_at) as string,
+        redirected,
+        ...(redirected && d.redirected_via ? { redirectedVia: d.redirected_via } : {}),
+      };
+    });
 
   return { active, links, remindersSent: sentReminders.length, lastReminderAt, deliveries };
 }

@@ -131,16 +131,30 @@ describe("live link, pay links ON", () => {
     expect(html).toMatch(/>Live</);
     expect(html).toContain("Nov 3, 10:00 AM by Office Owner");
     expect(html).toContain("1 sent · last Nov 4, 7:05 AM");
-    // Changed 2026-11-10: this line comes from notifications_log, which records
-    // that a send was redirected but not which test variable did it, so the
-    // label no longer names CL_NOTIFICATIONS_TEST_TO (it may have been
-    // CL_NOTIFICATIONS_TEST_EMAIL). It says only "the test address".
+    // This line comes from notifications_log. These rows have no recorded
+    // variable (rows logged before migration 20261112000000), so the label says
+    // only "the test address". A row that recorded it is the next test.
     expect(html).toContain("Reminder · Email sent — to the test address · ");
     expect(html).not.toContain("(CL_NOTIFICATIONS_");
     expect(html).toContain("Text not sent: the customer hasn&#x27;t agreed to texts");
     expect(html).toContain("Replaced by a newer link");
     expect(html).toContain(">Resend pay link</button>");
     expect(html).not.toContain(TOKEN);
+  });
+
+  it("a logged delivery that recorded its test variable names it; one that didn't says only 'the test address'", async () => {
+    link = {
+      ...LIVE,
+      deliveries: [
+        { type: "pay_link_reminder", channel: "email", status: "sent", category: null, at: "2026-11-04T12:05:00.000Z", redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_EMAIL" },
+        { type: "pay_link", channel: "sms", status: "sent", category: null, at: "2026-11-03T15:00:01.000Z", redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_PHONE" },
+        { type: "pay_link", channel: "email", status: "sent", category: null, at: "2026-11-03T15:00:01.000Z", redirected: true },
+      ],
+    };
+    const html = await render();
+    expect(html).toContain("Reminder · Email sent — to the test address (CL_NOTIFICATIONS_TEST_EMAIL) · ");
+    expect(html).toContain("Text sent — to the test address (CL_NOTIFICATIONS_TEST_PHONE) · ");
+    expect(html.match(/Email sent — to the test address · /g)).toHaveLength(1);
   });
 
   it("QuickBooks invoice hidden; cash/check only behind a collapsed 'Paid another way?' with the warning", async () => {

@@ -6,6 +6,7 @@ import { toE164US } from "./phone";
 import * as T from "./templates";
 import { payLinkUrl, redactPayLinks, siteUrl } from "@/lib/pay-links/token";
 import { yardDateOf } from "@/lib/time/yard";
+import { TEST_EMAIL_VAR, TEST_PHONE_VAR, TEST_TO_VAR } from "./test-mode";
 
 /**
  * Notification orchestrator. Every export here is guaranteed not to throw —
@@ -26,9 +27,9 @@ export interface ChannelOutcome {
   /** Test mode (CL_NOTIFICATIONS_TEST_PHONE / _EMAIL / _TO) sent it to the test target instead. */
   redirected: boolean;
   /**
-   * Which of those variables it went to (a name, never the value). Known only
-   * for a send made just now: notifications_log doesn't keep it, so outcomes
-   * read back from the log leave it out.
+   * Which of those variables it went to (a name, never the value). Since
+   * migration 20261112000000 notifications_log keeps it too (redirected_via);
+   * rows logged before that don't have it, and outcomes read from them leave it out.
    */
   redirectedVia?: string;
 }
@@ -42,12 +43,39 @@ interface LogRow {
   recipient: string;
   /** The intended recipient, set only when test mode redirected the send. */
   original_recipient: string | null;
+  /** The test variable that redirected it (a name, never the value); see loggedRedirectVia. */
+  redirected_via: string | null;
   delivery_status: "sent" | "failed" | "skipped";
   sent_at: string | null;
   body: string;
   error: string | null;
   provider_message_id: string | null;
   failure_category: string | null;
+}
+
+/**
+ * The variable name to log for a send: only on a redirected send, only one of
+ * the three test-mode names, and only the channel's own (TEST_PHONE for SMS,
+ * TEST_EMAIL for email, TEST_TO for either). Anything else logs null, so the
+ * database check (notifications_log_redirected_via_check) can never refuse
+ * the row and lose it.
+ */
+export function loggedRedirectVia(channel: Channel, result: Pick<SendResult, "redirected" | "redirectedVia">): string | null {
+  if (!result.redirected) return null;
+  const via = result.redirectedVia;
+  if (via === TEST_TO_VAR) return via;
+  if (via === TEST_PHONE_VAR && channel === "sms") return via;
+  if (via === TEST_EMAIL_VAR && channel === "email") return via;
+  return null;
+}
+
+/**
+ * The database doesn't have redirected_via yet (code deployed before migration
+ * 20261112000000). PostgREST says PGRST204 "Could not find the 'redirected_via'
+ * column"; Postgres itself says 42703. Only this exact case is retried.
+ */
+function missingRedirectedVia(error: { code?: string; message?: string }): boolean {
+  return (error.code === "PGRST204" || error.code === "42703") && (error.message ?? "").includes("redirected_via");
 }
 
 async function writeLog(row: LogRow): Promise<void> {
@@ -59,6 +87,15 @@ async function writeLog(row: LogRow): Promise<void> {
     // without this check a rejected row (e.g. a column the DB doesn't have
     // yet) vanishes without a trace.
     const { error } = await service.from("notifications_log").insert(row);
+    if (error && missingRedirectedVia(error)) {
+      // Keep the row: log it the way the code did before the column existed.
+      console.warn("[notify] notifications_log has no redirected_via column yet (migration 20261112000000); logged without it");
+      const withoutVia: Partial<LogRow> = { ...row };
+      delete withoutVia.redirected_via;
+      const retry = await service.from("notifications_log").insert(withoutVia);
+      if (retry.error) console.error("[notify] notifications_log insert failed:", retry.error.message);
+      return;
+    }
     if (error) console.error("[notify] notifications_log insert failed:", error.message);
   } catch (e) {
     // Logging the log failure is all we can safely do.
@@ -80,6 +117,7 @@ function logRowFrom(
     channel,
     recipient: result.sentTo ?? recipient,
     original_recipient: result.redirected ? recipient : null,
+    redirected_via: loggedRedirectVia(channel, result),
     delivery_status: result.ok ? "sent" : result.skipped ? "skipped" : "failed",
     sent_at: result.ok ? new Date().toISOString() : null,
     body,

@@ -19,8 +19,9 @@ const WHY: Record<FailureCategory, string> = {
 
 /**
  * A redirected send names the variable that redirected it when the outcome
- * knows it (a send made just now). Outcomes read back from notifications_log
- * don't, so they say only "the test address".
+ * knows it: a send made just now, or a logged one from migration
+ * 20261112000000 on (notifications_log.redirected_via). Older logged sends say
+ * only "the test address".
  */
 export function outcomeLine(o: ChannelOutcome): string {
   const what = CHANNEL[o.channel];

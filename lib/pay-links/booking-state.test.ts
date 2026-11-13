@@ -2,16 +2,26 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const selects: Record<string, string> = {};
 const tables: Record<string, unknown[]> = {};
+/** Every select, in order, as [table, columns]. */
+const selectHistory: Array<[string, string]> = [];
+/** Optional: an error for a select, decided by its table and columns. */
+let failSelect: (t: string, cols: string) => { code: string; message: string } | null = () => null;
 vi.mock("@/lib/supabase/server", () => ({
   createClient: () => ({
     from: (t: string) => {
       const b: Record<string, unknown> = {};
+      let cols = "";
       for (const op of ["eq", "in", "order", "limit"]) b[op] = () => b;
-      b.select = (cols: string) => {
-        selects[t] = cols;
+      b.select = (c: string) => {
+        selects[t] = c;
+        cols = c;
+        selectHistory.push([t, c]);
         return b;
       };
-      b.then = (res: (v: unknown) => unknown) => Promise.resolve({ data: tables[t] ?? [], error: null }).then(res);
+      b.then = (res: (v: unknown) => unknown) => {
+        const error = failSelect(t, cols);
+        return Promise.resolve(error ? { data: null, error } : { data: tables[t] ?? [], error: null }).then(res);
+      };
       return b;
     },
   }),
@@ -28,6 +38,8 @@ import { getPayLinkState, PAY_LINK_STAFF_COLUMNS } from "./booking-state";
 beforeEach(() => {
   for (const k of Object.keys(selects)) delete selects[k];
   for (const k of Object.keys(tables)) delete tables[k];
+  selectHistory.length = 0;
+  failSelect = () => null;
 });
 
 describe("getPayLinkState", () => {
@@ -73,5 +85,85 @@ describe("getPayLinkState", () => {
     expect(s.deliveries[0]).toMatchObject({ type: "pay_link_reminder", redirected: true });
     // The intended recipient is reduced to a flag; the address never leaves.
     expect(JSON.stringify(s)).not.toContain("pat@crazylarrys.test");
+  });
+});
+
+describe("getPayLinkState: which test variable redirected a delivery (redirected_via, migration 20261112000000)", () => {
+  const LINK = { id: "pl-2", status: "active", created_by: null, created_at: "2026-11-03T15:00:00Z", ended_at: null, ended_reason: null, agreement_ack_at: null, charge_started_at: null, paid_at: null };
+  const logRow = (over: Record<string, unknown>) => ({
+    type: "pay_link",
+    channel: "email",
+    delivery_status: "sent",
+    failure_category: null,
+    sent_at: "2026-11-03T15:00:01Z",
+    created_at: "2026-11-03T15:00:01Z",
+    original_recipient: null,
+    redirected_via: null,
+    ...over,
+  });
+  const logSelects = () => selectHistory.filter(([t]) => t === "notifications_log").map(([, c]) => c);
+
+  beforeEach(() => {
+    tables.pay_links = [LINK];
+  });
+
+  it("reads redirected_via along with the other delivery columns, and nothing else new", async () => {
+    tables.notifications_log = [];
+    await getPayLinkState("bk-1");
+    expect(logSelects()).toEqual(["type, channel, delivery_status, failure_category, sent_at, created_at, original_recipient, redirected_via"]);
+  });
+
+  it("names the variable on a redirected delivery that recorded it", async () => {
+    tables.notifications_log = [
+      logRow({ channel: "sms", original_recipient: "+16145550200", redirected_via: "CL_NOTIFICATIONS_TEST_PHONE" }),
+      logRow({ original_recipient: "pat@crazylarrys.test", redirected_via: "CL_NOTIFICATIONS_TEST_EMAIL" }),
+    ];
+    const s = await getPayLinkState("bk-1");
+    expect(s.deliveries).toEqual([
+      expect.objectContaining({ channel: "sms", redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_PHONE" }),
+      expect.objectContaining({ channel: "email", redirected: true, redirectedVia: "CL_NOTIFICATIONS_TEST_EMAIL" }),
+    ]);
+    expect(JSON.stringify(s)).not.toContain("pat@crazylarrys.test");
+    expect(JSON.stringify(s)).not.toContain("6145550200");
+  });
+
+  it("a redirected row from before the migration (null) has no redirectedVia, so the page says only 'the test address'", async () => {
+    tables.notifications_log = [logRow({ original_recipient: "pat@crazylarrys.test", redirected_via: null })];
+    const [d] = (await getPayLinkState("bk-1")).deliveries;
+    expect(d.redirected).toBe(true);
+    expect(d).not.toHaveProperty("redirectedVia");
+  });
+
+  it("a name on a row that wasn't redirected is ignored", async () => {
+    tables.notifications_log = [logRow({ original_recipient: null, redirected_via: "CL_NOTIFICATIONS_TEST_TO" })];
+    const [d] = (await getPayLinkState("bk-1")).deliveries;
+    expect(d.redirected).toBe(false);
+    expect(d).not.toHaveProperty("redirectedVia");
+  });
+
+  it("column not there yet (42703): reads again without it, and the page still renders", async () => {
+    failSelect = (t, cols) =>
+      t === "notifications_log" && cols.includes("redirected_via")
+        ? { code: "42703", message: "column notifications_log.redirected_via does not exist" }
+        : null;
+    tables.notifications_log = [logRow({ original_recipient: "pat@crazylarrys.test", redirected_via: undefined })];
+    const s = await getPayLinkState("bk-1");
+    expect(logSelects()).toEqual([
+      "type, channel, delivery_status, failure_category, sent_at, created_at, original_recipient, redirected_via",
+      "type, channel, delivery_status, failure_category, sent_at, created_at, original_recipient",
+    ]);
+    expect(s.deliveries).toEqual([expect.objectContaining({ redirected: true })]);
+    expect(s.deliveries[0]).not.toHaveProperty("redirectedVia");
+  });
+
+  it("any other read error still throws (no silent fallback)", async () => {
+    failSelect = (t) => (t === "notifications_log" ? { code: "42501", message: "permission denied for table notifications_log" } : null);
+    await expect(getPayLinkState("bk-1")).rejects.toThrow("notifications_log: permission denied");
+    expect(logSelects()).toHaveLength(1);
+  });
+
+  it("an error naming another missing column still throws", async () => {
+    failSelect = (t) => (t === "notifications_log" ? { code: "42703", message: "column notifications_log.sent_at does not exist" } : null);
+    await expect(getPayLinkState("bk-1")).rejects.toThrow("notifications_log: column notifications_log.sent_at");
   });
 });

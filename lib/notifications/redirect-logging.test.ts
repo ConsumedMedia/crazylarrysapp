@@ -112,6 +112,7 @@ describe("notifications_log records where a send actually went", () => {
       delivery_status: "sent",
       recipient: "+16145559999",
       original_recipient: "+16145550200",
+      redirected_via: "CL_NOTIFICATIONS_TEST_TO",
       provider_message_id: "quo-msg-1",
     });
 
@@ -121,6 +122,7 @@ describe("notifications_log records where a send actually went", () => {
       failure_category: "test_mode",
       recipient: "customer@crazylarrys.test",
       original_recipient: null,
+      redirected_via: null,
     });
   });
 
@@ -133,6 +135,7 @@ describe("notifications_log records where a send actually went", () => {
       delivery_status: "sent",
       recipient: "tester@crazylarrys.test",
       original_recipient: "customer@crazylarrys.test",
+      redirected_via: "CL_NOTIFICATIONS_TEST_TO",
       provider_message_id: "resend-msg-1",
     });
     expect(sms).toMatchObject({
@@ -140,6 +143,7 @@ describe("notifications_log records where a send actually went", () => {
       failure_category: "test_mode",
       recipient: "+16145550200",
       original_recipient: null,
+      redirected_via: null,
     });
   });
 
@@ -147,8 +151,8 @@ describe("notifications_log records where a send actually went", () => {
     delete process.env.CL_NOTIFICATIONS_TEST_TO;
     const { sms, email } = await run();
 
-    expect(sms).toMatchObject({ delivery_status: "sent", recipient: "+16145550200", original_recipient: null });
-    expect(email).toMatchObject({ delivery_status: "sent", recipient: "customer@crazylarrys.test", original_recipient: null });
+    expect(sms).toMatchObject({ delivery_status: "sent", recipient: "+16145550200", original_recipient: null, redirected_via: null });
+    expect(email).toMatchObject({ delivery_status: "sent", recipient: "customer@crazylarrys.test", original_recipient: null, redirected_via: null });
   });
 
   it("a failed redirected send still logs the real destination", async () => {
@@ -161,6 +165,7 @@ describe("notifications_log records where a send actually went", () => {
       failure_category: "provider_rejected",
       recipient: "+16145559999",
       original_recipient: "+16145550200",
+      redirected_via: "CL_NOTIFICATIONS_TEST_TO",
     });
   });
 });

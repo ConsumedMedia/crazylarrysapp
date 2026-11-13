@@ -33,7 +33,13 @@ function linkLine(l: PayLinkSummary): string {
 }
 
 function deliveryLine(d: PayLinkDelivery): string {
-  const base = outcomeLine({ channel: d.channel, status: d.status, category: d.category, redirected: d.redirected });
+  const base = outcomeLine({
+    channel: d.channel,
+    status: d.status,
+    category: d.category,
+    redirected: d.redirected,
+    ...(d.redirectedVia ? { redirectedVia: d.redirectedVia } : {}),
+  });
   return `${d.type === "pay_link_reminder" ? "Reminder · " : ""}${base} · ${when(d.at)}`;
 }
 
