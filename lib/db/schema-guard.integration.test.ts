@@ -251,6 +251,40 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     for (const r of rows) expect(r).toEqual({ auth_sel: true, anon_sel: false, svc_ins: true, checked: true });
   });
 
+  it("SMS opt-outs (once they exist): staff read the two tables through RLS only; record/block/purge for service_role, resolve for staff, helpers for nobody", async () => {
+    const tables = await q<{ t: string; rls: boolean; a_sel: boolean; a_write: boolean; anon_any: boolean }>(
+      `select c.relname as t, c.relrowsecurity as rls,
+              has_table_privilege('authenticated', c.oid, 'SELECT') as a_sel,
+              has_table_privilege('authenticated', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE') as a_write,
+              has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE') as anon_any
+       from pg_class c
+       where c.relnamespace = 'public'::regnamespace and c.relname in ('sms_opt_outs', 'sms_inbound_events')
+       order by 1`,
+    );
+    // Before migration 20261113000000 is applied there is nothing to check.
+    for (const r of tables) expect(r).toEqual({ t: r.t, rls: true, a_sel: true, a_write: false, anon_any: false });
+
+    const fns = await q<{ fn: string; definer: boolean; anon_x: boolean; auth_x: boolean; svc_x: boolean }>(
+      `select p.proname as fn, p.prosecdef as definer,
+              has_function_privilege('anon', p.oid, 'execute') as anon_x,
+              has_function_privilege('authenticated', p.oid, 'execute') as auth_x,
+              has_function_privilege('service_role', p.oid, 'execute') as svc_x
+       from pg_proc p
+       where p.pronamespace = 'public'::regnamespace
+         and p.proname in ('_sms_phone_key', '_apply_sms_opt_out', 'record_sms_inbound', 'sms_block_status', 'resolve_sms_review', 'purge_sms_review_text')
+       order by 1`,
+    );
+    const want: Record<string, { definer: boolean; auth_x: boolean; svc_x: boolean }> = {
+      _apply_sms_opt_out: { definer: false, auth_x: false, svc_x: false },
+      _sms_phone_key: { definer: false, auth_x: false, svc_x: false },
+      purge_sms_review_text: { definer: false, auth_x: false, svc_x: true },
+      record_sms_inbound: { definer: true, auth_x: false, svc_x: true },
+      resolve_sms_review: { definer: true, auth_x: true, svc_x: false },
+      sms_block_status: { definer: true, auth_x: false, svc_x: true },
+    };
+    for (const r of fns) expect(r).toEqual({ fn: r.fn, anon_x: false, ...want[r.fn] });
+  });
+
   it("pay-link functions: staff RPCs for authenticated, the public page's RPCs for service_role only", async () => {
     const rows = await q<{ fn: string; auth_x: boolean; svc_x: boolean }>(
       `select p.oid::regprocedure::text as fn,

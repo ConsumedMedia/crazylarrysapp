@@ -17,6 +17,10 @@ const ACL = "{postgres=arwdDxtm/postgres,authenticated=arwdm/postgres,service_ro
 const HEALTH_MD5 = "b8dc990080f14fbaacf713014eace6ba";
 const FAILURE_CHECK =
   "CHECK (((failure_category IS NULL) OR (failure_category = ANY (ARRAY['disabled'::text, 'test_mode'::text, 'not_configured'::text, 'account_blocked'::text, 'provider_rejected'::text, 'rate_limited'::text, 'transient'::text, 'recipient_missing'::text, 'no_consent'::text]))))";
+// Migration 20261113000000 (Plan B.4, SMS opt-outs) adds 'opted_out'; that is
+// the only other version this check accepts.
+const FAILURE_CHECK_B4 =
+  "CHECK (((failure_category IS NULL) OR (failure_category = ANY (ARRAY['disabled'::text, 'test_mode'::text, 'not_configured'::text, 'account_blocked'::text, 'provider_rejected'::text, 'rate_limited'::text, 'transient'::text, 'recipient_missing'::text, 'no_consent'::text, 'opted_out'::text]))))";
 const POLICIES = [
   {
     policyname: "notifications_log: driver reads own",
@@ -71,7 +75,11 @@ try {
   ok("redirected_via check constraint is exactly as probed, and validated", con?.def === CONSTRAINT && con?.convalidated === true, con?.def ?? "missing");
   const [fc] = await q(`select pg_get_constraintdef(oid) as def from pg_constraint
     where conrelid = 'public.notifications_log'::regclass and conname = 'notifications_log_failure_category_check'`);
-  ok("failure_category check unchanged", fc?.def === FAILURE_CHECK);
+  ok(
+    "failure_category check unchanged (or B.4's version with opted_out)",
+    fc?.def === FAILURE_CHECK || fc?.def === FAILURE_CHECK_B4,
+    fc?.def === FAILURE_CHECK_B4 ? "B.4 version" : undefined,
+  );
 
   const [acl] = await q(`select relacl::text as acl, relrowsecurity as rls from pg_class where oid = 'public.notifications_log'::regclass`);
   ok("table ACL unchanged, RLS on", acl.acl === ACL && acl.rls === true, acl);
