@@ -2,6 +2,8 @@ import type { OverdueRow, UnassignedRow } from "@/lib/dashboard/queries";
 import type { FailedRefund } from "@/lib/payments/failed-refunds";
 import { formatYardDateTime } from "@/lib/time/yard";
 import { ResolveRefundButton } from "./ResolveRefundButton";
+import type { SmsReview } from "@/lib/sms-inbound/reviews";
+import { SmsReviewItem } from "./SmsReviewItem";
 
 function fmt(d: string | null) {
   if (!d) return "—";
@@ -16,13 +18,19 @@ export function NeedsAction({
   overdueBookings,
   unassignedJobs,
   failedRefunds = [],
+  smsReviews = [],
 }: {
   overdueBookings: OverdueRow[];
   unassignedJobs: UnassignedRow[];
   /** Compensating refunds that failed and nobody has resolved yet. */
   failedRefunds?: FailedRefund[];
+  /** Inbound texts that need a person (CANCEL, or an opt-out word in a longer message). null = couldn't be read. */
+  smsReviews?: SmsReview[] | null;
 }) {
-  const empty = overdueBookings.length === 0 && unassignedJobs.length === 0 && failedRefunds.length === 0;
+  const reviews = smsReviews ?? [];
+  const reviewsUnreadable = smsReviews === null;
+  const empty =
+    overdueBookings.length === 0 && unassignedJobs.length === 0 && failedRefunds.length === 0 && reviews.length === 0 && !reviewsUnreadable;
 
   return (
     <section className="border-2 border-line-strong bg-surface">
@@ -36,6 +44,27 @@ export function NeedsAction({
         </p>
       ) : (
         <div className="flex flex-col gap-3 p-4">
+          {reviewsUnreadable && (
+            <p className="border-l-4 border-orange bg-orange-tint px-2.5 py-2 text-[12px] font-semibold text-orange-tint-ink" data-testid="sms-reviews-unreadable">
+              Texts that need a look couldn&apos;t be read just now. Refresh in a minute.
+            </p>
+          )}
+
+          {reviews.length > 0 && (
+            <div data-testid="sms-reviews">
+              <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-orange">
+                Texts that need a look ({reviews.length})
+              </div>
+              <ul className="flex flex-col gap-1.5">
+                {reviews.map((r) => (
+                  <li key={r.id} className="border-l-4 border-orange bg-orange-tint px-2.5 py-2 text-[12px] text-orange-tint-ink">
+                    <SmsReviewItem review={r} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {failedRefunds.length > 0 && (
             <div data-testid="failed-refunds">
               <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-orange">

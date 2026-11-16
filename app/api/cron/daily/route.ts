@@ -6,6 +6,7 @@ import {
   runQuickbooksRefresh,
   runQuickbooksSync,
   runCallTranscriptPurge,
+  runSmsReviewTextPurge,
   runQuoBackfill,
 } from "@/lib/cron/jobs";
 
@@ -18,7 +19,8 @@ export const dynamic = "force-dynamic";
  * ones (overdue notices, reminders) from running.
  *
  * Order: overdue -> reminders -> pay_links -> quickbooks-refresh -> quickbooks-sync
- *        -> call_transcript_purge -> quo_backfill.
+ *        -> call_transcript_purge -> sms_review_purge -> quo_backfill.
+ * sms_review_purge (no flag) blanks flagged inbound-text bodies resolved more than 30 days ago.
  * pay_links does nothing but purge old rate-limit rows while the feature is off.
  * call_transcript_purge does nothing unless CL_CALL_TRANSCRIPT_PURGE_ENABLED=1.
  * quo_backfill does nothing unless CL_QUO_BACKFILL_ENABLED=1; it runs last because it
@@ -48,6 +50,7 @@ export async function GET(request: NextRequest) {
     ["quickbooks_refresh", runQuickbooksRefresh],
     ["quickbooks_sync", runQuickbooksSync],
     ["call_transcript_purge", runCallTranscriptPurge],
+    ["sms_review_purge", runSmsReviewTextPurge],
     ["quo_backfill", runQuoBackfill],
   ];
 

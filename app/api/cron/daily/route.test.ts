@@ -22,10 +22,11 @@ vi.mock("@/lib/cron/jobs", () => ({
   runQuickbooksRefresh: job("quickbooks_refresh"),
   runQuickbooksSync: job("quickbooks_sync"),
   runCallTranscriptPurge: job("call_transcript_purge"),
+  runSmsReviewTextPurge: job("sms_review_purge"),
   runQuoBackfill: job("quo_backfill"),
 }));
 
-const ALL = ["overdue", "reminders", "pay_links", "quickbooks_refresh", "quickbooks_sync", "call_transcript_purge", "quo_backfill"];
+const ALL = ["overdue", "reminders", "pay_links", "quickbooks_refresh", "quickbooks_sync", "call_transcript_purge", "sms_review_purge", "quo_backfill"];
 let saved: string | undefined;
 
 beforeEach(() => {
@@ -60,7 +61,7 @@ describe("/api/cron/daily", () => {
     expect(Object.keys(r.body.jobs)).toEqual(ALL);
   });
 
-  it.each(["call_transcript_purge", "quo_backfill"])("%s reporting ok:false fails only its own entry", async (name) => {
+  it.each(["call_transcript_purge", "sms_review_purge", "quo_backfill"])("%s reporting ok:false fails only its own entry", async (name) => {
     behaviour[name] = "not_ok";
     const r = await run();
     expect(ran).toEqual(ALL);

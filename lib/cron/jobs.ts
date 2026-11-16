@@ -18,6 +18,7 @@ import {
 } from "@/lib/quickbooks/invoice-payments";
 import { quickBooksConfigured, missingQuickBooksEnv } from "@/lib/quickbooks/config";
 import { runTranscriptPurge, type PurgeResult } from "@/lib/call-log/purge";
+import { runSmsReviewPurge, type SmsPurgeResult } from "@/lib/sms-inbound/reviews";
 import {
   runBackfill,
   existingRowsFrom,
@@ -394,6 +395,20 @@ export async function runQuickbooksSync(): Promise<{
 export async function runCallTranscriptPurge(): Promise<PurgeResult> {
   const service = createServiceClient();
   return runTranscriptPurge(async (name, args) => {
+    const { data, error } = await service.rpc(name, args);
+    return { data, error };
+  });
+}
+
+// --- SMS review text purge (Plan B.4) --------------------------------------
+//
+// No flag: blanks the text of flagged inbound texts that staff resolved more
+// than 30 days ago (lib/sms-inbound/reviews.ts). Before migration 20261113000000
+// it reports skipped. Never throws.
+
+export async function runSmsReviewTextPurge(): Promise<SmsPurgeResult> {
+  const service = createServiceClient();
+  return runSmsReviewPurge(async (name, args) => {
     const { data, error } = await service.rpc(name, args);
     return { data, error };
   });
