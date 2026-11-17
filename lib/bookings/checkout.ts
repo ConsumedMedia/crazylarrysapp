@@ -5,6 +5,7 @@ import { cutoffClosedMessage, getDeliveryFloor, isClosedByCutoff } from "./cutof
 import { createCharge, refundCharge, PaymentError } from "@/lib/quickbooks/payments";
 import { syncInvoiceForBooking } from "@/lib/quickbooks/invoices";
 import { notifyBookingConfirmation } from "@/lib/notifications/notify";
+import { checkAgreementForCheckout } from "@/lib/docusign/agreement";
 import type { CreateBookingInput } from "./types";
 
 export interface CheckoutResult {
@@ -26,6 +27,12 @@ const REFUND_PENDING = "A refund is being processed — contact the yard if you 
  * card was charged. "Filled up" is said only for a real capacity refusal.
  */
 export function compensationMessage(reason: string, refundOk: boolean): string {
+  if (reason.startsWith("agreement_")) {
+    // create_booking's re-check of the DocuSign agreement, under its lock.
+    return refundOk
+      ? `Your rental agreement could not be used for this booking (it was already used or changed), so the booking didn't go through — ${NOT_CHARGED} Please sign the agreement again.`
+      : `Your rental agreement could not be used for this booking (it was already used or changed), so the booking didn't go through. ${REFUND_PENDING}`;
+  }
   switch (reason) {
     case "unavailable":
       return refundOk
@@ -60,6 +67,10 @@ export function compensationMessage(reason: string, refundOk: boolean): string {
  *      are used from here on. The database enforces the cutoff again with a
  *      10-minute grace, so it never refuses after the charge a day this
  *      check approved moments earlier.
+ *      Then the rental agreement gate: an email is required, and the DocuSign
+ *      agreement session must be server-verified complete, unused, unexpired
+ *      and signed with this booking's email. Refused here BEFORE any charge;
+ *      create_booking re-checks under its lock and consumes the session.
  *   1. authoritative quote (server-side, never trust the client amount)
  *   2. charge the tokenized card
  *      └─ declined  -> record_payment_attempt('declined'), no booking, stop
@@ -72,8 +83,12 @@ export function compensationMessage(reason: string, refundOk: boolean): string {
 export async function payAndBook(
   input: CreateBookingInput,
   payment: { token: string; idempotencyKey: string },
+  agreementSessionId: string | null | undefined,
 ): Promise<CheckoutResult> {
   // ---- 0. validate, before the card is touched ---------------------------
+  // No database first, then the cutoff (one read), then the agreement (one
+  // read of the session DocuSign verified on return) — every refusal here
+  // happens before any charge.
   let params;
   try {
     params = normalizeBookingInput(input);
@@ -83,9 +98,20 @@ export async function payAndBook(
     }
     throw e;
   }
+  if (!params.p_contact_email) {
+    return {
+      ok: false,
+      code: "no_email",
+      error: "An email address is required to book online (it's where your signed agreement and receipt go).",
+    };
+  }
   const floor = await getDeliveryFloor();
   if (isClosedByCutoff(params.p_delivery_date, floor)) {
     return { ok: false, code: "after_cutoff", error: cutoffClosedMessage(floor) };
+  }
+  const agreement = await checkAgreementForCheckout(agreementSessionId, params.p_contact_email);
+  if (!agreement.ok) {
+    return { ok: false, code: agreement.code, error: agreement.error };
   }
 
   const service = createServiceClient();
@@ -140,7 +166,7 @@ export async function payAndBook(
   // ---- 3. create the booking atomically -------------------------------
   let bookingId: string;
   try {
-    ({ bookingId } = await createBooking(params));
+    ({ bookingId } = await createBooking(params, { agreementSessionId }));
   } catch (e) {
     // Money is captured but there's no booking — compensate immediately.
     const reason = e instanceof BookingCreateError ? e.code : "error";

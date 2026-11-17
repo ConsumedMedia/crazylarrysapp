@@ -21,14 +21,17 @@ export function PaymentForm({
   disabledReason,
   buildInput,
   onRefused,
+  onAgreementRejected,
 }: {
   tokenizeUrl: string;
   total: number | null;
   disabled: boolean;
   disabledReason?: string;
-  buildInput: () => (CreateBookingInput & { agreementAcknowledged: boolean }) | null;
+  buildInput: () => (CreateBookingInput & { agreementSessionId: string | null }) | null;
   /** Moves the customer to the step that owns the refusal; false = stay here. */
   onRefused: (code: string | undefined, reason: string | undefined, message: string) => boolean;
+  /** Server refused because of the agreement (missing/unsigned/used/expired/mismatch). */
+  onAgreementRejected: (code: string) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -69,6 +72,20 @@ export function PaymentForm({
       const compensated = res.code === "compensated";
       const message =
         res.error ?? (compensated ? "You were not charged." : "Payment failed. Try again.");
+      // The agreement: refused before the charge (agreement_*), or by
+      // create_booking's re-check after it (compensated, reason agreement_*).
+      // The customer stays here and signs again.
+      const agreementCode = res.code?.startsWith("agreement_")
+        ? res.code
+        : compensated && res.reason?.startsWith("agreement_")
+          ? res.reason
+          : null;
+      if (agreementCode) {
+        if (compensated) setNotCharged(message);
+        else setError(message);
+        onAgreementRejected(agreementCode);
+        return;
+      }
       // The wizard shows the message on the step it moves to; this form
       // unmounts when the step changes.
       if (onRefused(res.code, res.reason, message)) return;

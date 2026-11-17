@@ -3,7 +3,7 @@
  * calendar reports closed is dropped from the wizard. Real wizard through
  * test/mini-render; the calendar is a stub that records its props.
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { createElement } from "react";
 import { mount } from "@/test/mini-render";
 import type { PricingConfig } from "@/lib/bookings/pricing";
@@ -11,6 +11,21 @@ import type { PricingConfig } from "@/lib/bookings/pricing";
 vi.mock("react", async (orig) => {
   const { hooks } = await import("@/test/mini-render");
   return { ...(await orig<object>()), ...hooks };
+});
+
+// The wizard listens for the DocuSign return (postMessage, ?agreement= on the
+// URL). No DOM here, so a minimal window with nothing to restore.
+beforeAll(() => {
+  vi.stubGlobal("window", {
+    location: { origin: "https://app.test", search: "" },
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    history: { replaceState: () => {} },
+    matchMedia: () => ({ matches: false }),
+  });
+});
+afterAll(() => {
+  vi.unstubAllGlobals();
 });
 
 type CalendarProps = {
@@ -45,7 +60,7 @@ const pricing = {
 
 describe("/book wizard and the order cutoff", () => {
   it("the Dates step's calendar applies the cutoff, and a day it closes is cleared from the wizard", () => {
-    const m = mount(() => createElement(BookingWizard, { pricing, docusignUrl: null, tokenizeUrl: "/x", paymentsReady: true }));
+    const m = mount(() => createElement(BookingWizard, { pricing, agreementsEnabled: true, tokenizeUrl: "/x", paymentsReady: true }));
     m.click("Check dates");
     expect(calendar?.applyCutoff).toBe(true);
     expect(typeof calendar?.onDateClosed).toBe("function");

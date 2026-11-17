@@ -12,6 +12,7 @@ import { BookingControls } from "./_components/BookingControls";
 import { PayLinkPanel } from "./_components/PayLinkPanel";
 import { getPayLinkSettings } from "@/lib/pay-links/settings";
 import { getPayLinkState } from "@/lib/pay-links/booking-state";
+import { signedAgreementInfo } from "@/lib/docusign/agreement";
 import { ResolveRequestForm } from "../../requests/_components/ResolveRequestForm";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,9 @@ export default async function BookingDetailPage({
     history,
   } = detail;
   const changeRequests = await listChangeRequestsForBooking(booking.id);
+  // Server-side, after requireStaff(): agreement_sessions is service-role only.
+  const agreementDoc =
+    booking.docusign_status === "signed" ? await signedAgreementInfo(booking.id) : null;
   const pricing = await getPricingConfig();
   const [{ enabled: payLinksOn }, payLink] = await Promise.all([
     getPayLinkSettings(),
@@ -145,10 +149,34 @@ export default async function BookingDetailPage({
               <Item label="Address" value={booking.delivery_address} />
               <Item label="Debris" value={booking.debris_type ?? "—"} />
               <Item label="Placement notes" value={booking.placement_notes ?? "—"} />
-              <Item
-                label="Agreement"
-                value={DOCUSIGN_META[booking.docusign_status]}
-              />
+              <div>
+                <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">
+                  Agreement
+                </div>
+                <div className="text-[14px] font-bold">
+                  {DOCUSIGN_META[booking.docusign_status]}
+                </div>
+                {booking.docusign_status === "signed" &&
+                  (agreementDoc?.documentPath ? (
+                    <a
+                      href={`/bookings/${booking.id}/agreement`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-block text-[12px] font-extrabold text-teal underline hover:text-teal-700"
+                    >
+                      View signed agreement (PDF)
+                    </a>
+                  ) : agreementDoc ? (
+                    <div className="mt-1 text-[11px] text-ink-3">
+                      Signed copy pending — retried daily
+                      {agreementDoc.error ? ` (last error: ${agreementDoc.error})` : ""}
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-[11px] text-ink-3">
+                      Marked signed manually — no DocuSign copy on file
+                    </div>
+                  ))}
+              </div>
               <Item
                 label="Total"
                 value={`$${booking.total.toFixed(2)}  (sub $${booking.subtotal.toFixed(2)} + tax $${booking.tax.toFixed(2)})`}

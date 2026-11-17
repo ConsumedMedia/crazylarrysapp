@@ -32,6 +32,9 @@ vi.mock("./create", async (importOriginal) => ({
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => ({ rpc: m.rpc }) }));
 vi.mock("@/lib/quickbooks/invoices", () => ({ syncInvoiceForBooking: vi.fn() }));
 vi.mock("@/lib/notifications/notify", () => ({ notifyBookingConfirmation: vi.fn() }));
+// DocuSign's checkout gate (a read of the verified session) passes here; its own
+// refusals are covered by lib/bookings/checkout-agreement.test.ts.
+vi.mock("@/lib/docusign/agreement", () => ({ checkAgreementForCheckout: async () => ({ ok: true }) }));
 
 import { payAndBook } from "./checkout";
 import { BookingCreateError, bookingRpcError } from "./create";
@@ -134,7 +137,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
     it.each(EARLY)("%s: refused before any charge", async (_label, change, code, message) => {
       const input = { ...base, deliveryDate: yardTomorrow(), ...change } as CreateBookingInput;
       if (input.deliveryDate === "TODAY") input.deliveryDate = yardToday();
-      const res = await payAndBook(input, payment);
+      const res = await payAndBook(input, payment, "agr-test");
       expect(res).toEqual({ ok: false, code, error: message });
       expect(m.createCharge).not.toHaveBeenCalled();
       expect(m.refundCharge).not.toHaveBeenCalled();
@@ -147,6 +150,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
       const res = await payAndBook(
         { ...base, deliveryDate: tomorrow, street: "  1 Test St ", contactPhone: "  " } as CreateBookingInput,
         payment,
+        "agr-test",
       );
       expect(res).toEqual({ ok: true, bookingId: "bk-test" });
       expect(m.rpc).toHaveBeenCalledWith("booking_quote", { p_size: "20yd" });
@@ -162,6 +166,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
           p_contact_phone: null,
           p_rental_days: 5,
         }),
+        { agreementSessionId: "agr-test" },
       );
       expect(m.refundCharge).not.toHaveBeenCalled();
     });
@@ -174,7 +179,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
         );
         if (!refundOk) m.refundCharge.mockRejectedValueOnce(new Error("refund timed out"));
         const tomorrow = yardTomorrow();
-        const res = await payAndBook({ ...base, deliveryDate: tomorrow } as CreateBookingInput, payment);
+        const res = await payAndBook({ ...base, deliveryDate: tomorrow } as CreateBookingInput, payment, "agr-test");
 
         expect(m.createCharge).toHaveBeenCalledTimes(1);
         expect(m.refundCharge).toHaveBeenCalledWith({ chargeId: "ch-test", amount: "450.00" });
@@ -201,7 +206,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook with the process in %s", (zone)
     it("records 'refund' when Intuit refunds a settled charge instead of voiding it", async () => {
       m.createBooking.mockRejectedValueOnce(new BookingCreateError("db said unavailable", "unavailable"));
       m.refundCharge.mockResolvedValueOnce({ refundId: "rf-settled", kind: "refund", status: "ISSUED", rawType: "REFUND" });
-      await payAndBook({ ...base, deliveryDate: yardTomorrow() } as CreateBookingInput, payment);
+      await payAndBook({ ...base, deliveryDate: yardTomorrow() } as CreateBookingInput, payment, "agr-test");
       expect(m.rpc).toHaveBeenCalledWith(
         "record_payment_attempt",
         expect.objectContaining({

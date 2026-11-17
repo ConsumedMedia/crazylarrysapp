@@ -165,6 +165,10 @@ export function bookingRpcError(
     if (match) return new BookingCreateError(match[2], match[1]);
     return new BookingCreateError(error.message, "unavailable_unrecognized");
   }
+  if (hint && hint.startsWith("agreement_")) {
+    // create_booking's own re-check of the DocuSign agreement (under the lock).
+    return new BookingCreateError(error.message, hint);
+  }
   return new BookingCreateError(error.message, error.code ?? "rpc_failed");
 }
 
@@ -173,9 +177,13 @@ export function bookingRpcError(
  * before charging). Accepts only the output of normalizeBookingInput.
  * Resolves the caller's session for profile linkage, then calls the atomic
  * create_booking RPC via the service-role client. Returns the new booking id.
+ *
+ * `agreementSessionId`: the DocuSign agreement session payAndBook verified.
+ * create_booking re-checks it under its lock and consumes it with the booking.
  */
 export async function createBooking(
   params: ValidatedBookingParams,
+  opts: { agreementSessionId?: string | null } = {},
 ): Promise<{ bookingId: string }> {
   // ---- session -> profile linkage --------------------------------------
   let profileId: string | null = null;
@@ -194,6 +202,7 @@ export async function createBooking(
   const { data, error } = await service.rpc("create_booking", {
     ...params,
     p_profile_id: profileId,
+    p_agreement_session_id: opts.agreementSessionId ?? null,
   });
 
   if (error) throw bookingRpcError(error as { message: string; code?: string; hint?: string });

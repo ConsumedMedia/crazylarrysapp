@@ -23,10 +23,11 @@ vi.mock("@/lib/cron/jobs", () => ({
   runQuickbooksSync: job("quickbooks_sync"),
   runCallTranscriptPurge: job("call_transcript_purge"),
   runSmsReviewTextPurge: job("sms_review_purge"),
+  runAgreementCleanup: job("agreement_cleanup"),
   runQuoBackfill: job("quo_backfill"),
 }));
 
-const ALL = ["overdue", "reminders", "pay_links", "quickbooks_refresh", "quickbooks_sync", "call_transcript_purge", "sms_review_purge", "quo_backfill"];
+const ALL = ["overdue", "reminders", "pay_links", "quickbooks_refresh", "quickbooks_sync", "call_transcript_purge", "sms_review_purge", "agreement_cleanup", "quo_backfill"];
 let saved: string | undefined;
 
 beforeEach(() => {

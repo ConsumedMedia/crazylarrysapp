@@ -62,7 +62,7 @@ describe("/pay never reads a session", () => {
       "lib/payments/CardFields.tsx",
       "lib/notifications/notify.ts",
       "lib/quickbooks/payments.ts",
-      "app/(customer)/book/_components/AgreementModal.tsx",
+      "app/(customer)/pay/[token]/AttestAgreementModal.tsx",
     ]));
   });
 

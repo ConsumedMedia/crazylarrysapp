@@ -15,6 +15,7 @@ const base = {
   tokenizeUrl: "https://sandbox.api.intuit.com/quickbooks/v4/payments/tokens",
   buildInput: () => null,
   onRefused: () => false,
+  onAgreementRejected: () => {},
 };
 
 describe("/book PaymentForm markup", () => {

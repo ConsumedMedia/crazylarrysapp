@@ -7,6 +7,7 @@ import {
   runQuickbooksSync,
   runCallTranscriptPurge,
   runSmsReviewTextPurge,
+  runAgreementCleanup,
   runQuoBackfill,
 } from "@/lib/cron/jobs";
 
@@ -19,8 +20,10 @@ export const dynamic = "force-dynamic";
  * ones (overdue notices, reminders) from running.
  *
  * Order: overdue -> reminders -> pay_links -> quickbooks-refresh -> quickbooks-sync
- *        -> call_transcript_purge -> sms_review_purge -> quo_backfill.
+ *        -> call_transcript_purge -> sms_review_purge -> agreement_cleanup -> quo_backfill.
  * sms_review_purge (no flag) blanks flagged inbound-text bodies resolved more than 30 days ago.
+ * agreement_cleanup voids unsigned DocuSign envelopes past 2 days and retries
+ * archiving signed PDFs; it never deletes one, and does nothing without DOCUSIGN_*.
  * pay_links does nothing but purge old rate-limit rows while the feature is off.
  * call_transcript_purge does nothing unless CL_CALL_TRANSCRIPT_PURGE_ENABLED=1.
  * quo_backfill does nothing unless CL_QUO_BACKFILL_ENABLED=1; it runs last because it
@@ -51,6 +54,7 @@ export async function GET(request: NextRequest) {
     ["quickbooks_sync", runQuickbooksSync],
     ["call_transcript_purge", runCallTranscriptPurge],
     ["sms_review_purge", runSmsReviewTextPurge],
+    ["agreement_cleanup", runAgreementCleanup],
     ["quo_backfill", runQuoBackfill],
   ];
 

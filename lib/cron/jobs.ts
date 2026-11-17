@@ -414,6 +414,32 @@ export async function runSmsReviewTextPurge(): Promise<SmsPurgeResult> {
   });
 }
 
+// --- DocuSign agreement cleanup --------------------------------------------
+
+/**
+ * DocuSign agreement housekeeping (lib/docusign/agreement.ts):
+ *   1. void unsigned envelopes past their 2-day window
+ *   2. retry archiving any verified agreement with no stored PDF yet
+ * Signed agreements are never deleted automatically (Nathan, 2026-11-16: keep
+ * every signed PDF until Larry decides on retention), so
+ * deleteUnbookedSignedAgreements is deliberately not called here.
+ * Without DOCUSIGN_* configured both steps do nothing.
+ */
+export async function runAgreementCleanup(): Promise<{
+  ok: boolean;
+  voided: { checked: number; voided: number; errors: string[] };
+  archived: { checked: number; stored: number; errors: string[] };
+}> {
+  const a = await import("@/lib/docusign/agreement");
+  const voided = await a.voidAbandonedAgreements();
+  const archived = await a.retryAgreementArchives();
+  return {
+    ok: voided.errors.length + archived.errors.length === 0,
+    voided,
+    archived,
+  };
+}
+
 // --- Quo call-log backfill ------------------------------------------------
 //
 // Off unless CL_QUO_BACKFILL_ENABLED=1 (lib/call-log/backfill.ts). Reads recent

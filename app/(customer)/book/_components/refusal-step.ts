@@ -24,6 +24,7 @@ export function refusalStep(
     case "bad_contact":
     case "no_contact":
     case "bad_email":
+    case "no_email": // online booking needs an email (the signed agreement goes there)
       // Only an early refusal can carry these; the database never does.
       return code === "compensated" ? { step: null, clearDate: false } : { step: 3, clearDate: false };
     default:

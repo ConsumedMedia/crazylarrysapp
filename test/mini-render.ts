@@ -37,6 +37,10 @@ export const hooks = {
   useMemo<T>(fn: () => T) {
     return fn();
   },
+  /** Like useMemo here: no caching, so the latest closure is always used. */
+  useCallback<T>(fn: T) {
+    return fn;
+  },
   useEffect(fn: () => void | (() => void), deps?: unknown[]) {
     const slot = next(() => ({ deps: undefined as unknown[] | undefined, cleanup: undefined as void | (() => void), ran: false })) as {
       deps: unknown[] | undefined;
