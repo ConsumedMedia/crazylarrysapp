@@ -224,6 +224,38 @@ describe.skipIf(!RUN)("schema security guard (anon-key exposure invariants)", ()
     }
   });
 
+  it("agreement mode (once it exists): staff read it, owners update it through RLS, nothing for anon; booking_agreement_mode for service_role only", async () => {
+    const tbl = await q<{ rls: boolean; anon_sel: boolean; sel: boolean; ins: boolean; del: boolean; upd_mode: boolean; upd_other: boolean; checked: boolean }>(
+      `select c.relrowsecurity as rls,
+              has_table_privilege('anon', c.oid, 'SELECT') as anon_sel,
+              has_table_privilege('authenticated', c.oid, 'SELECT') as sel,
+              has_table_privilege('authenticated', c.oid, 'INSERT') as ins,
+              has_table_privilege('authenticated', c.oid, 'DELETE') as del,
+              has_column_privilege('authenticated', c.oid, 'mode', 'UPDATE') as upd_mode,
+              (has_column_privilege('authenticated', c.oid, 'updated_by', 'UPDATE')
+               or has_column_privilege('authenticated', c.oid, 'id', 'UPDATE')) as upd_other,
+              exists (select 1 from pg_constraint where conname = 'cl_agreement_settings_mode_check'
+                      and pg_get_constraintdef(oid) like '%attest%docusign%') as checked
+       from pg_class c where c.oid = to_regclass('public.cl_agreement_settings')`,
+    );
+    // Before migration 20261117000000 is applied there is nothing to check.
+    for (const r of tbl) {
+      expect(r).toEqual({ rls: true, anon_sel: false, sel: true, ins: false, del: false, upd_mode: true, upd_other: false, checked: true });
+    }
+    const fns = await q<{ fn: string; anon_x: boolean; auth_x: boolean; svc_x: boolean }>(
+      `select p.oid::regprocedure::text as fn,
+              has_function_privilege('anon', p.oid, 'execute') as anon_x,
+              has_function_privilege('authenticated', p.oid, 'execute') as auth_x,
+              has_function_privilege('service_role', p.oid, 'execute') as svc_x
+       from pg_proc p
+       where p.pronamespace = 'public'::regnamespace and p.proname in ('booking_agreement_mode', '_stamp_agreement_settings')
+       order by 1`,
+    );
+    for (const r of fns) {
+      expect({ ...r }).toEqual({ fn: r.fn, anon_x: false, auth_x: false, svc_x: r.fn === "booking_agreement_mode()" });
+    }
+  });
+
   it("pay_links.token_encrypted (once it exists) is readable by service_role only", async () => {
     const rows = await q<{ auth_x: boolean; anon_x: boolean; svc_x: boolean }>(
       `select has_column_privilege('authenticated', 'public.pay_links', 'token_encrypted', 'SELECT') as auth_x,
