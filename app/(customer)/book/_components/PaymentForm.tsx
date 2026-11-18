@@ -27,11 +27,19 @@ export function PaymentForm({
   total: number | null;
   disabled: boolean;
   disabledReason?: string;
-  buildInput: () => (CreateBookingInput & { agreementSessionId: string | null }) | null;
+  /** Attest wizard: agreementAcknowledged. DocuSign wizard: agreementSessionId. */
+  buildInput: () =>
+    | (CreateBookingInput & { agreementAcknowledged: boolean })
+    | (CreateBookingInput & { agreementSessionId: string | null })
+    | null;
   /** Moves the customer to the step that owns the refusal; false = stay here. */
   onRefused: (code: string | undefined, reason: string | undefined, message: string) => boolean;
-  /** Server refused because of the agreement (missing/unsigned/used/expired/mismatch). */
-  onAgreementRejected: (code: string) => void;
+  /**
+   * Server refused because of the agreement (missing/unsigned/used/expired/
+   * mismatch, or the mode changed). The DocuSign wizard passes it; the attest
+   * wizard (users-page's) doesn't, and the message alone is shown.
+   */
+  onAgreementRejected?: (code: string) => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -83,7 +91,7 @@ export function PaymentForm({
       if (agreementCode) {
         if (compensated) setNotCharged(message);
         else setError(message);
-        onAgreementRejected(agreementCode);
+        onAgreementRejected?.(agreementCode);
         return;
       }
       // The wizard shows the message on the step it moves to; this form

@@ -1,15 +1,21 @@
 import { getPricingConfig } from "@/lib/bookings/pricing";
 import { quickBooksConfigured } from "@/lib/quickbooks/config";
 import { docusignConfigured } from "@/lib/docusign/config";
+import { effectiveAgreementMode } from "@/lib/docusign/mode";
 import { BookingWizard } from "./_components/BookingWizard";
+import { AttestBookingWizard } from "./_components/AttestBookingWizard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Book a dumpster · Crazy Larry's" };
 
 export default async function BookPage() {
   const pricing = await getPricingConfig();
-  // The agreement is signed via a server-created envelope (no public PowerForm link).
-  const agreementsEnabled = docusignConfigured();
+  // Two keys (lib/docusign/mode): DocuSign only when the owner's setting says
+  // docusign AND this deployment has CL_DOCUSIGN_ENABLED=1 plus every
+  // DOCUSIGN_* variable. Otherwise attest: users-page's wizard and PowerForm,
+  // unchanged (AttestBookingWizard differs from it only in its name and the
+  // modal's import).
+  const mode = await effectiveAgreementMode();
 
   // Card data is POSTed from the browser straight to this Intuit endpoint;
   // the host is environment-dependent and is not a secret.
@@ -34,12 +40,21 @@ export default async function BookPage() {
           </span>
         </div>
       </div>
-      <BookingWizard
-        pricing={pricing}
-        agreementsEnabled={agreementsEnabled}
-        tokenizeUrl={tokenizeUrl}
-        paymentsReady={paymentsReady}
-      />
+      {mode === "docusign" ? (
+        <BookingWizard
+          pricing={pricing}
+          agreementsEnabled={docusignConfigured()}
+          tokenizeUrl={tokenizeUrl}
+          paymentsReady={paymentsReady}
+        />
+      ) : (
+        <AttestBookingWizard
+          pricing={pricing}
+          docusignUrl={process.env.NEXT_PUBLIC_DOCUSIGN_URL ?? null}
+          tokenizeUrl={tokenizeUrl}
+          paymentsReady={paymentsReady}
+        />
+      )}
     </main>
   );
 }

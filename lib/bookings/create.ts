@@ -202,7 +202,9 @@ export async function createBooking(
   const { data, error } = await service.rpc("create_booking", {
     ...params,
     p_profile_id: profileId,
-    p_agreement_session_id: opts.agreementSessionId ?? null,
+    // Attest mode passes no opts: the key is left out, so the RPC gets exactly
+    // users-page's arguments (the live default is null either way).
+    ...("agreementSessionId" in opts ? { p_agreement_session_id: opts.agreementSessionId ?? null } : {}),
   });
 
   if (error) throw bookingRpcError(error as { message: string; code?: string; hint?: string });

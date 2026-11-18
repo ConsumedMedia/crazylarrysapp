@@ -82,7 +82,7 @@ describe("agreement gate: refused before the quote or the card", () => {
     ["agreement_email_mismatch", "The agreement was signed with a different email than this booking. Please sign again with this email."],
   ])("%s", async (code, error) => {
     m.gate.mockResolvedValue({ ok: false, code, error });
-    const r = await payAndBook(base(), payment, "agr-1");
+    const r = await payAndBook(base(), payment, { mode: "docusign", sessionId: "agr-1" });
     expect(r).toEqual({ ok: false, code, error });
     expect(m.calls).not.toContain("rpc:booking_quote");
     expect(m.calls).not.toContain("charge");
@@ -90,26 +90,26 @@ describe("agreement gate: refused before the quote or the card", () => {
   });
 
   it("the gate gets the session and the NORMALIZED email, after validation and the cutoff", async () => {
-    await payAndBook({ ...base(), contactEmail: "  Gate.Test@crazylarrys.test " }, payment, "agr-1");
+    await payAndBook({ ...base(), contactEmail: "  Gate.Test@crazylarrys.test " }, payment, { mode: "docusign", sessionId: "agr-1" });
     expect(m.gate).toHaveBeenCalledWith("agr-1", "Gate.Test@crazylarrys.test");
     expect(m.calls.slice(0, 4)).toEqual(["rpc:booking_delivery_floor", "gate", "rpc:booking_quote", "charge"]);
   });
 
   it("no email: refused as no_email before the cutoff read or the gate (phone-only books by phone)", async () => {
-    const r = await payAndBook({ ...base(), contactEmail: "", contactPhone: "614-321-7654" }, payment, "agr-1");
+    const r = await payAndBook({ ...base(), contactEmail: "", contactPhone: "614-321-7654" }, payment, { mode: "docusign", sessionId: "agr-1" });
     expect(r).toMatchObject({ ok: false, code: "no_email" });
     expect(m.calls).toEqual([]);
   });
 
   it("bad input is still refused by validation first, with its own code", async () => {
-    const r = await payAndBook({ ...base(), size: "99yd" } as unknown as CreateBookingInput, payment, "agr-1");
+    const r = await payAndBook({ ...base(), size: "99yd" } as unknown as CreateBookingInput, payment, { mode: "docusign", sessionId: "agr-1" });
     expect(r).toMatchObject({ ok: false, code: "bad_size" });
     expect(m.calls).toEqual([]);
   });
 
   it("no session at all: whatever the gate says (agreement_missing), never a charge", async () => {
     m.gate.mockResolvedValue({ ok: false, code: "agreement_missing", error: "Please sign the rental agreement first." });
-    const r = await payAndBook(base(), payment, undefined);
+    const r = await payAndBook(base(), payment, { mode: "docusign", sessionId: undefined });
     expect(m.gate).toHaveBeenCalledWith(undefined, "Gate.Test@crazylarrys.test");
     expect(r.code).toBe("agreement_missing");
     expect(m.calls).not.toContain("charge");
@@ -118,7 +118,7 @@ describe("agreement gate: refused before the quote or the card", () => {
 
 describe("agreement passed", () => {
   it("createBooking gets the normalized params and the session", async () => {
-    const r = await payAndBook(base(), payment, "agr-1");
+    const r = await payAndBook(base(), payment, { mode: "docusign", sessionId: "agr-1" });
     expect(r).toEqual({ ok: true, bookingId: "bk-test" });
     expect(m.createBooking).toHaveBeenCalledWith(
       expect.objectContaining({ p_contact_email: "Gate.Test@crazylarrys.test", p_size: "20yd" }),
@@ -130,7 +130,7 @@ describe("agreement passed", () => {
     m.createBooking.mockRejectedValue(
       bookingRpcError({ message: "Rental agreement was already used for another booking", code: "P0001", hint: "agreement_used" }),
     );
-    const r = await payAndBook(base(), payment, "agr-1");
+    const r = await payAndBook(base(), payment, { mode: "docusign", sessionId: "agr-1" });
     expect(m.calls).toContain("refund");
     expect(r).toEqual({
       ok: false,
@@ -141,6 +141,24 @@ describe("agreement passed", () => {
     });
     expect(r.error).toContain("Please sign the agreement again.");
     expect(r.error).not.toContain("filled up");
+  });
+});
+
+describe("attest mode (the default): users-page's checkout, no gate", () => {
+  it("never calls the gate, even when it would refuse; createBooking gets the params and nothing else", async () => {
+    m.gate.mockResolvedValue({ ok: false, code: "agreement_missing", error: "x" });
+    const r = await payAndBook(base(), payment, { mode: "attest" });
+    expect(r).toEqual({ ok: true, bookingId: "bk-test" });
+    expect(m.gate).not.toHaveBeenCalled();
+    expect(m.calls.slice(0, 3)).toEqual(["rpc:booking_delivery_floor", "rpc:booking_quote", "charge"]);
+    expect(m.createBooking.mock.calls).toHaveLength(1);
+    expect(m.createBooking.mock.calls[0]).toHaveLength(1);
+  });
+
+  it("phone-only still books online (no no_email refusal)", async () => {
+    const r = await payAndBook({ ...base(), contactEmail: "", contactPhone: "614-321-7654" }, payment, { mode: "attest" });
+    expect(r).toEqual({ ok: true, bookingId: "bk-test" });
+    expect(m.gate).not.toHaveBeenCalled();
   });
 });
 

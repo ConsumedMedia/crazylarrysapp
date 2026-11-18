@@ -9,6 +9,12 @@ vi.mock("./actions", () => ({
   saveGlobalSettingsAction: vi.fn(),
   savePayLinkSettingsAction: vi.fn(),
   saveBookingCutoffAction: vi.fn(),
+  saveAgreementModeAction: vi.fn(),
+  checkDocusignAction: vi.fn(),
+}));
+vi.mock("@/lib/docusign/mode", async () => ({
+  ...(await import("@/lib/docusign/mode-shared")),
+  getAgreementStatus: async () => ({ setting: "attest", capability: { enabled: false, missing: [], ok: false }, effective: "attest" }),
 }));
 let cutoff: { cutoff_enabled: boolean; cutoff_time: string; updated_at: string | null } | null = {
   cutoff_enabled: false,
@@ -218,5 +224,18 @@ describe("/settings — Order cutoff", () => {
     const p = panel(await render());
     expect(p).toContain("couldn&#x27;t be read just now");
     expect(p).not.toContain('name="cutoff_time"');
+  });
+});
+
+describe("Settings: the rental agreement", () => {
+  it.each(["owner", "staff"] as const)("%s: the banner first, with the mode and why, and the panel", async (r) => {
+    role = r;
+    const html = await render();
+    expect(html.indexOf('data-testid="agreement-mode-banner"')).toBeGreaterThan(-1);
+    expect(html.indexOf('data-testid="agreement-mode-banner"')).toBeLessThan(html.indexOf(">Pricing<"));
+    expect(html).toContain("Online rental agreement: PowerForm and checkbox.");
+    expect(html).toContain('data-testid="agreement-mode-panel"');
+    expect(html).toContain("Check DocuSign");
+    expect(html.includes('name="agreement_mode"')).toBe(r === "owner");
   });
 });

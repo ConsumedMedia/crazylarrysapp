@@ -1,0 +1,675 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 1 size 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-6">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">Pick a dumpster size.
+<p className="mt-2 text-[15px] text-ink-2">Every size includes five days on site, one ton of weight, delivery and haul-away.
+<div className="grid gap-4 md:grid-cols-3">
+<div className="flex flex-col border-2 border-line-strong bg-surface">
+<div className="bg-ink px-4 py-3.5 text-white">
+<div className="text-[30px] font-black leading-none tracking-[-0.035em]">10
+<span className="text-[13px] font-bold tracking-[0.06em]"> YARD
+<div className="flex flex-1 flex-col gap-3 p-4">
+<div className="text-[32px] font-black leading-none tracking-[-0.035em]">$350.00
+<span className="ml-1.5 text-[12px] font-bold text-ink-2">flat · 5 days · 1 ton
+<dl className="flex flex-col gap-1.5 border-t border-line pt-3 text-[13px]">
+<div className="flex justify-between gap-2">
+<dt className="text-ink-2">Footprint
+<dd className="text-right font-bold">12 ft × 8 ft × 3.5 ft
+<div className="flex justify-between gap-2">
+<dt className="text-ink-2">Holds about
+<dd className="text-right font-bold">~3 pickup loads
+<p className="border-l-[3px] border-ink pl-2.5 text-[13px] text-ink-2" style={"borderColor":"var(--cl-line-strong)"}>One room gutted, a small roof, a garage cleanout.
+<button disabled=false className="mt-auto flex items-center justify-between bg-teal px-4 py-3 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50">Check dates 
+<span>→
+<div className="flex flex-col border-2 border-line-strong bg-surface">
+<div className="bg-ink px-4 py-3.5 text-white">
+<div className="text-[30px] font-black leading-none tracking-[-0.035em]">15
+<span className="text-[13px] font-bold tracking-[0.06em]"> YARD
+<div className="flex flex-1 flex-col gap-3 p-4">
+<div className="text-[32px] font-black leading-none tracking-[-0.035em]">$400.00
+<span className="ml-1.5 text-[12px] font-bold text-ink-2">flat · 5 days · 1 ton
+<dl className="flex flex-col gap-1.5 border-t border-line pt-3 text-[13px]">
+<div className="flex justify-between gap-2">
+<dt className="text-ink-2">Footprint
+<dd className="text-right font-bold">16 ft × 8 ft × 4 ft
+<div className="flex justify-between gap-2">
+<dt className="text-ink-2">Holds about
+<dd className="text-right font-bold">~4.5 pickup loads
+<p className="border-l-[3px] border-ink pl-2.5 text-[13px] text-ink-2" style={"borderColor":"var(--cl-line-strong)"}>A whole kitchen, flooring for a house, deck teardown.
+<button disabled=false className="mt-auto flex items-center justify-between bg-teal px-4 py-3 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50">Check dates 
+<span>→
+<div className="flex flex-col border-2 border-line-strong bg-surface">
+<div className="bg-ink px-4 py-3.5 text-white">
+<div className="text-[30px] font-black leading-none tracking-[-0.035em]">20
+<span className="text-[13px] font-bold tracking-[0.06em]"> YARD
+<div className="flex flex-1 flex-col gap-3 p-4">
+<div className="text-[32px] font-black leading-none tracking-[-0.035em]">$450.00
+<span className="ml-1.5 text-[12px] font-bold text-ink-2">flat · 5 days · 1 ton
+<dl className="flex flex-col gap-1.5 border-t border-line pt-3 text-[13px]">
+<div className="flex justify-between gap-2">
+<dt className="text-ink-2">Footprint
+<dd className="text-right font-bold">22 ft × 8 ft × 4.5 ft
+<div className="flex justify-between gap-2">
+<dt className="text-ink-2">Holds about
+<dd className="text-right font-bold">~6 pickup loads
+<p className="border-l-[3px] border-ink pl-2.5 text-[13px] text-ink-2" style={"borderColor":"var(--cl-line-strong)"}>Whole-house cleanout, additions, commercial jobs.
+<button disabled=false className="mt-auto flex items-center justify-between bg-teal px-4 py-3 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50">Check dates 
+<span>→"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 2 dates, none picked 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">When do you want it dropped?
+<p className="mt-2 text-[15px] text-ink-2">20 yard · $450.00 flat · five days on site. Grey days are booked out at this size.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<div className="border-2 border-line bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Reading the calendar
+<ul className="flex flex-col gap-2.5 text-[13px]">
+<li className="flex items-center gap-2.5">Open
+<span className="h-3.5 w-3.5 flex-none border-2 border-line bg-surface">
+<li className="flex items-center gap-2.5">Your drop-off / pickup
+<span className="h-3.5 w-3.5 flex-none bg-teal">
+<li className="flex items-center gap-2.5">On site
+<span className="h-3.5 w-3.5 flex-none bg-teal-tint">
+<li className="flex items-center gap-2.5">One or two left
+<span className="h-3.5 w-3.5 flex-none bg-orange-tint shadow-[inset_0_0_0_2px_var(--cl-orange)]">
+<li className="flex items-center gap-2.5">Booked out / closed
+<span className="h-3.5 w-3.5 flex-none bg-tint">
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Change size"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 2 dates, picked 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">When do you want it dropped?
+<p className="mt-2 text-[15px] text-ink-2">20 yard · $450.00 flat · five days on site. Grey days are booked out at this size.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<div className="border-2 border-line-strong bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-pink">Your rental
+<div className="flex flex-col gap-2 text-[14px]">
+<div className="flex justify-between">
+<span className="text-ink-2">Drop-off
+<span className="font-extrabold">Tue, Dec 1
+<div className="flex justify-between">
+<span className="text-ink-2">Pickup
+<span className="font-extrabold">Sun, Dec 6
+<div className="flex justify-between border-t-2 border-line-strong pt-2.5">
+<span className="text-ink-2">20 yd · 5 days
+<span className="cl-nums text-[18px] font-black">$450.00
+<button className="mt-3.5 flex w-full items-center justify-between bg-teal px-4 py-3.5 text-[14px] font-extrabold text-white hover:bg-teal-700">Continue to details 
+<span>→
+<div className="border-2 border-line bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Reading the calendar
+<ul className="flex flex-col gap-2.5 text-[13px]">
+<li className="flex items-center gap-2.5">Open
+<span className="h-3.5 w-3.5 flex-none border-2 border-line bg-surface">
+<li className="flex items-center gap-2.5">Your drop-off / pickup
+<span className="h-3.5 w-3.5 flex-none bg-teal">
+<li className="flex items-center gap-2.5">On site
+<span className="h-3.5 w-3.5 flex-none bg-teal-tint">
+<li className="flex items-center gap-2.5">One or two left
+<span className="h-3.5 w-3.5 flex-none bg-orange-tint shadow-[inset_0_0_0_2px_var(--cl-orange)]">
+<li className="flex items-center gap-2.5">Booked out / closed
+<span className="h-3.5 w-3.5 flex-none bg-tint">
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Change size"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 3 details, empty 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">Where is it going?
+<p className="mt-2 text-[15px] text-ink-2">The driver needs the address and where on the property to set it.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Delivery address
+<div className="flex flex-col gap-3.5 p-4">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Street address
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<div className="grid grid-cols-[2fr_1fr_1fr] gap-3">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">City
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">State
+<input value="OH" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">ZIP
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Where to set it
+<div className="flex flex-col gap-3.5 p-4">
+<p className="text-[12px] text-ink-2">All options are facing the house.
+<div className="grid gap-2 sm:grid-cols-2">
+<button className="border-2 p-3 text-left text-[13px] font-bold border-teal bg-teal-tint text-teal-tint-ink">Driveway
+<button className="border-2 p-3 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Street
+<button className="border-2 p-3 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Yard
+<button className="border-2 p-3 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Other — see notes
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Anything the driver should know
+<textarea value="" rows=3 className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Contact
+<div className="flex flex-col gap-3.5 p-4">
+<div className="grid gap-3 sm:grid-cols-2">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Name
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Company (optional)
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Mobile — for the driver's text
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Email — for the receipt
+<input value="" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex items-start gap-2.5 text-[13px] text-ink-2">
+<input type="checkbox" checked=false className="mt-0.5 h-4 w-4 flex-none accent-teal">
+<span>Text me automated updates about this delivery (confirmation, arrival, pickup).
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">What's going in it
+<div className="flex flex-col gap-3.5 p-4">
+<div className="grid gap-2 sm:grid-cols-3">
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Household junk
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Renovation debris
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Roofing
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Yard waste
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Other
+<div className="flex flex-col gap-4 self-start">
+<div className="border-2 border-line-strong bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-pink">Your booking so far
+<div className="flex flex-col gap-2 text-[14px]">
+<div className="flex justify-between">
+<span className="text-ink-2">Size
+<span className="font-extrabold">20 yard
+<div className="flex justify-between">
+<span className="text-ink-2">Drop-off
+<span className="font-extrabold">Tue, Dec 1
+<div className="flex justify-between">
+<span className="text-ink-2">Pickup
+<span className="font-extrabold">Sun, Dec 6
+<div className="flex justify-between">
+<span className="text-ink-2">Address
+<span className="font-extrabold">—
+<div className="flex justify-between border-t-2 border-line-strong pt-2.5">
+<span className="text-ink-2">Subtotal
+<span className="cl-nums text-[18px] font-black">$450.00
+<button disabled=true className="mt-3.5 flex w-full items-center justify-between bg-teal px-4 py-3.5 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50">Review & pay 
+<span>→
+<div className="border-2 border-line bg-surface-2 p-4 text-[13px] text-ink-2">Nothing is charged until the next screen, and nothing is held on the calendar until it is.
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Change the date"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 3 details, filled 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-transparent">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-tint text-ink-3">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-3">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">Where is it going?
+<p className="mt-2 text-[15px] text-ink-2">The driver needs the address and where on the property to set it.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Delivery address
+<div className="flex flex-col gap-3.5 p-4">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Street address
+<input value="1 Test St" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<div className="grid grid-cols-[2fr_1fr_1fr] gap-3">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">City
+<input value="Columbus" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">State
+<input value="OH" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">ZIP
+<input value="43215" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Where to set it
+<div className="flex flex-col gap-3.5 p-4">
+<p className="text-[12px] text-ink-2">All options are facing the house.
+<div className="grid gap-2 sm:grid-cols-2">
+<button className="border-2 p-3 text-left text-[13px] font-bold border-teal bg-teal-tint text-teal-tint-ink">Driveway
+<button className="border-2 p-3 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Street
+<button className="border-2 p-3 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Yard
+<button className="border-2 p-3 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Other — see notes
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Anything the driver should know
+<textarea value="Snap Test" rows=3 className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Contact
+<div className="flex flex-col gap-3.5 p-4">
+<div className="grid gap-3 sm:grid-cols-2">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Name
+<input value="614-321-7654" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Company (optional)
+<input value="snap@crazylarrys.test" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Mobile — for the driver's text
+<input value="Snap Co" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex flex-col gap-1.5">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-2">Email — for the receipt
+<input value="note 9" className="w-full border-2 border-line bg-bg px-3 py-2.5 text-[15px] text-ink">
+<label className="flex items-start gap-2.5 text-[13px] text-ink-2">
+<input type="checkbox" checked=false className="mt-0.5 h-4 w-4 flex-none accent-teal">
+<span>Text me automated updates about this delivery (confirmation, arrival, pickup).
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">What's going in it
+<div className="flex flex-col gap-3.5 p-4">
+<div className="grid gap-2 sm:grid-cols-3">
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Household junk
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Renovation debris
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Roofing
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Yard waste
+<button className="border-2 px-3 py-2.5 text-left text-[13px] font-bold border-line text-ink hover:border-ink">Other
+<div className="flex flex-col gap-4 self-start">
+<div className="border-2 border-line-strong bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-pink">Your booking so far
+<div className="flex flex-col gap-2 text-[14px]">
+<div className="flex justify-between">
+<span className="text-ink-2">Size
+<span className="font-extrabold">20 yard
+<div className="flex justify-between">
+<span className="text-ink-2">Drop-off
+<span className="font-extrabold">Tue, Dec 1
+<div className="flex justify-between">
+<span className="text-ink-2">Pickup
+<span className="font-extrabold">Sun, Dec 6
+<div className="flex justify-between">
+<span className="text-ink-2">Address
+<span className="font-extrabold">1 Test St, Columbus
+<div className="flex justify-between border-t-2 border-line-strong pt-2.5">
+<span className="text-ink-2">Subtotal
+<span className="cl-nums text-[18px] font-black">$450.00
+<button disabled=false className="mt-3.5 flex w-full items-center justify-between bg-teal px-4 py-3.5 text-[14px] font-extrabold text-white hover:bg-teal-700 disabled:opacity-50">Review & pay 
+<span>→
+<div className="border-2 border-line bg-surface-2 p-4 text-[13px] text-ink-2">Nothing is charged until the next screen, and nothing is held on the calendar until it is.
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Change the date"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 4 PowerForm modal open 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">Check it over and pay.
+<p className="mt-2 text-[15px] text-ink-2">Sign the rental agreement, pay the flat rate, and the can is on the route.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Your booking
+<div className="flex flex-col gap-3.5 p-4">
+<dl className="grid gap-4 sm:grid-cols-3">
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Size
+<div className="text-[15px] font-extrabold">20 yard
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Drop-off
+<div className="text-[15px] font-extrabold">Tue, Dec 1
+<div className="text-[13px] text-ink-2">Pickup Sun, Dec 6
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Address
+<div className="text-[15px] font-extrabold">1 Test St, Columbus
+<div className="text-[13px] text-ink-2">OH 43215
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Contact
+<div className="text-[15px] font-extrabold">614-321-7654
+<div className="text-[13px] text-ink-2">Snap Co
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Placement
+<div className="text-[15px] font-extrabold">Driveway
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Debris
+<div className="text-[15px] font-extrabold">Not specified
+<div className="border-2 border-line-strong bg-surface">
+<div className="flex items-center justify-between border-b-2 border-line-strong px-4 py-3">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">Rental agreement
+<span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-2">Not signed
+<div className="flex flex-wrap items-center gap-3 p-4">
+<p className="flex-1 text-[13px] text-ink-2">Larry's standard rental agreement, hosted by DocuSign. Open it, complete signing there, then check the box.
+<button className="border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">Read & sign
+<div className="flex flex-col gap-4 self-start">
+<div className="border-2 border-line-strong bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-pink">Total
+<div className="flex flex-col gap-2 text-[14px]">
+<div className="flex justify-between">
+<span className="text-ink-2">20 yd · 5 days · 1 ton
+<span className="cl-nums font-bold">$450.00
+<div className="flex justify-between">
+<span className="text-ink-2">Delivery & haul
+<span className="font-bold">Included
+<div className="flex justify-between">
+<span className="text-ink-2">Sales tax
+<span className="cl-nums font-bold">$32.63
+<div className="flex items-baseline justify-between border-t-2 border-line-strong pt-3">
+<span className="text-[15px] font-extrabold">Due now
+<span className="cl-nums text-[28px] font-black tracking-[-0.03em]">$482.63
+<p className="mt-3 text-[12px] text-ink-3">You're charged once, now. Nothing is held on the calendar until the payment clears.
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Back to details
+<div className="fixed inset-0 z-50 flex items-start justify-center bg-[rgba(6,8,11,0.72)] p-3 sm:p-12">
+<div className="flex max-h-full w-full max-w-3xl flex-col border-2 border-line-strong bg-surface shadow-2xl">
+<div className="flex items-center justify-between gap-3 border-b-2 border-line-strong px-4 py-3">
+<div className="min-w-0">
+<div className="text-[15px] font-extrabold tracking-[-0.01em]">Rental agreement · 20 yard
+<div className="mt-0.5 text-[11px] text-ink-3">Hosted by DocuSign
+<button className="border-2 border-line px-2.5 py-1 text-[12px] font-extrabold hover:border-ink">Close
+<div className="min-h-[320px] flex-1 bg-bg">
+<iframe src="https://powerform.test/agreement" title="Rental agreement" className="h-[52vh] w-full border-0">
+<div className="flex flex-col gap-2 border-t-2 border-line-strong p-4">
+<label className="flex items-start gap-2.5 text-[13px]">
+<input type="checkbox" checked=false className="mt-0.5">
+<span>I've read and completed the rental agreement in DocuSign.
+<span className="block text-[11px] text-ink-3">Larry's office confirms the signature against DocuSign before the can is dispatched.
+<button className="self-start bg-teal px-4 py-2 text-left text-[13px] font-extrabold text-white hover:bg-teal-700">Done"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 4 PowerForm modal ticked 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">Check it over and pay.
+<p className="mt-2 text-[15px] text-ink-2">Sign the rental agreement, pay the flat rate, and the can is on the route.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Your booking
+<div className="flex flex-col gap-3.5 p-4">
+<dl className="grid gap-4 sm:grid-cols-3">
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Size
+<div className="text-[15px] font-extrabold">20 yard
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Drop-off
+<div className="text-[15px] font-extrabold">Tue, Dec 1
+<div className="text-[13px] text-ink-2">Pickup Sun, Dec 6
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Address
+<div className="text-[15px] font-extrabold">1 Test St, Columbus
+<div className="text-[13px] text-ink-2">OH 43215
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Contact
+<div className="text-[15px] font-extrabold">614-321-7654
+<div className="text-[13px] text-ink-2">Snap Co
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Placement
+<div className="text-[15px] font-extrabold">Driveway
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Debris
+<div className="text-[15px] font-extrabold">Not specified
+<div className="border-2 border-line-strong bg-surface">
+<div className="flex items-center justify-between border-b-2 border-line-strong px-4 py-3">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">Rental agreement
+<span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-2">Acknowledged
+<div className="flex flex-wrap items-center gap-3 p-4">
+<p className="flex-1 text-[13px] text-ink-2">Larry's standard rental agreement, hosted by DocuSign. Open it, complete signing there, then check the box.
+<button className="border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">Read & sign
+<div className="flex flex-col gap-4 self-start">
+<div className="border-2 border-line-strong bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-pink">Total
+<div className="flex flex-col gap-2 text-[14px]">
+<div className="flex justify-between">
+<span className="text-ink-2">20 yd · 5 days · 1 ton
+<span className="cl-nums font-bold">$450.00
+<div className="flex justify-between">
+<span className="text-ink-2">Delivery & haul
+<span className="font-bold">Included
+<div className="flex justify-between">
+<span className="text-ink-2">Sales tax
+<span className="cl-nums font-bold">$32.63
+<div className="flex items-baseline justify-between border-t-2 border-line-strong pt-3">
+<span className="text-[15px] font-extrabold">Due now
+<span className="cl-nums text-[28px] font-black tracking-[-0.03em]">$482.63
+<p className="mt-3 text-[12px] text-ink-3">You're charged once, now. Nothing is held on the calendar until the payment clears.
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Back to details
+<div className="fixed inset-0 z-50 flex items-start justify-center bg-[rgba(6,8,11,0.72)] p-3 sm:p-12">
+<div className="flex max-h-full w-full max-w-3xl flex-col border-2 border-line-strong bg-surface shadow-2xl">
+<div className="flex items-center justify-between gap-3 border-b-2 border-line-strong px-4 py-3">
+<div className="min-w-0">
+<div className="text-[15px] font-extrabold tracking-[-0.01em]">Rental agreement · 20 yard
+<div className="mt-0.5 text-[11px] text-ink-3">Hosted by DocuSign
+<button className="border-2 border-line px-2.5 py-1 text-[12px] font-extrabold hover:border-ink">Close
+<div className="min-h-[320px] flex-1 bg-bg">
+<iframe src="https://powerform.test/agreement" title="Rental agreement" className="h-[52vh] w-full border-0">
+<div className="flex flex-col gap-2 border-t-2 border-line-strong p-4">
+<label className="flex items-start gap-2.5 text-[13px]">
+<input type="checkbox" checked=true className="mt-0.5">
+<span>I've read and completed the rental agreement in DocuSign.
+<span className="block text-[11px] text-ink-3">Larry's office confirms the signature against DocuSign before the can is dispatched.
+<button className="self-start bg-teal px-4 py-2 text-left text-[13px] font-extrabold text-white hover:bg-teal-700">Done"
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 4 payment props, acknowledged 1`] = `
+{
+  "disabled": false,
+  "disabledReason": undefined,
+  "submits": {
+    "agreementAcknowledged": true,
+    "city": "Columbus",
+    "companyName": "snap@crazylarrys.test",
+    "contactEmail": "note 9",
+    "contactName": "614-321-7654",
+    "contactPhone": "Snap Co",
+    "debrisType": undefined,
+    "deliveryDate": "2026-12-01",
+    "placementNotes": "Placement: Driveway — Snap Test",
+    "rentalDays": 5,
+    "size": "20yd",
+    "smsConsent": false,
+    "state": "OH",
+    "street": "1 Test St",
+    "zip": "43215",
+  },
+  "tokenizeUrl": "https://tokenize.test/tokens",
+  "total": 482.63,
+}
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 4 payment props, not signed 1`] = `
+{
+  "disabled": true,
+  "disabledReason": "Complete the rental agreement above to continue.",
+  "submits": {
+    "agreementAcknowledged": false,
+    "city": "Columbus",
+    "companyName": "snap@crazylarrys.test",
+    "contactEmail": "note 9",
+    "contactName": "614-321-7654",
+    "contactPhone": "Snap Co",
+    "debrisType": undefined,
+    "deliveryDate": "2026-12-01",
+    "placementNotes": "Placement: Driveway — Snap Test",
+    "rentalDays": 5,
+    "size": "20yd",
+    "smsConsent": false,
+    "state": "OH",
+    "street": "1 Test St",
+    "zip": "43215",
+  },
+  "tokenizeUrl": "https://tokenize.test/tokens",
+  "total": 482.63,
+}
+`;
+
+exports[`/book attest wizard (users-page's BookingWizard) > every step, the PowerForm modal, and what it submits > 4 review, not signed 1`] = `
+"<div className="flex flex-col">
+<div className="flex border-y border-line">
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">1
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Size
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">2
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Dates
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-teal">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-teal text-white">3
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Details
+<div className="flex flex-1 items-center gap-2 border-b-4 px-1 py-2.5 border-pink">
+<span className="grid h-5 w-5 flex-none place-items-center text-[11px] font-extrabold bg-pink text-white">4
+<span className="truncate text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink">Review & pay
+<div className="py-6">
+<div className="flex flex-col gap-5">
+<div>
+<h1 className="text-[30px] font-black leading-none tracking-[-0.035em]">Check it over and pay.
+<p className="mt-2 text-[15px] text-ink-2">Sign the rental agreement, pay the flat rate, and the can is on the route.
+<div className="grid gap-4 lg:grid-cols-[1.8fr_1fr]">
+<div className="flex flex-col gap-4">
+<section className="border-2 border-line-strong bg-surface">
+<div className="border-b-2 border-line-strong px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.16em]">Your booking
+<div className="flex flex-col gap-3.5 p-4">
+<dl className="grid gap-4 sm:grid-cols-3">
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Size
+<div className="text-[15px] font-extrabold">20 yard
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Drop-off
+<div className="text-[15px] font-extrabold">Tue, Dec 1
+<div className="text-[13px] text-ink-2">Pickup Sun, Dec 6
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Address
+<div className="text-[15px] font-extrabold">1 Test St, Columbus
+<div className="text-[13px] text-ink-2">OH 43215
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Contact
+<div className="text-[15px] font-extrabold">614-321-7654
+<div className="text-[13px] text-ink-2">Snap Co
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Placement
+<div className="text-[15px] font-extrabold">Driveway
+<div>
+<div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-3">Debris
+<div className="text-[15px] font-extrabold">Not specified
+<div className="border-2 border-line-strong bg-surface">
+<div className="flex items-center justify-between border-b-2 border-line-strong px-4 py-3">
+<span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">Rental agreement
+<span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-ink-2">Not signed
+<div className="flex flex-wrap items-center gap-3 p-4">
+<p className="flex-1 text-[13px] text-ink-2">Larry's standard rental agreement, hosted by DocuSign. Open it, complete signing there, then check the box.
+<button className="border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">Read & sign
+<div className="flex flex-col gap-4 self-start">
+<div className="border-2 border-line-strong bg-surface p-4">
+<div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-pink">Total
+<div className="flex flex-col gap-2 text-[14px]">
+<div className="flex justify-between">
+<span className="text-ink-2">20 yd · 5 days · 1 ton
+<span className="cl-nums font-bold">$450.00
+<div className="flex justify-between">
+<span className="text-ink-2">Delivery & haul
+<span className="font-bold">Included
+<div className="flex justify-between">
+<span className="text-ink-2">Sales tax
+<span className="cl-nums font-bold">$32.63
+<div className="flex items-baseline justify-between border-t-2 border-line-strong pt-3">
+<span className="text-[15px] font-extrabold">Due now
+<span className="cl-nums text-[28px] font-black tracking-[-0.03em]">$482.63
+<p className="mt-3 text-[12px] text-ink-3">You're charged once, now. Nothing is held on the calendar until the payment clears.
+<button className="self-start border-2 border-ink px-4 py-2.5 text-[13px] font-extrabold hover:bg-tint">← Back to details"
+`;

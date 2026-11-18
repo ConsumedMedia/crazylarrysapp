@@ -27,11 +27,10 @@ vi.mock("./create", async (importOriginal) => ({
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => ({ rpc: m.rpc }) }));
 vi.mock("@/lib/quickbooks/invoices", () => ({ syncInvoiceForBooking: vi.fn() }));
 vi.mock("@/lib/notifications/notify", () => ({ notifyBookingConfirmation: vi.fn() }));
-// DocuSign's checkout gate (a read of the verified session) passes here; its own
-// refusals are covered by lib/bookings/checkout-agreement.test.ts.
-vi.mock("@/lib/docusign/agreement", () => ({ checkAgreementForCheckout: async () => ({ ok: true }) }));
 
 import { payAndBook, compensationMessage } from "./checkout";
+// Attest mode (the default): users-page's checkout, unchanged. DocuSign mode: checkout-agreement.test.ts.
+const ATTEST = { mode: "attest" } as const;
 import { bookingRpcError } from "./create";
 import { refusalStep } from "@/app/(customer)/book/_components/refusal-step";
 
@@ -53,7 +52,7 @@ const base = {
   contactEmail: "checkout-cutoff@example.com",
 } as Omit<CreateBookingInput, "deliveryDate">;
 const payment = { token: "tok-test", idempotencyKey: "idem-test" };
-const book = (deliveryDate: string) => payAndBook({ ...base, deliveryDate } as CreateBookingInput, payment, "agr-test");
+const book = (deliveryDate: string) => payAndBook({ ...base, deliveryDate } as CreateBookingInput, payment, ATTEST);
 
 let floorReply: () => Promise<{ data: unknown; error: unknown }>;
 
@@ -113,7 +112,7 @@ describe("payAndBook and the order cutoff", () => {
   });
 
   it("other step-0 refusals still come first and never read the floor", async () => {
-    const r = await payAndBook({ ...base, deliveryDate: "2026-11-12", contactEmail: "nope" } as CreateBookingInput, payment, "agr-test");
+    const r = await payAndBook({ ...base, deliveryDate: "2026-11-12", contactEmail: "nope" } as CreateBookingInput, payment, ATTEST);
     expect(r.code).toBe("bad_email");
     expect(m.rpc).not.toHaveBeenCalled();
   });

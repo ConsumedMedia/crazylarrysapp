@@ -8,6 +8,9 @@ import { QuickBooksPanel } from "./_components/QuickBooksPanel";
 import { PayLinkSettingsPanel } from "./_components/PayLinkSettings";
 import { BookingCutoffPanel } from "./_components/BookingCutoffSettings";
 import { getBookingCutoffSettings } from "@/lib/bookings/cutoff-settings";
+import { AgreementModePanel } from "./_components/AgreementModeSettings";
+import { AgreementModeBanner } from "./_components/AgreementModeBanner";
+import { getAgreementStatus } from "@/lib/docusign/mode";
 import {
   envWarnings,
   getAlertRecipientStatus,
@@ -29,6 +32,7 @@ export default async function SettingsPage({
   const config = await getPricingConfig();
   const payLinks = await getPayLinkSettings();
   const cutoff = await getBookingCutoffSettings();
+  const agreement = await getAgreementStatus();
   const [live, recipient, candidates] = await Promise.all([
     getLiveCounts(),
     getAlertRecipientStatus(payLinks.staff_alert_user_id),
@@ -37,6 +41,8 @@ export default async function SettingsPage({
 
   return (
     <div className="flex max-w-3xl flex-col gap-4 p-4 md:p-7">
+      <AgreementModeBanner status={agreement} />
+
       <div>
         <h1 className="text-[21px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           Pricing
@@ -80,6 +86,8 @@ export default async function SettingsPage({
       />
 
       <BookingCutoffPanel settings={cutoff} canEdit={canEdit} />
+
+      <AgreementModePanel status={agreement} canEdit={canEdit} />
 
       {canEdit && <QuickBooksPanel notice={searchParams.qb} />}
     </div>

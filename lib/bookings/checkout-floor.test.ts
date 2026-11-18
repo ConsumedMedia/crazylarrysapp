@@ -29,11 +29,10 @@ vi.mock("./create", async (importOriginal) => ({
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => ({ rpc: m.rpc }) }));
 vi.mock("@/lib/quickbooks/invoices", () => ({ syncInvoiceForBooking: vi.fn() }));
 vi.mock("@/lib/notifications/notify", () => ({ notifyBookingConfirmation: vi.fn() }));
-// DocuSign's checkout gate (a read of the verified session) passes here; its own
-// refusals are covered by lib/bookings/checkout-agreement.test.ts.
-vi.mock("@/lib/docusign/agreement", () => ({ checkAgreementForCheckout: async () => ({ ok: true }) }));
 
 import { payAndBook } from "./checkout";
+// Attest mode (the default): users-page's checkout, unchanged. DocuSign mode: checkout-agreement.test.ts.
+const ATTEST = { mode: "attest" } as const;
 import { BookingCreateError } from "./create";
 
 const base: CreateBookingInput = {
@@ -93,7 +92,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook date floor with the process in 
   it.each(CASES)("%s: the yard's today is refused with no charge", async (_label, at, today) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(at));
-    const res = await payAndBook({ ...base, deliveryDate: today }, payment, "agr-test");
+    const res = await payAndBook({ ...base, deliveryDate: today }, payment, ATTEST);
     expect(res).toEqual({ ok: false, code: "past_date", error: "Delivery must be tomorrow or later." });
     expect(m.createCharge).not.toHaveBeenCalled();
     expect(m.refundCharge).not.toHaveBeenCalled();
@@ -104,7 +103,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook date floor with the process in 
   it.each(CASES)("%s: the yard's tomorrow is charged and booked", async (_label, at, _today, tomorrow) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(at));
-    const res = await payAndBook({ ...base, deliveryDate: tomorrow }, payment, "agr-test");
+    const res = await payAndBook({ ...base, deliveryDate: tomorrow }, payment, ATTEST);
     expect(res).toEqual({ ok: true, bookingId: "bk-test" });
     expect(m.createCharge).toHaveBeenCalledTimes(1);
     expect(m.refundCharge).not.toHaveBeenCalled();
@@ -114,7 +113,7 @@ describe.each(["UTC", "Asia/Tokyo"])("payAndBook date floor with the process in 
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-30T01:00:00Z")); // 9 PM EDT Oct 29
     m.createBooking.mockRejectedValueOnce(new BookingCreateError("That date is no longer available.", "unavailable"));
-    const res = await payAndBook({ ...base, deliveryDate: "2026-10-30" }, payment, "agr-test");
+    const res = await payAndBook({ ...base, deliveryDate: "2026-10-30" }, payment, ATTEST);
     expect(m.createCharge).toHaveBeenCalledTimes(1);
     expect(m.refundCharge).toHaveBeenCalledWith({ chargeId: "ch-test", amount: "450.00" });
     expect(res).toMatchObject({ ok: false, code: "compensated", refunded: true });

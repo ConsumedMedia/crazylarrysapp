@@ -792,8 +792,15 @@ export function BookingWizard({
                   }
                   buildInput={buildBookingInput}
                   onRefused={handleRefused}
-                  onAgreementRejected={() =>
-                    setAgreement({ sessionId: null, status: "error", message: "Please sign the rental agreement again." })
+                  onAgreementRejected={(code) =>
+                    setAgreement({
+                      sessionId: null,
+                      status: "error",
+                      message:
+                        code === "agreement_mode_changed"
+                          ? "Please reload this page to continue."
+                          : "Please sign the rental agreement again.",
+                    })
                   }
                 />
               </div>

@@ -1,8 +1,8 @@
 "use client";
 
-// The PowerForm-and-checkbox agreement step /pay uses today, moved here
-// unchanged when /book switched AgreementModal to DocuSign embedded signing
-// (docusign-port, task 3). Task 5 brings /pay onto DocuSign as well.
+// The PowerForm-and-checkbox agreement step: users-page's AgreementModal,
+// unchanged but for its name. Attest mode uses it on /book
+// (AttestBookingWizard) and on /pay; AgreementModal is DocuSign signing.
 
 import { useEffect } from "react";
 

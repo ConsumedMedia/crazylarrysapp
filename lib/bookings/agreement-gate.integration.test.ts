@@ -114,7 +114,7 @@ describe.skipIf(!RUN)("checkout agreement gate — refuses before any card charg
   });
 
   it("1. no agreement session -> refused, no charge", async () => {
-    const r = await payAndBook(input("gate-a@example.com", 0), PAYMENT, null);
+    const r = await payAndBook(input("gate-a@example.com", 0), PAYMENT, { mode: "docusign", sessionId: null });
     console.log("no session           ->", r.code, "|", r.error, "| createCharge calls:", createCharge.mock.calls.length);
     expect(r.ok).toBe(false);
     expect(r.code).toBe("agreement_missing");
@@ -123,7 +123,7 @@ describe.skipIf(!RUN)("checkout agreement gate — refuses before any card charg
 
   it("2. unsigned session (envelope sent, not completed) -> refused, no charge", async () => {
     const s = await session("sent", "gate-b@example.com");
-    const r = await payAndBook(input("gate-b@example.com", 0), PAYMENT, s);
+    const r = await payAndBook(input("gate-b@example.com", 0), PAYMENT, { mode: "docusign", sessionId: s });
     console.log("unsigned session     ->", r.code, "|", r.error, "| createCharge calls:", createCharge.mock.calls.length);
     expect(r.code).toBe("agreement_incomplete");
     expect(createCharge).not.toHaveBeenCalled();
@@ -131,7 +131,7 @@ describe.skipIf(!RUN)("checkout agreement gate — refuses before any card charg
 
   it("3. completed session used with a different email -> refused, no charge", async () => {
     const s = await session("completed", "gate-signer@example.com");
-    const r = await payAndBook(input("someone-else@example.com", 0), PAYMENT, s);
+    const r = await payAndBook(input("someone-else@example.com", 0), PAYMENT, { mode: "docusign", sessionId: s });
     console.log("email mismatch       ->", r.code, "|", r.error, "| createCharge calls:", createCharge.mock.calls.length);
     expect(r.code).toBe("agreement_email_mismatch");
     expect(createCharge).not.toHaveBeenCalled();
@@ -139,7 +139,7 @@ describe.skipIf(!RUN)("checkout agreement gate — refuses before any card charg
 
   it("4. completed session: first checkout books + consumes it; reusing it is refused, no second charge", async () => {
     const s = await session("completed", "gate-d@example.com");
-    const first = await payAndBook(input("Gate-D@Example.com", 20), PAYMENT, s);
+    const first = await payAndBook(input("Gate-D@Example.com", 20), PAYMENT, { mode: "docusign", sessionId: s });
     const { data: b } = await service
       .from("bookings")
       .select("id, docusign_status, docusign_envelope_id, docusign_completed_at")
@@ -154,7 +154,7 @@ describe.skipIf(!RUN)("checkout agreement gate — refuses before any card charg
     expect(sess?.consumed_booking_id).toBe(first.bookingId);
 
     createCharge.mockClear();
-    const reuse = await payAndBook(input("gate-d@example.com", 40), PAYMENT, s);
+    const reuse = await payAndBook(input("gate-d@example.com", 40), PAYMENT, { mode: "docusign", sessionId: s });
     console.log("already-consumed     ->", reuse.code, "|", reuse.error, "| createCharge calls:", createCharge.mock.calls.length);
     expect(reuse.code).toBe("agreement_used");
     expect(createCharge).not.toHaveBeenCalled();
@@ -162,7 +162,7 @@ describe.skipIf(!RUN)("checkout agreement gate — refuses before any card charg
 
   it("5. missing email on an online checkout -> refused, no charge", async () => {
     const s = await session("completed", "gate-e@example.com");
-    const r = await payAndBook({ ...input("gate-e@example.com", 0), contactEmail: undefined, contactPhone: "6145550100" }, PAYMENT, s);
+    const r = await payAndBook({ ...input("gate-e@example.com", 0), contactEmail: undefined, contactPhone: "6145550100" }, PAYMENT, { mode: "docusign", sessionId: s });
     console.log("no email             ->", r.code, "| createCharge calls:", createCharge.mock.calls.length);
     expect(r.code).toBe("no_email");
     expect(createCharge).not.toHaveBeenCalled();

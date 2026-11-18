@@ -67,10 +67,13 @@ export function compensationMessage(reason: string, refundOk: boolean): string {
  *      are used from here on. The database enforces the cutoff again with a
  *      10-minute grace, so it never refuses after the charge a day this
  *      check approved moments earlier.
- *      Then the rental agreement gate: an email is required, and the DocuSign
- *      agreement session must be server-verified complete, unused, unexpired
- *      and signed with this booking's email. Refused here BEFORE any charge;
- *      create_booking re-checks under its lock and consumes the session.
+ *      Then, in DocuSign mode only, the rental agreement gate: an email is
+ *      required, and the DocuSign agreement session must be server-verified
+ *      complete, unused, unexpired and signed with this booking's email.
+ *      Refused here BEFORE any charge; create_booking re-checks under its
+ *      lock and consumes the session. In attest mode (the default) step 0 is
+ *      exactly users-page's: no email requirement, no gate, and create_booking
+ *      gets no session (the action checks the PowerForm checkbox).
  *   1. authoritative quote (server-side, never trust the client amount)
  *   2. charge the tokenized card
  *      └─ declined  -> record_payment_attempt('declined'), no booking, stop
@@ -80,15 +83,24 @@ export function compensationMessage(reason: string, refundOk: boolean): string {
  *   4. record_payment (invoices row + bookings.payment_status='paid')
  *   5. best-effort QBO invoice sync (cron retries on failure)
  */
+/**
+ * Which agreement this checkout runs under. Required, never defaulted: the
+ * action decides it from effectiveAgreementMode() on every request.
+ */
+export type CheckoutAgreement =
+  | { mode: "attest" }
+  | { mode: "docusign"; sessionId: string | null | undefined };
+
 export async function payAndBook(
   input: CreateBookingInput,
   payment: { token: string; idempotencyKey: string },
-  agreementSessionId: string | null | undefined,
+  agreement: CheckoutAgreement,
 ): Promise<CheckoutResult> {
   // ---- 0. validate, before the card is touched ---------------------------
-  // No database first, then the cutoff (one read), then the agreement (one
-  // read of the session DocuSign verified on return) — every refusal here
-  // happens before any charge.
+  // No database first, then the cutoff (one read), then in DocuSign mode the
+  // agreement (one read of the session DocuSign verified on return) — every
+  // refusal here happens before any charge.
+  const docusign = agreement.mode === "docusign";
   let params;
   try {
     params = normalizeBookingInput(input);
@@ -98,7 +110,7 @@ export async function payAndBook(
     }
     throw e;
   }
-  if (!params.p_contact_email) {
+  if (docusign && !params.p_contact_email) {
     return {
       ok: false,
       code: "no_email",
@@ -109,9 +121,11 @@ export async function payAndBook(
   if (isClosedByCutoff(params.p_delivery_date, floor)) {
     return { ok: false, code: "after_cutoff", error: cutoffClosedMessage(floor) };
   }
-  const agreement = await checkAgreementForCheckout(agreementSessionId, params.p_contact_email);
-  if (!agreement.ok) {
-    return { ok: false, code: agreement.code, error: agreement.error };
+  if (docusign) {
+    const gate = await checkAgreementForCheckout(agreement.sessionId, params.p_contact_email);
+    if (!gate.ok) {
+      return { ok: false, code: gate.code, error: gate.error };
+    }
   }
 
   const service = createServiceClient();
@@ -166,7 +180,9 @@ export async function payAndBook(
   // ---- 3. create the booking atomically -------------------------------
   let bookingId: string;
   try {
-    ({ bookingId } = await createBooking(params, { agreementSessionId }));
+    ({ bookingId } = docusign
+      ? await createBooking(params, { agreementSessionId: agreement.sessionId })
+      : await createBooking(params));
   } catch (e) {
     // Money is captured but there's no booking — compensate immediately.
     const reason = e instanceof BookingCreateError ? e.code : "error";

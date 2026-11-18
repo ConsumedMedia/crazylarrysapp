@@ -6,7 +6,10 @@ import {
   updatePricingSettings,
 } from "@/lib/bookings/pricing";
 import { isDumpsterSize } from "@/lib/dumpsters/state-machine";
-import { NotAuthorizedError } from "@/lib/auth/requireStaff";
+import { NotAuthorizedError, assertStaff } from "@/lib/auth/requireStaff";
+import { parseAgreementModeForm, saveAgreementMode } from "@/lib/docusign/mode-settings";
+import { capabilityGap, docusignCapability } from "@/lib/docusign/mode";
+import { runDocusignPreflight, type PreflightResult } from "@/lib/docusign/preflight";
 import { parsePayLinkSettingsForm, savePayLinkSettings } from "@/lib/pay-links/settings";
 import { parseCutoffSettingsForm, saveBookingCutoffSettings } from "@/lib/bookings/cutoff-settings";
 import { formatCutoffTime } from "@/lib/bookings/cutoff-shared";
@@ -64,6 +67,50 @@ export async function saveBookingCutoffAction(
     };
   } catch (e) {
     return toState(e);
+  }
+}
+
+export async function saveAgreementModeAction(
+  _prev: SettingsState,
+  formData: FormData,
+): Promise<SettingsState> {
+  const parsed = parseAgreementModeForm(formData);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
+  try {
+    await saveAgreementMode(parsed.value);
+    revalidatePath("/settings");
+    if (parsed.value === "attest") {
+      return { ok: true, message: "Saved: /book uses the PowerForm and checkbox." };
+    }
+    const cap = docusignCapability();
+    return {
+      ok: true,
+      message: cap.ok
+        ? "Saved: /book uses DocuSign on this deployment now."
+        : `Saved as DocuSign, but this deployment isn't set up for it (${capabilityGap(cap)}), so /book here keeps the PowerForm. Any deployment that is set up switches now: Preview and Production share this setting.`,
+    };
+  } catch (e) {
+    return toState(e);
+  }
+}
+
+export interface PreflightState {
+  ran: boolean;
+  error?: string;
+  result?: PreflightResult;
+}
+
+/** Staff-only "Check DocuSign": read-only against DocuSign, any mode. */
+export async function checkDocusignAction(): Promise<PreflightState> {
+  try {
+    await assertStaff();
+  } catch (e) {
+    return { ran: false, error: e instanceof NotAuthorizedError ? e.message : "Not allowed." };
+  }
+  try {
+    return { ran: true, result: await runDocusignPreflight() };
+  } catch {
+    return { ran: true, error: "The check itself failed. Try again." };
   }
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AttestAgreementModal } from "./AttestAgreementModal";
+import { AttestAgreementModal as AgreementModal } from "@/app/(customer)/book/_components/AttestAgreementModal";
 import { CardFields, useCardToken } from "@/lib/payments/CardFields";
 import { payLinkAction } from "./actions";
 
@@ -130,7 +130,7 @@ export function PayLinkForm({
         </div>
       </div>
 
-      <AttestAgreementModal
+      <AgreementModal
         open={agreementOpen}
         onClose={() => setAgreementOpen(false)}
         onAcknowledge={setAgreed}
