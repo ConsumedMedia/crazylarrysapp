@@ -7,6 +7,7 @@ import {
   verifyAgreementSession,
 } from "@/lib/docusign/agreement";
 import { effectiveAgreementMode, MODE_CHANGED } from "@/lib/docusign/mode";
+import { requestReturnOrigin } from "@/lib/docusign/return-origin";
 
 export type { CheckoutResult };
 
@@ -90,6 +91,8 @@ export async function startAgreementAction(input: {
     signerName: input.contactName,
     signerEmail: input.contactEmail,
     existingSessionId: input.existingSessionId,
+    // Back to this request's own (allowlisted) origin, never one the browser names.
+    returnOrigin: requestReturnOrigin(),
   });
 }
 

@@ -5,7 +5,7 @@
  * under the other mode is refused before anything is touched, and no
  * envelope is ever started in attest mode. Mode, checkout and DocuSign are fakes.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const m = vi.hoisted(() => ({
   mode: "attest" as "attest" | "docusign",
@@ -18,6 +18,8 @@ vi.mock("@/lib/docusign/agreement", () => ({
   startAgreementSession: (...a: unknown[]) => m.start(...a),
   verifyAgreementSession: (...a: unknown[]) => m.verify(...a),
 }));
+const req = vi.hoisted(() => ({ headers: {} as Record<string, string> }));
+vi.mock("next/headers", () => ({ headers: () => ({ get: (k: string) => req.headers[k.toLowerCase()] ?? null }) }));
 vi.mock("@/lib/docusign/mode", async () => ({
   ...(await vi.importActual<typeof import("@/lib/docusign/mode-shared")>("@/lib/docusign/mode-shared")),
   effectiveAgreementMode: async () => m.mode,
@@ -39,7 +41,20 @@ const booking = {
 } as CreateBookingInput;
 const pay = { paymentToken: "tok", idempotencyKey: "idem" };
 
+// Production as on Vercel (Preview included): NODE_ENV production, the site
+// URL is production's domain, this deployment's branch URL is set.
+const PROD = "https://app.crazylarrysdumpsters.com";
+const BRANCH = "crazylarrysapp-git-docusign-port-team.vercel.app";
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 beforeEach(() => {
+  req.headers = {};
+  vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("NEXT_PUBLIC_SITE_URL", PROD);
+  vi.stubEnv("VERCEL_BRANCH_URL", BRANCH);
+  vi.stubEnv("VERCEL_URL", undefined);
   m.payAndBook.mockReset().mockResolvedValue({ ok: true, bookingId: "bk" });
   m.start.mockReset().mockResolvedValue({ ok: true, sessionId: "s1", signingUrl: "https://x" });
   m.verify.mockReset().mockResolvedValue({ ok: true, signerEmail: "a@b.c" });
@@ -99,7 +114,40 @@ describe("docusign mode", () => {
   it("starting and verifying reach DocuSign", async () => {
     await startAgreementAction({ contactName: "A", contactEmail: "a@b.c", existingSessionId: null });
     await verifyAgreementAction("s1");
-    expect(m.start).toHaveBeenCalledWith({ signerName: "A", signerEmail: "a@b.c", existingSessionId: null });
+    expect(m.start).toHaveBeenCalledWith({ signerName: "A", signerEmail: "a@b.c", existingSessionId: null, returnOrigin: PROD });
     expect(m.verify).toHaveBeenCalledWith("s1");
+  });
+});
+
+describe("docusign mode: the return URL's origin is this request's allowlisted host", () => {
+  beforeEach(() => {
+    m.mode = "docusign";
+  });
+  const start = () => startAgreementAction({ contactName: "A", contactEmail: "a@b.c", existingSessionId: null });
+
+  it("allowed host (the Preview branch URL): returns there, not to production", async () => {
+    req.headers = { host: BRANCH };
+    await start();
+    expect(m.start).toHaveBeenCalledWith(expect.objectContaining({ returnOrigin: `https://${BRANCH}` }));
+  });
+  it("spoofed host: NEXT_PUBLIC_SITE_URL", async () => {
+    req.headers = { "x-forwarded-host": "evil.example", host: BRANCH };
+    await start();
+    expect(m.start).toHaveBeenCalledWith(expect.objectContaining({ returnOrigin: PROD }));
+  });
+  it("localhost in production: NEXT_PUBLIC_SITE_URL", async () => {
+    req.headers = { host: "localhost:3000" };
+    await start();
+    expect(m.start).toHaveBeenCalledWith(expect.objectContaining({ returnOrigin: PROD }));
+  });
+  it("missing header: NEXT_PUBLIC_SITE_URL", async () => {
+    await start();
+    expect(m.start).toHaveBeenCalledWith(expect.objectContaining({ returnOrigin: PROD }));
+  });
+  it("attest mode never reads it or starts anything", async () => {
+    m.mode = "attest";
+    req.headers = { host: BRANCH };
+    await start();
+    expect(m.start).not.toHaveBeenCalled();
   });
 });

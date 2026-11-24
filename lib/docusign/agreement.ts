@@ -1,6 +1,7 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { docusignConfigured } from "./config";
+import { fallbackReturnOrigin } from "./return-origin";
 import {
   createAgreementEnvelope,
   createSigningUrl,
@@ -49,12 +50,13 @@ export function normalizeEmail(e: string): string {
   return e.trim().toLowerCase();
 }
 
-function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
-}
-
-export function agreementReturnUrl(sessionId: string): string {
-  return `${siteUrl()}/book/agreement/return?session=${encodeURIComponent(sessionId)}`;
+/**
+ * `origin` is the requester's allowlisted origin (requestReturnOrigin in
+ * ./return-origin), so the signer comes back to the same origin as the /book
+ * page that framed the signing. Without one: NEXT_PUBLIC_SITE_URL, as before.
+ */
+export function agreementReturnUrl(sessionId: string, origin: string = fallbackReturnOrigin()): string {
+  return `${origin.replace(/\/+$/, "")}/book/agreement/return?session=${encodeURIComponent(sessionId)}`;
 }
 
 interface SessionRow {
@@ -93,6 +95,8 @@ export async function startAgreementSession(opts: {
   signerName: string;
   signerEmail: string;
   existingSessionId?: string | null;
+  /** The requester's allowlisted origin for the return URL (requestReturnOrigin). */
+  returnOrigin?: string;
 }): Promise<
   | { ok: true; sessionId: string; signingUrl: string; alreadySigned?: false }
   | { ok: true; sessionId: string; signingUrl: null; alreadySigned: true }
@@ -145,7 +149,7 @@ export async function startAgreementSession(opts: {
           sessionId: s.id,
           signerName: s.signer_name,
           signerEmail: s.signer_email,
-          returnUrl: agreementReturnUrl(s.id),
+          returnUrl: agreementReturnUrl(s.id, opts.returnOrigin),
         });
         return { ok: true, sessionId: s.id, signingUrl };
       } catch (e) {
@@ -187,7 +191,7 @@ export async function startAgreementSession(opts: {
       sessionId,
       signerName: name,
       signerEmail: email,
-      returnUrl: agreementReturnUrl(sessionId),
+      returnUrl: agreementReturnUrl(sessionId, opts.returnOrigin),
     });
     return { ok: true, sessionId, signingUrl };
   } catch (e) {
